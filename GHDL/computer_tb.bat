@@ -1,0 +1,1 @@
+g computer_tb 100ns

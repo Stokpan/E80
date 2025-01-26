@@ -1,0 +1,55 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Thu Feb 06 15:20:13 2025
+[*]
+[dumpfile] "alu_tb.ghw"
+[dumpfile_mtime] "Thu Feb 06 15:19:00 2025"
+[dumpfile_size] 2784
+[savefile] "alu_tb.gtkw"
+[timestart] 0
+[size] 1861 1177
+[pos] -1 -1
+*-16.677013 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.alu_tb.
+[treeopen] top.alu_tb.alu.
+[sst_width] 43
+[signals_width] 239
+[sst_expanded] 0
+[sst_vpaned_height] 357
+@28
+[color] 1
++{FlagsIn} #{top.alu_tb.flagsin[7:0]} top.alu_tb.flagsin[7] top.alu_tb.flagsin[6] top.alu_tb.flagsin[5] top.alu_tb.flagsin[4] top.alu_tb.flagsin[3] top.alu_tb.flagsin[2] top.alu_tb.flagsin[1] top.alu_tb.flagsin[0]
+[color] 2
++{ALUinA (binary)} #{top.alu_tb.aluina[7:0]} top.alu_tb.aluina[7] top.alu_tb.aluina[6] top.alu_tb.aluina[5] top.alu_tb.aluina[4] top.alu_tb.aluina[3] top.alu_tb.aluina[2] top.alu_tb.aluina[1] top.alu_tb.aluina[0]
+@24
+[color] 2
++{ALUinA (unsigned)} #{top.alu_tb.aluina[7:0]} top.alu_tb.aluina[7] top.alu_tb.aluina[6] top.alu_tb.aluina[5] top.alu_tb.aluina[4] top.alu_tb.aluina[3] top.alu_tb.aluina[2] top.alu_tb.aluina[1] top.alu_tb.aluina[0]
+@420
+[color] 2
++{ALUinA (signed)} #{top.alu_tb.aluina[7:0]} top.alu_tb.aluina[7] top.alu_tb.aluina[6] top.alu_tb.aluina[5] top.alu_tb.aluina[4] top.alu_tb.aluina[3] top.alu_tb.aluina[2] top.alu_tb.aluina[1] top.alu_tb.aluina[0]
+@28
+[color] 4
++{ALUinB (binary)} #{top.alu_tb.aluinb[7:0]} top.alu_tb.aluinb[7] top.alu_tb.aluinb[6] top.alu_tb.aluinb[5] top.alu_tb.aluinb[4] top.alu_tb.aluinb[3] top.alu_tb.aluinb[2] top.alu_tb.aluinb[1] top.alu_tb.aluinb[0]
+@24
+[color] 4
++{ALUinB (unsigned)} #{top.alu_tb.aluinb[7:0]} top.alu_tb.aluinb[7] top.alu_tb.aluinb[6] top.alu_tb.aluinb[5] top.alu_tb.aluinb[4] top.alu_tb.aluinb[3] top.alu_tb.aluinb[2] top.alu_tb.aluinb[1] top.alu_tb.aluinb[0]
+@420
+[color] 4
++{ALUinB (signed)} #{top.alu_tb.aluinb[7:0]} top.alu_tb.aluinb[7] top.alu_tb.aluinb[6] top.alu_tb.aluinb[5] top.alu_tb.aluinb[4] top.alu_tb.aluinb[3] top.alu_tb.aluinb[2] top.alu_tb.aluinb[1] top.alu_tb.aluinb[0]
+@28
+[color] 1
++{ALUop} #{top.alu_tb.aluop[3:0]} top.alu_tb.aluop[3] top.alu_tb.aluop[2] top.alu_tb.aluop[1] top.alu_tb.aluop[0]
+[color] 6
++{ALUout (binary)} #{top.alu_tb.aluout[7:0]} top.alu_tb.aluout[7] top.alu_tb.aluout[6] top.alu_tb.aluout[5] top.alu_tb.aluout[4] top.alu_tb.aluout[3] top.alu_tb.aluout[2] top.alu_tb.aluout[1] top.alu_tb.aluout[0]
+@24
+[color] 6
++{ALUout (unsigned)} #{top.alu_tb.aluout[7:0]} top.alu_tb.aluout[7] top.alu_tb.aluout[6] top.alu_tb.aluout[5] top.alu_tb.aluout[4] top.alu_tb.aluout[3] top.alu_tb.aluout[2] top.alu_tb.aluout[1] top.alu_tb.aluout[0]
+@420
+[color] 6
++{ALUout (signed)} #{top.alu_tb.aluout[7:0]} top.alu_tb.aluout[7] top.alu_tb.aluout[6] top.alu_tb.aluout[5] top.alu_tb.aluout[4] top.alu_tb.aluout[3] top.alu_tb.aluout[2] top.alu_tb.aluout[1] top.alu_tb.aluout[0]
+@28
++{Carry} top.alu_tb.flagsout[7]
++{Zero} top.alu_tb.flagsout[6]
++{Sign} top.alu_tb.flagsout[5]
++{Overflow} top.alu_tb.flagsout[4]

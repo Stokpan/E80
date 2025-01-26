@@ -1,0 +1,116 @@
+# -------------------------------------------------------------------------- #
+# E80 Computer - Settings and Pin Assignments for the DSD-i1
+# -------------------------------------------------------------------------- #
+
+set_global_assignment -name FAMILY "Cyclone IV E"
+set_global_assignment -name DEVICE EP4CE6E22C8
+set_global_assignment -name TOP_LEVEL_ENTITY FPGA
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 20.1.1
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "22:18:50  NOVEMBER 26, 2024"
+set_global_assignment -name LAST_QUARTUS_VERSION "20.1.1 Lite Edition"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
+set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name ENABLE_OCT_DONE OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name GENERATE_RBF_FILE ON
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name ON_CHIP_BITSTREAM_DECOMPRESSION OFF
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP "AS OUTPUT DRIVING GROUND"
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 3
+set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name EDA_RUN_TOOL_AUTOMATICALLY OFF -section_id eda_simulation
+set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
+set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
+set_global_assignment -name ALLOW_REGISTER_RETIMING ON
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
+set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name SDC_FILE E80.out.sdc
+set_global_assignment -name VHDL_FILE ../VHDL/FPGA.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Support.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Computer.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/RAM.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Firmware.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/CPU.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/RegisterFile.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/DFF8.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/ALU.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/FA8.vhd
+
+set_location_assignment PIN_23 -to CLK50MHz
+
+set_location_assignment PIN_85  -to Reset
+set_location_assignment PIN_87  -to Up
+set_location_assignment PIN_89  -to Down
+set_location_assignment PIN_91  -to Left
+set_location_assignment PIN_99  -to Right
+set_location_assignment PIN_101 -to Mid
+set_location_assignment PIN_104 -to Pause
+
+set_location_assignment PIN_54  -to DIPinput[0]
+set_location_assignment PIN_58  -to DIPinput[1]
+set_location_assignment PIN_60  -to DIPinput[2]
+set_location_assignment PIN_65  -to DIPinput[3]
+set_location_assignment PIN_67  -to DIPinput[4]
+set_location_assignment PIN_69  -to DIPinput[5]
+set_location_assignment PIN_71  -to DIPinput[6]
+set_location_assignment PIN_73  -to DIPinput[7]
+
+set_location_assignment PIN_110 -to LED_rowA[7] # Carry
+set_location_assignment PIN_111 -to LED_rowA[6] # Zero
+set_location_assignment PIN_112 -to LED_rowA[5] # Sign
+set_location_assignment PIN_113 -to LED_rowA[4] # Overflow
+set_location_assignment PIN_114 -to LED_rowA[3] # Register address [2]
+set_location_assignment PIN_115 -to LED_rowA[2] # Register address [1]  
+set_location_assignment PIN_119 -to LED_rowA[1] # Register address [0]
+set_location_assignment PIN_120 -to LED_rowA[0] # CLK
+
+set_location_assignment PIN_121 -to LED_rowB[7] # Register value [7]
+set_location_assignment PIN_124 -to LED_rowB[6] # Register value [6]
+set_location_assignment PIN_125 -to LED_rowB[5] # Register value [5]
+set_location_assignment PIN_126 -to LED_rowB[4] # Register value [4]
+set_location_assignment PIN_127 -to LED_rowB[3] # Register value [3]
+set_location_assignment PIN_128 -to LED_rowB[2] # Register value [2]
+set_location_assignment PIN_129 -to LED_rowB[1] # Register value [1]
+set_location_assignment PIN_132 -to LED_rowB[0] # Register value [0]
+
+set_location_assignment PIN_133 -to LED_rowC[7] # Program counter [7]
+set_location_assignment PIN_135 -to LED_rowC[6] # Program counter [6]
+set_location_assignment PIN_136 -to LED_rowC[5] # Program counter [5]
+set_location_assignment PIN_137 -to LED_rowC[4] # Program counter [4]
+set_location_assignment PIN_138 -to LED_rowC[3] # Program counter [3]
+set_location_assignment PIN_141 -to LED_rowC[2] # Program counter [2]
+set_location_assignment PIN_142 -to LED_rowC[1] # Program counter [1]
+set_location_assignment PIN_143 -to LED_rowC[0] # Program counter [0]
+
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
