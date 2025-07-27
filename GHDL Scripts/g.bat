@@ -1,5 +1,10 @@
 @echo off
 
+REM change to the GHDL batch homedir to allow for relative paths
+cd %~dp0
+REM add GHDL & GTKWave paths for portable installation
+set PATH=%PATH%;GHDL\bin;GTKWave\bin
+
 echo E80 parametric GHDL-GTKwave simulation batch file
 
 :ghdl_test
@@ -15,40 +20,45 @@ echo Install GTKwave and add gtkwave\bin to your path
 goto :error
 
 :parameter1_test
-if "%~1" NEQ "" goto :parameter2_test
-echo Missing top unit on 1st parameter
+if exist "%~1\Computer.vhd" goto :parameter2_test
+echo Missing 1st parameter, the E80 VHDL directory (eg. ..\VHDL)
 goto :error
 
 :parameter2_test
 if "%~2" NEQ "" goto :exec
-echo Missing duration on 2nd parameter
+echo Missing 2nd parameter, the top design unit (eg. alu_tb)
+goto :error
+
+:parameter3_test
+if "%~3" NEQ "" goto :exec
+echo Missing 3rd parameter, the simulation duration (eg. 800ps)
 goto :error
 
 :exec
 echo --------------------------------------------------------------
 echo 1. Import and parse all VHDL files into the workspace :
-echo    ghdl -i --std=08 ..\VHDL\*.vhd
-ghdl -i --std=08 ..\VHDL\*.vhd
+echo    ghdl -i --std=08 %1\*.vhd
+ghdl -i --std=08 %1\*.vhd
 if %errorlevel% NEQ 0 goto :error
 echo --------------------------------------------------------------
-echo 2. Make the design with %1 as top unit :
-echo    ghdl -m --std=08 -Wno-hide %1
-ghdl -m --std=08 -Wno-hide %1
+echo 2. Make the design with %2 as top unit :
+echo    ghdl -m --std=08 -Wno-hide %2
+ghdl -m --std=08 -Wno-hide %2
 if %errorlevel% NEQ 0 goto :error
 echo --------------------------------------------------------------
-echo 3. Run (simulate) the design for %2 :
-echo    ghdl -r --std=08 %1 --stop-time=%2 --wave=%1.ghw
-ghdl -r --std=08 %1 --stop-time=%2 --wave=%1.ghw
+echo 3. Run (simulate) the design for %3 :
+echo    ghdl -r --std=08 %2 --stop-time=%3 --wave=%2.ghw
+ghdl -r --std=08 %2 --stop-time=%3 --wave=%2.ghw
 if %errorlevel% NEQ 0 goto :error
 echo --------------------------------------------------------------
-echo 4. Opening GTKWave config %1.gtkw :
-echo    gtkwave %1.gtkw
-gtkwave %1.gtkw --rcvar "hide_sst on"
+echo 4. Opening GTKWave config %2.gtkw :
+echo    gtkwave %2.gtkw
+gtkwave %2.gtkw --rcvar "hide_sst on"
 if %errorlevel% NEQ 0 (
 echo --------------------------------------------------------------
 	echo 5. File not found; opening wave without config :
-	echo    gtkwave %1.ghw
-	gtkwave %1.ghw
+	echo    gtkwave %2.ghw
+	gtkwave %2.ghw
 )
 echo --------------------------------------------------------------
 

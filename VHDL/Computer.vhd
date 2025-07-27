@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 Computer
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Interconnects the CPU with RAM for instruction/data access.
 -- Routes DIPinput to CPU when MemAddr=0xFF (memory-mapped I/O).
 -- Outputs PC and registers for LED display on the FPGA.

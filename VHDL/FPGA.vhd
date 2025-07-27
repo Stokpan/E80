@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------
 -- E80 FPGA implementation
--- Converts the fast 50 MHz clock to a slow deciHertz-class CLK.
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+-- Converts the 50 MHz FPGA clock to the slow deciHertz-class CPU CLK.
 -- Reads the DIPinput and Reset signals.
 -- Runs the E80 CPU with the converted CLK, DIPinput and Reset.
 -- Displays the flags, one register, the CLK, and the PC on the FPGA LEDs.
@@ -10,7 +11,7 @@
 LIBRARY ieee, work;
 USE ieee.std_logic_1164.ALL, work.support.ALL, work.firmware.ALL;
 ENTITY FPGA IS PORT (
-	CLK50MHz : IN STD_LOGIC; -- converted to slow CLK
+	CLK50MHz : IN STD_LOGIC; -- 50 MHz FPGA clock
 	Reset    : IN STD_LOGIC; -- resets the PC & SP and uploads the firmware
 	Pause    : IN STD_LOGIC; -- pauses the CLK
 	Up       : IN STD_LOGIC; -- shows the next register on row B
@@ -45,28 +46,25 @@ BEGIN
 	-- Clock conversion and joystick input handling
 	-------------------------------------------------------------------
 	PROCESS (CLK50MHz)
-		-- Tick20ns: 50 MHz counter
-		-- RepeatRate (in 20ns): minimum time between joystick signals
-		-- Delay: 50 MHz joystick signal repeat rate counter
+		-- Tick: FPGA clock period counter (50 MHz ⇔ 20 ns per tick)
+		-- RepeatRate: minimum time (in ticks) between joystick signals
+		-- Delay: ticks passed since the last joystick signal
 		-- Frequency: initialized to firmware's DefaultFrequency value
-		VARIABLE Tick20ns : NATURAL RANGE 0 TO 249999999 := 0;
-		CONSTANT RepeatRate : NATURAL := 18000000; -- × 2/10^8 = 0.36 sec
+		VARIABLE Tick : NATURAL RANGE 0 TO 250000000 := 0; -- 1 tick = 20 ns
+		CONSTANT RepeatRate : NATURAL := 18000000; -- 0.36 sec
 		VARIABLE Delay : NATURAL RANGE 0 TO RepeatRate := 0;
 		VARIABLE Frequency : DECIHERTZ := DefaultFrequency; -- see Firmware.vhd
 	BEGIN
 		IF RISING_EDGE(CLK50MHz) THEN
 			IF NOT Pause THEN -- freeze CLK while Pause is being pressed
 				-- CLK50MHz to deciHertz CLK conversion:
-				-- 50MHz frequency = 50×10^6 cycles/sec ⇒ Period =
-				-- 1/(50×10^6) sec/cycle = 2/10^8 sec = 20ns (1 tick).
-				-- For a 1 deciHertz clock we need a 10 second period:
-				-- 10sec = 5×10^8 × 2/10^8 sec = 5×10^8 * 20ns = 5×10^8 ticks.
-				-- CLK <= NOT CLK needs to be executed twice to make a period,
-				-- therefore 2.5×10^8 - 1 = 249999999 ticks, because the tick
-				-- count starts from zero.
-				Tick20ns := Tick20ns + 1;
-				IF Tick20ns * Frequency >= 249999999 THEN
-					Tick20ns := 0;
+				-- 50 MHz frequency has a 20 ns period = 1 tick
+				-- 1 deciHertz frequency has a 10 sec period = 5E8 ticks
+				-- But each period includes two edges (CLK <= NOT CLK) so
+				-- it must run every 25E7 ticks.
+				Tick := Tick + 1;
+				IF Tick * Frequency >= 250000000 THEN
+					Tick := 0;
 					CLK <= NOT CLK;
 					-- Signify a completed reset (may take a few seconds
 					-- due to synchronization with the slow CLK).
@@ -83,7 +81,7 @@ BEGIN
 				reg <= reg - 1;
 				Delay := 0;
 			ELSIF Right THEN -- increase CLK speed
-				IF Frequency > 850 THEN
+				IF Frequency > 800 THEN
 					Frequency := 1000; -- ceiling
 				ELSE
 					Frequency := Frequency + Frequency/8 + 2;

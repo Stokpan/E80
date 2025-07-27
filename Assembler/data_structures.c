@@ -1,3 +1,5 @@
+// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -88,38 +90,39 @@ char* nexttoken(void)
 	return In.token;
 }
 
-int addsymbol(const char* name, int value)
+int addlabel(const char* name, int value)
 {
-	if (Out.symbols >= MAX_SYMBOLS) error(MANY_SYMBOLS);
-	if (symbolvalue(name) != -1) error(DUPLICATE_SYMBOL);
-	Out.symbol[Out.symbols].name = malloc(strlen(name) +1); // +1 = terminator
-	if (!Out.symbol[Out.symbols].name) error(MEMORY_ALLOCATION_ERROR);
-	strcpy(Out.symbol[Out.symbols].name, name);
-	Out.symbol[Out.symbols].val = (unsigned char)value;
-	Out.symbols++;
-	return Out.symbols;
+	if (Out.labels >= MAX_LABELS) error(MANY_LABELS);
+	if (labelvalue(name) != -1) error(DUPLICATE_LABEL);
+	Out.label[Out.labels].name = malloc(strlen(name) +1); // +1 = terminator
+	if (!Out.label[Out.labels].name) error(MEMORY_ALLOCATION_ERROR);
+	strcpy(Out.label[Out.labels].name, name);
+	Out.label[Out.labels].val = (unsigned char)value;
+	Out.labels++;
+	sortlabels(); // to allow bsearch in labelvalue
+	return Out.labels;
 }
 
-/* Compares the name field of SymbolElement pointers a and b.
+/* Compares the name field of LabelElement pointers a and b.
 nameA > nameB ≡ 1, nameA < nameB ≡ -1, nameA = nameB ≡ 0. */
-int comparesymbols(const void* a, const void* b)
+int comparelabels(const void* a, const void* b)
 {
-	char* nameA = ((struct SymbolElement*)a)->name;
-	char* nameB = ((struct SymbolElement*)b)->name;
+	char* nameA = ((struct LabelElement*)a)->name;
+	char* nameB = ((struct LabelElement*)b)->name;
 	return strcmp(nameA, nameB);
 }
 
-void sortsymbols(void)
+void sortlabels(void)
 {
 	qsort(
-		Out.symbol, Out.symbols, sizeof(struct SymbolElement), comparesymbols);
+		Out.label, Out.labels, sizeof(struct LabelElement), comparelabels);
 }
 
-int symbolvalue(const char* name)
+int labelvalue(const char* name)
 {
-	struct SymbolElement key = { .name = (char*)name };
-	struct SymbolElement* found = (struct SymbolElement*) bsearch(
-		&key, Out.symbol, Out.symbols, sizeof(Out.symbol[0]), comparesymbols);
+	struct LabelElement key = {.name = (char*)name};
+	struct LabelElement* found = (struct LabelElement*) bsearch(
+		&key, Out.label, Out.labels, sizeof(Out.label[0]), comparelabels);
 	if (!found) return -1;
 	return (int)found->val;
 }

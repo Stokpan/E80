@@ -1,0 +1,22 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- dark chip -->
+  <rect x="48" y="18" width="160" height="200" rx="8" ry="8" fill="#333333" />
+  <!-- left pins -->
+  <g fill="#B0B0B0">
+    <rect x="18" y="48" width="30" height="12" />
+    <rect x="18" y="80" width="30" height="12" />
+    <rect x="18" y="112" width="30" height="12" />
+    <rect x="18" y="144" width="30" height="12" />
+    <rect x="18" y="176" width="30" height="12" />
+  </g>
+  <!-- right pins -->
+  <g fill="#B0B0B0">
+    <rect x="208" y="48" width="30" height="12" />
+    <rect x="208" y="80" width="30" height="12" />
+    <rect x="208" y="112" width="30" height="12" />
+    <rect x="208" y="144" width="30" height="12" />
+    <rect x="208" y="176" width="30" height="12" />
+  </g>
+  <!-- E80 text -->
+  <text x="125" y="148" font-family="monospace" font-weight="bold" font-size="90" text-anchor="middle" fill="#FF8D1C" letter-spacing="-4">E80</text>
+</svg>

@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 8-bit Full Adder
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Performs textbook ripple-carry addition or subtraction
 -----------------------------------------------------------------------
 

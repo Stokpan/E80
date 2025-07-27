@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 8x8 Register File
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Reads A_reg, B_reg, and Flags; writes to A_reg and W_reg. Reset is
 -- synchronous (to ensure a full first cycle) and clears only the SP and
 -- the Halt flag, leaving the rest to undefined.

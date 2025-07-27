@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 256x8 RAM
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Stores 256 words in 8-bit flip flops.
 -- Reads a two-word instruction at PC and PC+1 addresses, and the Mem
 -- word at MemAddr; updates the Mem word to MemNext if MemWriteEn=1.

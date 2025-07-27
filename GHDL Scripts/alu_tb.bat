@@ -1,0 +1,1 @@
+g ..\VHDL alu_tb 800ps

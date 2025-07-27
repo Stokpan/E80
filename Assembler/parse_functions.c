@@ -1,3 +1,5 @@
+// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -194,36 +196,36 @@ char instr_reg_n(const char *s)
 {
 	if (eq(s, "BIT")) strcpy(RAM, "11010");
 	else return 0;
-	return 1;
+	return 2;
 }
 
-/* <name_char> ::= <letter> | <dec> | "_" */
-char name_char(const char c)
+/* <label_char> ::= <letter> | <dec> | "_" */
+char label_char(const char c)
 {
 	return isalpha(c) || isdigit(c) || c == '_';
 }
 
-/* <identifier> ::= <letter> <name_char*> */
-char identifier(const char *str)
+/* <label> ::= <letter> <label_char*> */
+char label(const char *s)
 {
-	if (!isalpha(str[0])) return 0;
-	for (int i = 1; str[i] != '\0'; i++) {
-		if (!name_char(str[i])) return 0;
+	if (!isalpha(s[0])) return 0;
+	for (int i = 1; s[i] != '\0'; i++) {
+		if (!label_char(s[i])) return 0;
 	}
-	// don't allow identifiers to use reserved words
-	if (reserved(str)) error(RESERVED);
+	// don't allow labels to use reserved words
+	if (reserved(s)) error(RESERVED);
 	return 1;
 }
 
 /* <array_element> ::= <number> | <quoted_string> */
-char array_element(const char *str)
+char array_element(const char *s)
 {
-	int len = strlen(str);
-	if (str[0] == '"') {
+	int len = strlen(s);
+	if (s[0] == '"') {
 		// <quoted_string> ::= "\"" <char+> "\""
 		if (len < 3) error(EMPTY_STRING);
 		// the closing quote is handled at nexttoken in data_structures.c
-	} else if (number(str) < 0) {
+	} else if (number(s) < 0) {
 		error(ARRAY_ELEMENT);
 	}
 	return 1;
@@ -245,7 +247,7 @@ int regnum(const char *s)
 int value(const char *s)
 {
 	int n = number(s);
-	if (n < 0) n = symbolvalue(s); // if it's not a number, search symbols
+	if (n < 0) n = labelvalue(s); // if it's not a number, search labels
 	return n;
 }
 

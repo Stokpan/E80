@@ -1,3 +1,5 @@
+# Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+
 quit -sim
 wave zoom full
 .main clear

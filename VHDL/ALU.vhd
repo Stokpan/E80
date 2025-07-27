@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 Arithmetic Logic Unit
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Performs addition, subtraction, rotation, and logical operations.
 -- The calculated result and/or flags is discarded in some operations.
 -----------------------------------------------------------------------

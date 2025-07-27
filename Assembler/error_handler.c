@@ -1,3 +1,5 @@
+// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "error_handler.h"
@@ -23,14 +25,14 @@ void printf_val_help(void) {
 		fprintf(stderr, "Leading zeroes are not allowed on decimal numbers\n");
 	} else if (number(TOKEN) == RANGE_ERROR) {
 		fprintf(stderr, "Decimal numbers are limited to unsigned 0-255");
-	} else if (!identifier(TOKEN)) {
+	} else if (!label(TOKEN)) {
 		fprintf(stderr,
-			"It contains letters, but names must start with a letter and"
+			"It contains letters, but labels must start with a letter and"
 			" followed by letters, numbers and underscores");
 	} else {
 		fprintf(stderr,
-			"Symbolic names must be defined in .NAME directives"
-			" or as labels in the code\n");
+			"Labels must be defined in .LABEL directives"
+			" or between instructions, followed by a colon\n");
 	}
 }
 
@@ -50,8 +52,8 @@ void error(enum ErrorCode errorlevel)
 	case MAX_LENGTH_EXCEEDED:
 		fprintf(stderr, "Line exceeds maximum %d characters.", MAX_LINE_LENGTH);
 		break;
-	case IDENTIFIER:
-		fprintf(stderr, "'%s' is not a valid identifier.", TOKEN);
+	case LABEL:
+		fprintf(stderr, "'%s' is not a valid label.", TOKEN);
 		break;
 	case EMPTY_STRING:
 		fprintf(stderr, "Empty strings are not permitted.");
@@ -79,11 +81,11 @@ void error(enum ErrorCode errorlevel)
 		fprintf(stderr, "'%s' is not a number between 0 and 255.\n", TOKEN);
 		printf_number_format_help();
 		break;
-	case MANY_SYMBOLS:
-		puts("Maximum number of symbols reached");
+	case MANY_LABELS:
+		puts("Maximum number of labels reached");
 		break;
-	case DUPLICATE_SYMBOL:
-		fprintf(stderr, "This name or label has been set in a previous line.");
+	case DUPLICATE_LABEL:
+		fprintf(stderr, "This label has been set in a previous line.");
 		break;
 	case MEMORY_ALLOCATION_ERROR:
 		puts("Memory allocation error!");
@@ -95,7 +97,7 @@ void error(enum ErrorCode errorlevel)
 		fprintf(stderr, "'%s' is an unknown instruction or directive", TOKEN);
 		break;
 	case RESERVED:
-		fprintf(stderr, "'%s' is reserved and cannot be a name or label", TOKEN);
+		fprintf(stderr, "'%s' is reserved and cannot be a label", TOKEN);
 		break;
 	case COLON:
 		fprintf(stderr, "Colon expected after label");
@@ -105,7 +107,7 @@ void error(enum ErrorCode errorlevel)
 			"'%s' is not a register; allowed registers are R0-R7", TOKEN);
 		break;
 	case VALUE:
-		fprintf(stderr, "'%s' is not a number or symbol", TOKEN);
+		fprintf(stderr, "'%s' is not a number or label", TOKEN);
 		break;
 	case COMMA:
 		fprintf(stderr, "Comma expected after '%s'", PREVIOUS);
@@ -118,10 +120,10 @@ void error(enum ErrorCode errorlevel)
 				" after '%s'", PREVIOUS);
 		break;
 	case OP:
-		fprintf(stderr, "'%s' is not number or symbol or register.", TOKEN);
+		fprintf(stderr, "'%s' is not number, label or register.", TOKEN);
 		break;
 	case DATA_ADDRESS:
-		fprintf(stderr, "'%s' is not a valid address or symbol.", TOKEN);
+		fprintf(stderr, "'%s' is not a valid address or label.", TOKEN);
 		printf_val_help();
 		break;
 	case DATA_SPACE:

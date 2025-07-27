@@ -11,7 +11,7 @@
 	<Keywords name="Operators1">, : [ ]</Keywords>
 	<Keywords name="Operators2"></Keywords>
 	<Keywords name="Keywords1">HLT NOP RETURN RSHIFT LSHIFT PUSH POP JC JNC JZ JNZ JS JNS JV JNV CALL JMP MOV ADD ROR SUB CMP AND OR XOR LOAD STORE BIT</Keywords>
-	<Keywords name="Keywords2">.TITLE .NAME .FREQUENCY .SIMDIP .DATA</Keywords>
+	<Keywords name="Keywords2">.TITLE .LABEL .FREQUENCY .SIMDIP .DATA</Keywords>
 	<Keywords name="Keywords3">R0 R1 R2 R3 R4 R5 R6 R7 SP FLAGS</Keywords>
 	<Keywords name="Delimiters">00&quot; 01\&quot; 02&quot; 03&apos; 04\&apos; 05&apos; 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23</Keywords>
 </KeywordLists>

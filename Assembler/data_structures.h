@@ -1,5 +1,5 @@
-#ifndef DATA_STRUCTURE_H
-#define DATA_STRUCTURE_H
+#ifndef DATA_STRUCTURES_H
+#define DATA_STRUCTURES_H
 
 #include "config.h"
 
@@ -24,18 +24,18 @@ struct InputHeader {
 	int line_number;
 };
 
-/* Symbol/value pair, indexed at the SymbolElement. */
-struct SymbolElement {
+/* Label/value pair, indexed at the LabelElement. */
+struct LabelElement {
 	char *name;
 	unsigned char val;
 };
 
-/* Stores an array of pointers to SymbolElements; this array is sorted after
-the Symbol collection stage at main() to allow fast binary search. This header
+/* Stores an array of pointers to LabelElements; this array is sorted during
+the Label collection stage at main() to allow fast binary search. This header
 includes the final ram/comment arrays where the translated code is printed. */
 struct OutputHeader {
-	unsigned char symbols;  // number of stored symbols
-	struct SymbolElement symbol[MAX_SYMBOLS];
+	unsigned char labels;  // number of stored labels
+	struct LabelElement label[MAX_LABELS];
 	unsigned int addr; // current instruction address
 	char ram[255][9];
 	char comment[255][MAX_LINE_LENGTH];
@@ -66,16 +66,16 @@ TOKEN scratchpad and returns a pointer to it. After the last token it returns
 NULL. */
 char* nexttoken(void);
 
-/* Allocates memory of the symbol/name element and points the next index of
-the Out.symbol array to it. Returns the current number of symbols. */
-int addsymbol(const char* name, int value);
+/* Allocates memory for the label element and points the next index of
+the Out.label array to it. Returns the current number of labels. */
+int addlabel(const char* name, int value);
 
-/* Sorts the symbols array according their linked SymbolElement names. */
-void sortsymbols();
+/* Sorts the labels array according their linked LabelElement names. */
+void sortlabels();
 
-/* Searches name on the names linked on the symbols array and returns its
-SymbolElement value. */
-int symbolvalue(const char* name);
+/* Searches 'name' on the LabelElement names, as they are linked with
+the sorted labels array, and returns its LabelElement value. */
+int labelvalue(const char* name);
 
 /* Moves to the next RAM address, checking for out-of-bounds error. */
 void nextaddr();

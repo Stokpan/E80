@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 Support Library
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Provides types and a few functions to allow for cleaner code that's
 -- compatible with Quartus Lite which doesn't fully support VHDL2008.
 -----------------------------------------------------------------------

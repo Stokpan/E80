@@ -7,15 +7,18 @@ Strings correspond to unsigned numbers, so a negative return value signifies
 an error or a non-number */
 int number(const char *s);
 
-/* Trims leading and trailing trimmable characters from s. */
+/* Trims leading and trailing trimmable characters from s */
 void trim(char *s);
 
-/* Compares two strings case-insensitevely, taking into account NULL pointers.
-Returns 1 if the strings are equal, 0 otherwise. */
+/* Compares two strings case-insensitevely, taking into account NULL pointers,
+and returns 1 if the strings are equal, 0 otherwise */
 char eq(const char *s1, const char *s2);
 
-char identifier(const char *str);
-char array_element(const char *str);
+/* Returns 1 if s is a <label> */
+char label(const char *s);
+
+/* Returns 1 if s is an <array_element> */
+char array_element(const char *s);
 
 /* Returns 1 if s is a single-word instruction */
 char instr_size1(const char *s);
@@ -49,9 +52,8 @@ char instr_reg_n(const char *s);
 <reg> ::= "R0"|"R1"|"R2"|"R3"|"R4"|"R5"|"R6"|"SP"|"R7"|"FLAGS" */
 int regnum(const char *s);
 
-/* Returns the value of the operand parameter according to:
-<n> ::= <number> | <identifier>
-if the parameter is an identifier, it gets its value from the symbols table. */
+/* Returns the value of s according to <value> ::= <number> | <label>
+if the parameter is an label, it gets its value from the labels table */
 int value(const char *s);
 
 /* Converts num to bits, in Little Endian order to match VHDL's DOWNTO */

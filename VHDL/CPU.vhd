@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 CPU
+-- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
 -- Fetches instruction and data from the RAM and the DIP input.
 -- Decodes the instruction to get the control signals, addresses and values.
 -- Reads registers from the Register Array.

@@ -1,3 +1,5 @@
+// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,20 +21,20 @@ int main(int argc, char *argv[])
 	int data_space; // address after the last instruction
 	int len, spaces; // formatting helpers
 	char* CtrlD = NULL; //
-	FILE* asm_input = stdin; // fopen("test.asm", "r");
+	FILE* asm_input = stdin; // fopen("test.e80asm", "r");
 	FILE* vhdl_template = fopen(TEMPLATE, "r");
 	if (!vhdl_template) error(OPEN_TEMPLATE);
 	
 	/* Starting message (hide if /Q switch is enabled) */
 	if (argc < 2 || (strcmp(argv[1],"/Q") && strcmp(argv[1],"/q"))) {
 		fprintf(stderr,
-			"E80 CPU Assembler v1.0 - July 2025, Panos Stokas\n\n"
+			"E80 CPU Assembler v1.1 - December 2025, Panos Stokas\n\n"
 			"Translates an E80-assembly program to firmware VHDL code.\n\n"
 			"E80ASM [/Q]\n\n"
 			"  /Q          Silent mode, hides this message.\n\n"
-			"I/O is handled via stdin/stdout. Eg. to read 'program.asm'\n"
+			"I/O is handled via stdin/stdout. Eg. to read 'program.e80asm'\n"
 			"and write the result to 'firmware.vhd', type:\n\n"
-			"e80asm < program.asm > firmware.vhd\n\n"
+			"e80asm < program.e80asm > firmware.vhd\n\n"
 			"You can also paste your code here and then press\n"
 			"Ctrl-D & [Enter] to translate it, or Ctrl-C to exit.\n\n");
 	}
@@ -50,30 +52,30 @@ int main(int argc, char *argv[])
 		enqueue(str); // store the line in the global "In" structure
 	}
 
-	/* Collect symbols (names and labels).
-	Symbol/value pairs are added to the "Out" structure. Error checking is
+	/* Collect labels (symbols).
+	Label/value pairs are added to the "Out" structure. Error checking is
 	minimal in this stage. */
-	fprintf(stderr, "Collecting symbols... ");
+	fprintf(stderr, "Collecting labels... ");
 	Out.addr = 0; // current memory address in the global "Out" structure
 	firstline(); // go to the first token of the queued code
 	while (In.current) { // read until the last line
-		if (eq(TOKEN, ".NAME")) {
-			// <directive> ::= ".NAME" <s+> <identifier> <s+> <number>
-			strcpy(str, nexttoken()); // <identifier>
-			if (!identifier(str)) error(IDENTIFIER);
+		if (eq(TOKEN, ".LABEL")) {
+			// <directive> ::= ".LABEL" <s+> <label> <s+> <number>
+			strcpy(str, nexttoken()); // <label>
+			if (!label(str)) error(LABEL);
 			n = number(nexttoken()); // <number>
 			if (n < 0) error(NUMBER); // error codes = negative values
-			addsymbol(str, n); // includes a check for duplicates
+			addlabel(str, n); // includes sort and check for duplicates
 		} else if (instr_size1(TOKEN)) {
 			nextaddr(); // combines Out.addr++ and ram limit check
 		} else if (instr_size2(TOKEN)) {
 			nextaddr();
 			nextaddr(); // two-word instructions
-		} else if (identifier(TOKEN)) {
-			// <label> ::= <identifier> <s*> ":"
+		} else if (label(TOKEN)) {
+			// <label:> ::= <label> <s*> ":"
 			strcpy(str, TOKEN);
 			if (eq(nexttoken(), ":")) {
-				addsymbol(str, Out.addr);
+				addlabel(str, Out.addr);
 				// check the next token instead of the next line to allow
 				// for <codeline> ::= <[label]> <[\n]> <[instruction]>
 				nexttoken();
@@ -84,14 +86,13 @@ int main(int argc, char *argv[])
 	}
 	data_space = Out.addr; // for checking collisions with program code
 
-	// print symbol-value pairs prior to sorting
-	if (Out.symbols == 0) fprintf(stderr, "None.");
-	for (n = 0; n < Out.symbols; n++) {
+	// print label-value pairs
+	if (Out.labels == 0) fprintf(stderr, "None.");
+	for (n = 0; n < Out.labels; n++) {
 		fprintf(stderr,
-			"\n- %s = %d", Out.symbol[n].name, Out.symbol[n].val);
+			"\n- %s = %d", Out.label[n].name, Out.label[n].val);
 	}
 	fprintf(stderr, "\n");
-	sortsymbols(); // sort by name for binary search on symbolvalue()
 
 	/* Parse directives.
 	E80 is designed according to the Neumann model where machine code and data
@@ -144,8 +145,8 @@ int main(int argc, char *argv[])
 		} else if (eq(TOKEN, ".SIMDIP")) {
 			// <directive> ::= ".SIMDIP" <s+> <value>
 			bitcopy(simdip, value(nexttoken()), 7, 0);
-		} else if (eq(TOKEN, ".NAME")) {
-			// already processed during symbol collection
+		} else if (eq(TOKEN, ".LABEL")) {
+			// already processed during label collection
 			nexttoken();
 			nexttoken();
 		} else if (!eq(TOKEN, "")) {
@@ -182,12 +183,12 @@ int main(int argc, char *argv[])
 			sprintf(COMMENT, "%s R%d", instr, reg);
 			nextaddr();
 		} else if (instr_n(TOKEN)) {
-			// <[instruction]>  ::= <instr_n> <s+> <n>
+			// <[instruction]>  ::= <instr_n> <s+> <value>
 			strcpy(instr, TOKEN);
 			n = value(nexttoken());
 			if (n < 0) error(VALUE);
 			nextaddr();
-			bitcopy(RAM, n, 7, 0); // <n>
+			bitcopy(RAM, n, 7, 0); // <value>
 			sprintf(COMMENT, "%s %d", instr, n);
 			nextaddr();
 		} else if (instr_op1(TOKEN)) {
@@ -197,14 +198,14 @@ int main(int argc, char *argv[])
 			n = value(TOKEN);
 			reg = regnum(TOKEN);
 			if (n >= 0) {
-				// op1 is a direct n address
+				// op1 = <value>
 				strcpy(&RAM[7], "0");
 				nextaddr();
-				bitcopy(RAM, n, 7, 0); // <n> in Instr2
+				bitcopy(RAM, n, 7, 0); // <number> in Instr2
 				sprintf(COMMENT, "%s %d", instr, n);
 				nextaddr();
 			} else if (reg >= 0) {
-				// op1 is a register address
+				// op1 = <reg>
 				strcpy(&RAM[7], "1");
 				nextaddr();
 				strcpy(&RAM[0], "00000");
@@ -215,7 +216,7 @@ int main(int argc, char *argv[])
 				error(OP);
 			}
 		} else if (instr_reg_op2(TOKEN)) {
-			// <[instruction]>  ::= <instr_reg_op2> <s+> <reg> <,> <op2>
+			// <instruction> ::= <instr_reg_op2> <s+> <reg> <,> <op2>
 			char bracket_op2 = load_store(TOKEN); // op2 must be bracketed
 			strcpy(instr, TOKEN);
 			reg = regnum(nexttoken());
@@ -232,17 +233,17 @@ int main(int argc, char *argv[])
 			n = value(TOKEN);
 			reg2 = regnum(TOKEN);
 			if (n >= 0) {
-				// op2 is an immediate n value
+				// op2 = <value>
 				bitcopy(RAM, reg, 3, 0); // <reg> in Instr1[3:0]
 				nextaddr();
-				bitcopy(RAM, n, 7, 0); // <n> in Instr2
+				bitcopy(RAM, n, 7, 0); // <number> in Instr2
 				sprintf(COMMENT, "%s%d", str, n);
 			} else if (reg2 >= 0) {
-				// op2 is a register address (reg2)
+				// op2 = <reg>
 				strcpy(&RAM[4], "1000");
 				nextaddr();
 				bitcopy(RAM, reg, 7, 4); // <reg> in Instr2[7:4]
-				bitcopy(RAM, reg2, 3, 0); // <reg2> in Instr2[3:0]
+				bitcopy(RAM, reg2, 3, 0); // <reg> (op2) in Instr2[3:0]
 				sprintf(COMMENT, "%sR%d", str, reg2);
 			} else {
 				error(OP);
@@ -253,7 +254,7 @@ int main(int argc, char *argv[])
 			}
 			nextaddr();
 		} else if (instr_reg_n(TOKEN)) {
-			// <[instruction]>  ::= <instr_reg_n> <s+> <reg> <,> <n>
+			// <instruction> ::= <instr_reg_n> <s+> <reg> <,> <value>
 			strcpy(instr, TOKEN);
 			reg = regnum(nexttoken());
 			if (reg < 0) error(REGISTER);
@@ -266,8 +267,8 @@ int main(int argc, char *argv[])
 			bitcopy(RAM, n, 7, 0);
 			sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
 			nextaddr();
-		} else if (symbolvalue(TOKEN) >= 0) {
-			// <[label]> ::= <identifier> <s*> ":" | ""
+		} else if (labelvalue(TOKEN) >= 0) {
+			// <label:> ::= <label> <s*> ":"
 			if (!eq(nexttoken(), ":")) error(COLON);
 			nexttoken();
 			continue;
@@ -281,15 +282,16 @@ int main(int argc, char *argv[])
 
 	/* Print the converted VHDL code using the template file.
 	Each instruction reserves one line, followed by a comment specifying the
-	original mnemonic (in which references to symbols have been translated
+	original mnemonic (in which references to labels have been translated
 	to specific values or addresses). Title and frequency are also printed
 	on their specific placeholders. */
 	while (fgets(str, MAX_LINE_LENGTH, vhdl_template) != NULL) {
-		if (strstr(str, "E80 Firmware")) {
+		if (strstr(str, "TITLE_PLACEHOLDER")) {
+			printf("-- ");
 			if (!eq(title,"")) {
-				printf("-- %s\n", title);
+				printf("%s\n", title);
 			} else {
-				printf(str);
+				printf("%s\n", DEFAULT_TITLE);
 			}
 		} else if (strstr(str, "DefaultFrequency")) {
 			printf(str, frequency); // template contains %d specifier
