@@ -14,15 +14,15 @@ A simple CPU in VHDL designed to:
 | **Word Size**         | 8-bit                                          |
 | **Buses**             | 8-bit data, 8-bit address, 16-bit instruction  |
 | **Instruction size**  | Variable (1 or 2 words)                        |
-| **RAM**               | 3-port (2R, 1R/W), Little Endian at 0x00-0xFE  |
+| **RAM**               | 3-port (2R, 1R/W), addressable at 0x00-0xFE    |
 | **Register file**     | 8x8, multiport (1R+W, 2R, 1W)                  |
 | **Registers**         | 6 general purpose (R0-R5), Flags (R6), SP (R7) |
-| **Stack**             | Full descending (SP init = 0xFF)               |
+| **Stack**             | Full descending (Stack Pointer init = 0xFF)    |
 | **Architecture**      | Load/Store, register-register                  |
 | **Addressing**        | Immediate, direct, register, register-indirect |
-| **Assembly syntax**   | Hybrid of ARM, x86, & textbook (Hayes)         |
+| **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode    |
 | **Assembler**         | ISO C99 (standard library, stdin I/O)          |
-| **Simulated on**      | GHDL, ModelSim                                 |
+| **Simulated on**      | GHDL, ModelSim via one-click scripts           |
 | **Tested on**         | Tang Primer 25K, Altera Cyclone IV             |
 | **Input**             | 8-bit at 0xFF (1x8 DIP switch)                 |
 | **Output**            | Flags, Registers, PC, Clock (3x8 LEDs)         |
@@ -144,10 +144,10 @@ csv    : Comma-separated numbers and ASCII strings
 | MOV reg, op2     | Move op2 to reg                                 |
 | ADD reg, op2     | Add op2 to reg                                  |
 | SUB reg, op2     | In unsigned subtraction, C = reg ≥ op2          |
-| ROR reg, op2     | Rotate right by op2 bits ⇔ left by (op2-8) bits |
+| ROR reg, op2     | Rotate right by op2 bits (left by op2-8 bits)   |
 | AND reg, op2     | Bitwise AND                                     |
 | OR reg, op2      | Bitwise OR                                      |
-| XOR reg, op2     | eg. XOR reg, 0xFF ⇒ reg ← NOT reg               |
+| XOR reg, op2     | Bitwise XOR                                     |
 | STORE reg, [op2] | Store reg to op2 address, reg → [op2]           |
 | LOAD reg, [op2]  | Load word at op2 address to reg, reg ← [op2]    |
 | RSHIFT reg       | Right shift, C = shifted bit, V = sign change   |
