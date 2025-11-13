@@ -50,7 +50,7 @@ set_global_assignment -name FITTER_EFFORT "AUTO FIT"
 set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
 set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
 set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
-set_global_assignment -name SDC_FILE E80.out.sdc
+set_global_assignment -name SDC_FILE E80.sdc
 set_global_assignment -name VHDL_FILE ../VHDL/FPGA.vhd
 set_global_assignment -name VHDL_FILE ../VHDL/Support.vhd
 set_global_assignment -name VHDL_FILE ../VHDL/Computer.vhd

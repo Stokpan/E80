@@ -1,6 +1,4 @@
-// E80 Computer - Physical Constraints file
-// Gowin V1.9.11.01 Education (64-bit)
-// FPGA: GW5A-25 Version A (GW5A-LV25MG121NC1/I0)
+# E80 Computer - Settings and Pin Assignments for the Tang Primer 25K
 
 IO_LOC "LED_rowC[7]" H5;
 IO_PORT "LED_rowC[7]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;

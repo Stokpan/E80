@@ -20,12 +20,13 @@ A simple CPU in VHDL designed to:
 | **Stack**             | Full descending (Stack Pointer init = 0xFF)    |
 | **Architecture**      | Load/Store, register-register                  |
 | **Addressing**        | Immediate, direct, register, register-indirect |
+| **Input**             | 8-bit at 0xFF (1x8 DIP switch)                 |
+| **Output**            | Flags, Registers, PC, Clock (3x8 LEDs)         |
 | **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode    |
 | **Assembler**         | ISO C99 (standard library, stdin I/O)          |
 | **Simulated on**      | GHDL, ModelSim via one-click scripts           |
+| **Synthesized on**    | Quartus Lite, Gowin Education, Vivado Standard |
 | **Tested on**         | Tang Primer 25K, Altera Cyclone IV             |
-| **Input**             | 8-bit at 0xFF (1x8 DIP switch)                 |
-| **Output**            | Flags, Registers, PC, Clock (3x8 LEDs)         |
 
 # ISA cheatsheet
 ```
