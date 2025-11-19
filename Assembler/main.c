@@ -285,11 +285,12 @@ int main(int argc, char *argv[])
 	to specific values or addresses). Title and frequency are also printed
 	on their specific placeholders. */
 	while (fgets(str, MAX_LINE_LENGTH, vhdl_template) != NULL) {
-		if (strstr(str, "E80 Firmware")) {
+		if (strstr(str, "TITLE_PLACEHOLDER")) {
+			printf("-- ");
 			if (!eq(title,"")) {
-				printf("-- %s\n", title);
+				printf("%s\n", title);
 			} else {
-				printf(str);
+				printf("%s\n", DEFAULT_TITLE);
 			}
 		} else if (strstr(str, "DefaultFrequency")) {
 			printf(str, frequency); // template contains %d specifier
