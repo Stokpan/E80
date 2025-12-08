@@ -1,11 +1,11 @@
 # E80 CPU
 
-A simple CPU in VHDL designed to:
+A simple CPU in VHDL, developed from scratch for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454), designed to:
 
 * Offer an Assembly education Microworld with a rich instruction set
 * Bridge digital design and architecture using textbook components only
-* Demonstrate the application of Informatics theory throughout the toolchain
 * Run on low-cost FPGAs or libre/free simulators
+* Demonstrate the application of [HOU's Informatics course](https://www.eap.gr/en/undergraduate/computer-science/) throughout the toolchain
 
 | Feature               | Description                                    |
 |-----------------------|------------------------------------------------|
@@ -105,13 +105,7 @@ H       : halt flag, PC freezes
 
 # Assembly cheatsheet
 ```
-* Directives must precede all instructions.
-* Labels mark memory addresses, eg:
-    label1: instruction1 ; label1 = address of instruction1
-    label2:              ; label2 = address of instruction2
-            instruction2 ; (indentation optional)
-    label3:              ; label3 = address after instruction2
-* Labels must start with a letter and end with a colon.
+Directives must precede all instructions.
 
 | Directive            |                   Description            |
 |----------------------|------------------------------------------|
@@ -127,9 +121,18 @@ number : 0-255 no leading zeroes, bin (eg. 0b0011), hex (eg. 0x0A)
 n      : Number or symbol
 csv    : Comma-separated numbers and ASCII strings
 
+Labels are symbols which mark instruction addresses, eg:
+
+    label1: instruction1 ; label1 = address of instruction1
+    label2:              ; label2 = address of instruction2
+            instruction2 ; (indentation optional)
+
+A label after the last instruction can be used as a symbol for writing
+.DATA right after the executable code.
+
 | Instruction      |                      Notes                      |
 |------------------|-------------------------------------------------|
-| HLT              | Halt, FPGA stops, GHDL/ModelSim simulation ends |
+| HLT              | Sets the H flag and halts execution             |
 | NOP              | No operation                                    |
 | JMP op1          | Jump to op1 address                             |
 | JC n             | Jump if Carry (C=1)                             |
@@ -191,3 +194,107 @@ C and V flags are only updated by arithmetic and RSHIFT/LSHIFT instructions.
 | S=1   | a < b                       | a-b ≥ 128 (if C=1)   |
 | S=0   | a ≥ b                       | a-b < 128 (if C=1)   |
 ```
+
+## Example 1 - Simulation with GHDL
+The following writes the string `` `az{"0 `` followed by the null character, after the last instruction in the memory and converts the lowercase characters to uppercase:
+```
+.TITLE "Converts the lowercase characters of a given string to uppercase"
+.DATA string "`az{\"0",0    ; null-terminated string under the last instruction
+    MOV R0, string          ; R0 = address of the first character ("`")
+loop:   
+    LOAD R1, [R0]           ; R1 = ANSI value of current character
+    CMP R1, 0
+    JZ finish               ; if R1 = 0 (null character) goto finish.
+    CMP R1, 97
+    JNC next                ; else if R1-97 < 0 (R1 < "a") goto next.
+    CMP R1, 123
+    JC next                 ; else if R1 - 123 ≥ 0 (R1 > "z") goto next.
+    SUB R1, 32              ; else, R1 ← R1 - 32 (change to uppercase)
+    STORE R1, [R0]          ; write character back to RAM
+next:
+    ADD R0, 1               ; advance to the next memory address
+    JMP loop                ; repeat loop
+finish:
+    HLT                     ; stop execution & simulation
+string:                     ; memory address under HLT
+```
+You can save this as `uppercase.asm` and use `e80asm < uppercase.asm` to get the following output:
+```
+-----------------------------------------------------------------------
+-- Converts the lowercase characters of a given string to uppercase
+-----------------------------------------------------------------------
+LIBRARY ieee, work; USE ieee.std_logic_1164.ALL, work.support.ALL;
+PACKAGE firmware IS
+CONSTANT DefaultFrequency : DECIHERTZ := 15; -- 1 to 1000
+CONSTANT SimDIP : WORD := "00000000"; -- DIP input for testbench only
+CONSTANT Firmware : WORDx256  := (
+0   => "00010000", 1   => "00011001",  -- MOV R0, 25
+2   => "10011000", 3   => "00010000",  -- LOAD R1, [R0]
+4   => "10110001", 5   => "00000000",  -- CMP R1, 0
+6   => "00000110", 7   => "00011000",  -- JZ 24
+8   => "10110001", 9   => "01100001",  -- CMP R1, 97
+10  => "00000101", 11  => "00010100",  -- JNC 20
+12  => "10110001", 13  => "01111011",  -- CMP R1, 123
+14  => "00000100", 15  => "00010100",  -- JC 20
+16  => "00110001", 17  => "00100000",  -- SUB R1, 32
+18  => "10001000", 19  => "00010000",  -- STORE R1, [R0]
+20  => "00100000", 21  => "00000001",  -- ADD R0, 1
+22  => "00000010", 23  => "00000010",  -- JMP 2
+24  => "00000000",                     -- HLT
+25  => "01100000",                     -- '`' (96)
+26  => "01100001",                     -- 'a' (97)
+27  => "01111010",                     -- 'z' (122)
+28  => "01111011",                     -- '{' (123)
+29  => "00100010",                     -- '"' (34)
+30  => "00110000",                     -- '0' (48)
+31  => "00000000",                     -- 0
+OTHERS => "UUUUUUUU");END;
+```
+You can now save this in VHDL\Firmware.vhd and run computer_tb.bat in the GHDL folder. Provided that you have installed GHDL & GTKwave, you'll see this:
+
+<img width="1858" height="1200" alt="image" src="https://github.com/user-attachments/assets/f2d6ea5c-f4fd-4b1b-ac63-68b8a3f10847" />
+
+The highlighted RAM locations 25-31 have been initialized by the .DATA directive and modified by the program. These have been manually set to ASCII data format in GTKwave.
+
+## Example 2 - Testing on the Tang Primer 25K
+
+First, install Gowin EDA Student Edition ([Windows](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_x64_win.zip), [Linux](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_Linux.tar.gz), [MacOS](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03Education_macOS.dmg)).
+
+Study the pin assignments in the `Gowin\E80.cst` file and apply them to your board. Use a five-direction navigation button/joystick with Left, Right, Up, Down, Set (for Pause), and Reset. All input pins must be *active high* with a 10kΩ pull-down resistor and the joystick's COM port must be connected to a 3.3V output. Below is a reference photo of the board setup:
+
+<img width="2300" height="1294" alt="image" src="https://github.com/user-attachments/assets/d1b91bf1-b6d4-4091-96af-2e636041546f" />
+
+The top module (FPGA.vhd) uses three 8-LED rows for display, and the joystick buttons for control:
+
+**LEDs**
+* **Row A (Status):**
+    * **[7:4] (Flags):** Carry, Zero, Sign, Overflow.
+    * **[3:1] (Register Selection):** Binary index of the register currently displayed on Row B.
+    * **[0] (Clock):** Pulses dimly during normal execution, pulses brightly during reset, and turns solid bright on HLT.
+* **Row B (Data):** Displays the value of the selected register. When Reset is held, it mirrors the DIP switch input instead.
+* **Row C (PC):** Displays the current Program Counter.
+
+**Buttons**
+* **Joystick Left/Right:** Adjust clock speed; supports auto-repeat when held down.
+* **Joystick Center:** Reset clock speed.
+* **Joystick Up/Down:** Select which register is displayed on Row B; supports auto-repeat when held down.
+* **Set:** Pause execution.
+* **Reset:** CPU initialization and firmware reset; press until the Clock LED starts flashing brightly.
+
+To run the test, start by converting the following program to VHDL using the assembler and paste it into `Firmware.vhd` as in the previous example.
+
+```
+.TITLE "256-ROR to test joystick control"
+.SIMDIP 0b00000010     ; for simulation only, FPGA ignores this
+	LOAD R0, [0xFF]    ; loads the DIP input word to R0
+	MOV R1, 0
+loop:
+	ROR R0, 1
+	ADD R1, 1
+	JNC loop            ; stop after 256 RORs (32 full rotations)
+	HLT
+```
+
+Open the `Gowin\Gowin.gprj` file in the Gowin IDE. Compile the project using *Run All*, wait for completion, connect your Tang Primer 25K board on your PC, and then use the *Programmer* function to upload the configuration.
+
+When the upload is finished, press the Reset button to initialize the RAM with your program's code. The LED will then pulse dimly as the program runs. If R0 is selected (Row A [3:1] are off), you will see Row B initialize to your DIP input and then rotate 32 times. Then an HLT instruction will be executed and the Clock LED will become solid and bright.
