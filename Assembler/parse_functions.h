@@ -4,7 +4,7 @@
 /* Converts s to a number according to this rule:
 <number> ::= "0x" <hex+> | "0b" <bit+> | <dec+>
 Strings correspond to unsigned numbers, so a negative return value signifies
-an error or a non-number */
+an error or a non-number (eg. a label) */
 int number(const char *s);
 
 /* Trims leading and trailing trimmable characters from s */

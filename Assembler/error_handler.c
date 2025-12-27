@@ -100,7 +100,7 @@ void error(enum ErrorCode errorlevel)
 		fprintf(stderr, "'%s' is reserved and cannot be a label", TOKEN);
 		break;
 	case COLON:
-		fprintf(stderr, "Colon expected after label");
+		fprintf(stderr, "Colon expected after label '%s'", PREVIOUS);
 		break;
 	case REGISTER:
 		fprintf(stderr,

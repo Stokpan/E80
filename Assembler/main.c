@@ -72,14 +72,18 @@ int main(int argc, char *argv[])
 			nextaddr();
 			nextaddr(); // two-word instructions
 		} else if (label(TOKEN)) {
-			// <label:> ::= <label> <s*> ":"
 			strcpy(str, TOKEN);
+			// catch missing colons now, otherwise the label will be omitted
+			// from the Out.label symbol table, causing syntactically correct
+			// but misleading errors at use sites during the second pass
 			if (eq(nexttoken(), ":")) {
 				addlabel(str, Out.addr);
 				// check the next token instead of the next line to process
-				// an instruction next to the label in the same line
+				// <label:> <instruction> cases
 				nexttoken();
 				continue;
+			} else {
+				error(COLON);
 			}
 		}
 		nextline();
