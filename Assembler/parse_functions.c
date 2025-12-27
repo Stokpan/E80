@@ -247,8 +247,14 @@ int regnum(const char *s)
 int value(const char *s)
 {
 	int n = number(s);
-	if (n < 0) n = labelvalue(s); // if it's not a number, search labels
-	return n;
+	if (n >= 0) return n;
+	// if it's not a number, it must be a label
+	int i = findlabel(s);
+	if (i > -1) {
+		return Out.label[i].val;
+	} else {
+		return -1;
+	}
 }
 
 void bitcopy(char *dest, int num, int high, int low)

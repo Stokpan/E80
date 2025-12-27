@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	int n; // scratchpad index or value
 	int data_space; // address after the last instruction
 	int len, spaces; // formatting helpers
-	char* CtrlD = NULL; //
+	char* CtrlD = NULL; // check if Ctrl+D is pressed
 	FILE* asm_input = stdin; // fopen("test.e80asm", "r");
 	FILE* vhdl_template = fopen(TEMPLATE, "r");
 	if (!vhdl_template) error(OPEN_TEMPLATE);
@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
 			strcpy(str, TOKEN);
 			if (eq(nexttoken(), ":")) {
 				addlabel(str, Out.addr);
-				// check the next token instead of the next line to allow
-				// for <codeline> ::= <[label]> <[\n]> <[instruction]>
+				// check the next token instead of the next line to process
+				// an instruction next to the label in the same line
 				nexttoken();
 				continue;
 			}
@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
 			"\n- %s = %d", Out.label[n].name, Out.label[n].val);
 	}
 	fprintf(stderr, "\n");
+	sortlabels(); // to allow bsearch in findlabel
 
 	/* Parse directives.
 	E80 is designed according to the Neumann model where machine code and data
@@ -146,9 +147,8 @@ int main(int argc, char *argv[])
 			// <directive> ::= ".SIMDIP" <s+> <value>
 			bitcopy(simdip, value(nexttoken()), 7, 0);
 		} else if (eq(TOKEN, ".LABEL")) {
-			// already processed during label collection
-			nexttoken();
-			nexttoken();
+			findlabel(nexttoken()); // check duplicate labels
+			nexttoken(); // number was checked during symbol collection
 		} else if (!eq(TOKEN, "")) {
 			// a non empty token which is not a directive ⇒ end of directives
 			break;
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 			bitcopy(RAM, n, 7, 0);
 			sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
 			nextaddr();
-		} else if (labelvalue(TOKEN) >= 0) {
+		} else if (findlabel(TOKEN) != -1) {
 			// <label:> ::= <label> <s*> ":"
 			if (!eq(nexttoken(), ":")) error(COLON);
 			nexttoken();

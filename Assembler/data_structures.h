@@ -30,8 +30,8 @@ struct LabelElement {
 	unsigned char val;
 };
 
-/* Stores an array of pointers to LabelElements; this array is sorted during
-the Label collection stage at main() to allow fast binary search. This header
+/* Stores an array of LabelElements; this array is sorted after the symbol
+collection stage at main() to allow fast binary search. This header
 includes the final ram/comment arrays where the translated code is printed. */
 struct OutputHeader {
 	unsigned char labels;  // number of stored labels
@@ -73,9 +73,9 @@ int addlabel(const char* name, int value);
 /* Sorts the labels array according their linked LabelElement names. */
 void sortlabels();
 
-/* Searches 'name' on the LabelElement names, as they are linked with
-the sorted labels array, and returns its LabelElement value. */
-int labelvalue(const char* name);
+/* Searches 'name' on the label array after its sorted, and returns its index,
+performing duplicate labels check. */
+int findlabel(const char* name);
 
 /* Moves to the next RAM address, checking for out-of-bounds error. */
 void nextaddr();
