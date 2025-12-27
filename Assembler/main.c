@@ -73,18 +73,15 @@ int main(int argc, char *argv[])
 			nextaddr(); // two-word instructions
 		} else if (label(TOKEN)) {
 			strcpy(str, TOKEN);
-			// catch missing colons now, otherwise the label will be omitted
-			// from the Out.label symbol table, causing syntactically correct
+			// catch missing colons now, otherwise most instruction typos
+			// will be regarded as labels, causing syntactically correct
 			// but misleading errors at use sites during the second pass
-			if (eq(nexttoken(), ":")) {
-				addlabel(str, Out.addr);
-				// check the next token instead of the next line to process
-				// <label:> <instruction> cases
-				nexttoken();
-				continue;
-			} else {
-				error(COLON);
-			}
+			if (!eq(nexttoken(), ":")) error(COLON);
+			addlabel(str, Out.addr);
+			// check the next token instead of the next line to process
+			// <label:> <instruction> cases
+			nexttoken();
+			continue;
 		}
 		nextline();
 	}
@@ -151,8 +148,10 @@ int main(int argc, char *argv[])
 			// <directive> ::= ".SIMDIP" <s+> <value>
 			bitcopy(simdip, value(nexttoken()), 7, 0);
 		} else if (eq(TOKEN, ".LABEL")) {
-			findlabel(nexttoken()); // check duplicate labels
+			findlabel(nexttoken()); // includes dupe checking
 			nexttoken(); // number was checked during symbol collection
+		} else if (TOKEN[0] == '.') {
+			error(DIRECTIVE);
 		} else if (!eq(TOKEN, "")) {
 			// a non empty token which is not a directive ⇒ end of directives
 			break;
@@ -271,13 +270,13 @@ int main(int argc, char *argv[])
 			bitcopy(RAM, n, 7, 0);
 			sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
 			nextaddr();
-		} else if (findlabel(TOKEN) != -1) {
-			// <label:> ::= <label> <s*> ":"
-			if (!eq(nexttoken(), ":")) error(COLON);
+		} else if (findlabel(TOKEN) != -1) { // includes dupe checking
+			// label syntax was checked during symbol collection
+			nexttoken();
 			nexttoken();
 			continue;
 		} else if (!eq(TOKEN, "")) {
-			error(UNKNOWN);
+			error(INSTRUCTION);
 		}
 		if (nexttoken()) error(EXTRANEOUS);
 		nextline();

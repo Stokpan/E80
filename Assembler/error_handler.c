@@ -93,8 +93,11 @@ void error(enum ErrorCode errorlevel)
 	case EXTRANEOUS:
 		fprintf(stderr, "'%s' was unexpected", TOKEN);
 		break;
-	case UNKNOWN:
-		fprintf(stderr, "'%s' is an unknown instruction or directive", TOKEN);
+	case DIRECTIVE:
+		fprintf(stderr, "'%s' is not a directive", TOKEN);
+		break;
+	case INSTRUCTION:
+		fprintf(stderr, "'%s' is not an instruction", TOKEN);
 		break;
 	case RESERVED:
 		fprintf(stderr, "'%s' is reserved and cannot be a label", TOKEN);
@@ -141,8 +144,7 @@ void error(enum ErrorCode errorlevel)
 	default:
 		break;
 	}
-	fprintf(stderr,	"\n");
-	fprintf(stderr,	"******************************************************\n");
+	fprintf(stderr,	"\n******************************************************\n");
 	
 	exit(errorlevel);
 }
