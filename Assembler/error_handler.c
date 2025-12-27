@@ -93,18 +93,28 @@ void error(enum ErrorCode errorlevel)
 	case EXTRANEOUS:
 		fprintf(stderr, "'%s' was unexpected", TOKEN);
 		break;
-	case UNKNOWN:
-		fprintf(stderr, "'%s' is an unknown instruction or directive", TOKEN);
+	case DIRECTIVE:
+		fprintf(stderr, "'%s' is not a directive", TOKEN);
+		break;
+	case INSTRUCTION_LABEL:
+		fprintf(stderr, "'%s' is no instruction or label", TOKEN);
+		break;
+	case INSTRUCTION_COLON:
+		fprintf(stderr, "'%s' is no instruction, or missing a colon", PREVIOUS);
+		break;
+	case INSTRUCTION:
+		fprintf(stderr, "'%s' is no instruction", TOKEN);
 		break;
 	case RESERVED:
-		fprintf(stderr, "'%s' is reserved and cannot be a label", TOKEN);
-		break;
-	case COLON:
-		fprintf(stderr, "Colon expected after label");
+		fprintf(stderr, "'%s' is reserved and cannot be used here", TOKEN);
 		break;
 	case REGISTER:
-		fprintf(stderr,
-			"'%s' is not a register; allowed registers are R0-R7", TOKEN);
+		if (eq(TOKEN, "")) {
+			fprintf(stderr,"Expected register after '%s'", PREVIOUS);
+		} else {
+			fprintf(stderr, "'%s' is not a register;"
+			" allowed registers are R0-R7", TOKEN);
+		}
 		break;
 	case VALUE:
 		fprintf(stderr, "'%s' is not a number or label", TOKEN);
@@ -120,7 +130,11 @@ void error(enum ErrorCode errorlevel)
 				" after '%s'", PREVIOUS);
 		break;
 	case OP:
-		fprintf(stderr, "'%s' is not number, label or register.", TOKEN);
+		if (eq(TOKEN, "")) {
+			fprintf(stderr,"Expected number, label or register after comma");
+		} else {
+			fprintf(stderr, "'%s' is not number, label or register.", TOKEN);
+		}
 		break;
 	case DATA_ADDRESS:
 		fprintf(stderr, "'%s' is not a valid address or label.", TOKEN);
@@ -141,8 +155,7 @@ void error(enum ErrorCode errorlevel)
 	default:
 		break;
 	}
-	fprintf(stderr,	"\n");
-	fprintf(stderr,	"******************************************************\n");
+	fprintf(stderr,	"\n******************************************************\n");
 	
 	exit(errorlevel);
 }

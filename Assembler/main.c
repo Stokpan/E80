@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	int n; // scratchpad index or value
 	int data_space; // address after the last instruction
 	int len, spaces; // formatting helpers
-	char* CtrlD = NULL; //
+	char* CtrlD = NULL; // check if Ctrl+D is pressed
 	FILE* asm_input = stdin; // fopen("test.e80asm", "r");
 	FILE* vhdl_template = fopen(TEMPLATE, "r");
 	if (!vhdl_template) error(OPEN_TEMPLATE);
@@ -72,15 +72,20 @@ int main(int argc, char *argv[])
 			nextaddr();
 			nextaddr(); // two-word instructions
 		} else if (label(TOKEN)) {
-			// <label:> ::= <label> <s*> ":"
-			strcpy(str, TOKEN);
-			if (eq(nexttoken(), ":")) {
-				addlabel(str, Out.addr);
-				// check the next token instead of the next line to allow
-				// for <codeline> ::= <[label]> <[\n]> <[instruction]>
-				nexttoken();
-				continue;
+			// consequtive labels are not allowed
+			if (Out.labels > 0 && Out.label[Out.labels-1].val == Out.addr) {
+				error(INSTRUCTION);
 			}
+			strcpy(str, TOKEN);
+			// catch missing colons now, otherwise most instruction typos
+			// will be regarded as labels, causing syntactically correct
+			// but misleading errors at use sites during the second pass
+			if (!eq(nexttoken(), ":")) error(INSTRUCTION_COLON);
+			addlabel(str, Out.addr);
+			// check the next token instead of the next line to process
+			// <label:> <instruction> cases
+			nexttoken();
+			continue;
 		}
 		nextline();
 	}
@@ -93,6 +98,7 @@ int main(int argc, char *argv[])
 			"\n- %s = %d", Out.label[n].name, Out.label[n].val);
 	}
 	fprintf(stderr, "\n");
+	sortlabels(); // to allow bsearch in findlabel
 
 	/* Parse directives.
 	E80 is designed according to the Neumann model where machine code and data
@@ -146,9 +152,10 @@ int main(int argc, char *argv[])
 			// <directive> ::= ".SIMDIP" <s+> <value>
 			bitcopy(simdip, value(nexttoken()), 7, 0);
 		} else if (eq(TOKEN, ".LABEL")) {
-			// already processed during label collection
-			nexttoken();
-			nexttoken();
+			findlabel(nexttoken()); // includes dupe checking
+			nexttoken(); // number was checked during symbol collection
+		} else if (TOKEN[0] == '.') {
+			error(DIRECTIVE);
 		} else if (!eq(TOKEN, "")) {
 			// a non empty token which is not a directive ⇒ end of directives
 			break;
@@ -267,13 +274,13 @@ int main(int argc, char *argv[])
 			bitcopy(RAM, n, 7, 0);
 			sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
 			nextaddr();
-		} else if (labelvalue(TOKEN) >= 0) {
-			// <label:> ::= <label> <s*> ":"
-			if (!eq(nexttoken(), ":")) error(COLON);
+		} else if (findlabel(TOKEN) != -1) { // includes dupe checking
+			// label syntax was checked during symbol collection
+			nexttoken();
 			nexttoken();
 			continue;
 		} else if (!eq(TOKEN, "")) {
-			error(UNKNOWN);
+			error(INSTRUCTION_LABEL);
 		}
 		if (nexttoken()) error(EXTRANEOUS);
 		nextline();

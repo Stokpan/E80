@@ -81,8 +81,10 @@ Section "E80 Toolchain (Required)" SecCore
 	File "e80asm.lua"
 	File "..\GHDL Scripts\g.bat"
 	
-	; Source Examples & Templates
-	File "..\Assembler\divmul.e80asm"
+	; Example
+	File "divmul.e80asm"
+
+	; Templates
 	File "..\Assembler\template.vhd"
 	File "..\GHDL Scripts\computer_tb.gtkw"
 

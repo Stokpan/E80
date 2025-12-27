@@ -1,4 +1,4 @@
-<start>         ::= <[directives]> <[codelines]>
+<start>         ::= <[directives]> <[codelines]> <[label:]>
 <[directives]>  ::= <directive> | <directive> <nl+> <[directives]> | <[\n]>
 <directive>     ::= ".TITLE" <s+> <quoted_string>
 <directive>     ::= ".LABEL" <s+> <label> <s+> <number>
@@ -6,7 +6,7 @@
 <directive>     ::= ".SIMDIP" <s+> <value>
 <directive>     ::= ".DATA" <s+> <value> <s+> <array>
 <[codelines]>   ::= <codeline> | <codeline> <nl+> <[codelines]> | <[\n]>
-<codeline>      ::= <label:> | <instruction> | <label:> <[\n]> <instruction>
+<codeline>      ::= <instruction> | <label:> <instruction>
 <instruction>   ::= <instr_noarg>
 <instruction>   ::= <instr_reg> <s+> <reg>
 <instruction>   ::= <instr_val> <s+> <value>
@@ -25,7 +25,8 @@
 <bracket_op2>   ::= "[" <op2> "]"
 <op2>           ::= <reg> | <value>
 <value>         ::= <number> | <label>
-<label:>        ::= <label> <s*> ":"
+<[label:]>      ::= <label:> | <[\n]>
+<label:>        ::= <label> <s*> ":" <[\n]>
 <label>         ::= <letter> <label_char*>
 <label_char*>   ::= <label_char> <label_char*> | ""
 <label_char>    ::= <letter> | <dec> | "_"

@@ -18,7 +18,6 @@ Assembler/*
 !Assembler/*.h
 !Assembler/*.c
 !Assembler/*.dev
-!Assembler/*.asm
 !Assembler/*.vhd
 Gowin/impl/*
 !Gowin/impl/Gowin_process_config.json

@@ -8,6 +8,7 @@
 #include "config.h"
 #include "error_handler.h"
 #include "data_structures.h"
+#include "parse_functions.h"
 
 struct InputHeader In = {0};
 struct OutputHeader Out = {0};
@@ -93,13 +94,11 @@ char* nexttoken(void)
 int addlabel(const char* name, int value)
 {
 	if (Out.labels >= MAX_LABELS) error(MANY_LABELS);
-	if (labelvalue(name) != -1) error(DUPLICATE_LABEL);
 	Out.label[Out.labels].name = malloc(strlen(name) +1); // +1 = terminator
 	if (!Out.label[Out.labels].name) error(MEMORY_ALLOCATION_ERROR);
 	strcpy(Out.label[Out.labels].name, name);
 	Out.label[Out.labels].val = (unsigned char)value;
 	Out.labels++;
-	sortlabels(); // to allow bsearch in labelvalue
 	return Out.labels;
 }
 
@@ -118,13 +117,22 @@ void sortlabels(void)
 		Out.label, Out.labels, sizeof(struct LabelElement), comparelabels);
 }
 
-int labelvalue(const char* name)
+int findlabel(const char* name)
 {
 	struct LabelElement key = {.name = (char*)name};
 	struct LabelElement* found = (struct LabelElement*) bsearch(
 		&key, Out.label, Out.labels, sizeof(Out.label[0]), comparelabels);
+	
 	if (!found) return -1;
-	return (int)found->val;
+	// use pointer arithmetic to calculate the index by the distance
+	// of the found element from the base address of the array
+	int i = (int)(found - Out.label);
+	// check for duplicates
+	if (i > 0 && strcmp(Out.label[i-1].name, name) == 0)
+		error(DUPLICATE_LABEL);
+	if (i < Out.labels - 1 && strcmp(Out.label[i+1].name, name) == 0)
+		error(DUPLICATE_LABEL);
+	return i;
 }
 
 void nextaddr(void)
