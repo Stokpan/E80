@@ -9,7 +9,7 @@ Unicode True
 ; improved compression
 SetCompressor /SOLID lzma
 
-; Preferred installation folder (Standard Windows Program Files)
+; Preferred installation folder
 InstallDir "$%HOMEDRIVE%\E80Toolchain"
   
 ; Get installation folder from registry if previously installed
@@ -56,42 +56,34 @@ FunctionEnd
 ; Installer Sections
 Section "E80 Toolchain (Required)" SecCore
 	SectionIn RO
-	; Subdirectories
+
+	; Copy files
 	SetOutPath "$INSTDIR\GHDL"
 	File /r "GHDL\*.*"
-	SetOutPath "$INSTDIR\GTKwave"
-	File /r "GTKwave\*.*"
+	File /r "..\GHDL\*.*"
+
 	SetOutPath "$INSTDIR\VHDL"
 	File /r "..\VHDL\*.*"
+
 	SetOutPath "$INSTDIR\Gowin"
 	File /r "..\Gowin\*.*"
+
 	SetOutPath "$INSTDIR\ModelSim"
 	File /r "..\ModelSim\*.*"
-	SetOutPath "$INSTDIR"
 
-	; Legal / Notices
-    File "Licenses.txt"
-    File "..\LICENSE"
-
-	; Executables and Config
-	File "Sc1.exe"
-	File "Sc1.License.txt"
+	SetOutPath "$INSTDIR\Assembler"
 	File "..\Assembler\E80ASM.exe"
+	File "..\Assembler\template.vhd"
+	File "..\Assembler\a.bat"
+
+	SetOutPath "$INSTDIR"
+    File "3rd party Licenses.txt"
+    File "..\LICENSE"
+	File "Sc1.exe"
 	File "SciTEGlobal.properties"
 	File "e80asm.lua"
-	File "..\GHDL Scripts\g.bat"
-	
-	; Example
 	File "divmul.e80asm"
-
-	; Templates
-	File "..\Assembler\template.vhd"
-	File "..\GHDL Scripts\computer_tb.gtkw"
-
-	; Icon
 	File "e80icon.ico"
-
-	; Portable Scripts (For USB use)
 	File "register_e80asm_files.bat"
 	File "unregister_e80asm_files.bat"
 

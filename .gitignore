@@ -10,9 +10,9 @@ Quartus/*
 !Quartus/*.qsf
 !Quartus/*.sdc
 !Quartus/*.srf
-GHDL Scripts/*
-!GHDL Scripts/*.bat
-!GHDL Scripts/*.gtkw
+GHDL/*
+!GHDL/*.bat
+!GHDL/*.gtkw
 Assembler/*
 !Assembler/*.txt
 !Assembler/*.h
@@ -23,6 +23,5 @@ Gowin/impl/*
 !Gowin/impl/Gowin_process_config.json
 Gowin/Gowin.gprj.user
 desktop.ini
-Installer Extras/GHDL/
-Installer Extras/GTKWave/
-Installer Extras/*.exe
+Installer/GHDL/
+Installer/*.exe

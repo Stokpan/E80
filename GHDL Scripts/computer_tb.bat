@@ -1,1 +1,0 @@
-g ..\VHDL computer_tb 100ns

@@ -1,6 +1,7 @@
-# Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+# Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
 quit -sim
+project open e80.mpf
 wave zoom full
 .main clear
 quietly project compileall
