@@ -7,7 +7,7 @@ Strings correspond to unsigned numbers, so a negative return value signifies
 an error or a non-number (eg. a label) */
 int number(const char *s);
 
-/* Trims leading and trailing trimmable characters from s */
+/* Trims leading and trailing whitespace and comments from s */
 void trim(char *s);
 
 /* Compares two strings case-insensitevely, taking into account NULL pointers,

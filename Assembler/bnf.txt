@@ -30,7 +30,7 @@
 <label>         ::= <letter> <label_char*>
 <label_char*>   ::= <label_char> <label_char*> | ""
 <label_char>    ::= <letter> | <dec> | "_"
-<reg>           ::= "R0" | "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "SP" | "R7" | "FLAGS"
+<reg>           ::= "R0" | "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "R7" | "FLAGS" | "SP"
 <array>         ::= <array_element> | <array_element> <,> <array>
 <array_element> ::= <number> | <quoted_string>
 <quoted_string> ::= "\"" <char+> "\""

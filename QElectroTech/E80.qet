@@ -2903,8 +2903,8 @@
                 </terminals>
                 <inputs/>
                 <dynamic_texts>
-                    <dynamic_elmt_text frame="false" keep_visual_rotation="false" uuid="{bc643549-c418-4850-b59a-a7dc50d6da3b}" text_from="UserText" Valignment="AlignVCenter" x="-39" y="-71" Halignment="AlignRight" rotation="0" text_width="-1" font="Times New Roman,9,-1,5,50,0,0,0,0,0,Κανονικά">
-                        <text></text>
+                    <dynamic_elmt_text frame="false" keep_visual_rotation="false" uuid="{bc643549-c418-4850-b59a-a7dc50d6da3b}" text_from="UserText" Valignment="AlignVCenter" x="-68" y="-71" Halignment="AlignRight" rotation="0" text_width="-1" font="Times New Roman,9,-1,5,50,0,0,0,0,0,Κανονικά">
+                        <text>B_val</text>
                     </dynamic_elmt_text>
                     <dynamic_elmt_text frame="false" keep_visual_rotation="false" uuid="{b0e25656-3077-458e-902c-e3fefd7009f4}" text_from="UserText" Valignment="AlignVCenter" x="-39" y="-51" Halignment="AlignRight" rotation="0" text_width="-1" font="Times New Roman,9,-1,5,50,0,0,0,0,0,Κανονικά">
                         <text></text>

@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,8 +71,11 @@ void trim(char *s)
 	char *end = s; // end of string
 	char quoted = 0;
 	while (*end) { // find the terminal or an unquoted semicolon
-		if (*end == '"' && end[-1] != '\\') quoted = !quoted; // \" = escaped
+		// flip the quoted flag if the current end is non-escaped quote (\*)
+		if (*end == '"' && (end == start || end[-1] != '\\')) quoted = !quoted;
+		// stop parsing at comments (non-quoted semicolon)
 		if (!quoted && *end == ';') break;
+		// move to the next character
 		end++;
 	}
 	end--; // terminal = [end+1]
@@ -138,8 +141,8 @@ char instr_noarg(const char *s)
 
 char instr_reg(const char *s)
 {
-	if      (eq(s, "RSHIFT")) strcpy(RAM, "10100");
-	else if (eq(s, "LSHIFT")) strcpy(RAM, "11000");
+	if      (eq(s, "LSHIFT")) strcpy(RAM, "10100");
+	else if (eq(s, "RSHIFT")) strcpy(RAM, "11010");
 	else if (eq(s, "PUSH"))   strcpy(RAM, "11100");
 	else if (eq(s, "POP"))    strcpy(RAM, "11110");
 	else return 0;
@@ -173,10 +176,10 @@ char instr_reg_op2(const char *s)
 	if      (eq(s, "MOV"))   strcpy(RAM, "0001");
 	else if (eq(s, "ADD"))   strcpy(RAM, "0010");
 	else if (eq(s, "SUB"))   strcpy(RAM, "0011");
-	else if (eq(s, "ROR"))   strcpy(RAM, "0100");
-	else if (eq(s, "AND"))   strcpy(RAM, "0101");
-	else if (eq(s, "OR"))    strcpy(RAM, "0110");
-	else if (eq(s, "XOR"))   strcpy(RAM, "0111");
+	else if (eq(s, "AND"))   strcpy(RAM, "0100");
+	else if (eq(s, "OR"))    strcpy(RAM, "0101");
+	else if (eq(s, "XOR"))   strcpy(RAM, "0110");
+	else if (eq(s, "ROR"))   strcpy(RAM, "0111");
 	else if (eq(s, "STORE")) strcpy(RAM, "1000");
 	else if (eq(s, "LOAD"))  strcpy(RAM, "1001");
 	else if (eq(s, "CMP"))   strcpy(RAM, "1011");
@@ -194,7 +197,7 @@ char load_store(const char *s)
 
 char instr_reg_n(const char *s)
 {
-	if (eq(s, "BIT")) strcpy(RAM, "11010");
+	if (eq(s, "BIT")) strcpy(RAM, "11000");
 	else return 0;
 	return 2;
 }

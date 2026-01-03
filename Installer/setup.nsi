@@ -1,4 +1,7 @@
 ; E80 Toolchain Installer Script
+; Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+; Requires the strlen_8192 version from https://sourceforge.net/projects/nsis
+
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 
@@ -54,7 +57,7 @@ Function .onInit
 FunctionEnd
 
 ; Installer Sections
-Section "E80 Toolchain (Required)" SecCore
+Section "Portable requirements" SecCore
 	SectionIn RO
 
 	; Copy files
@@ -77,15 +80,13 @@ Section "E80 Toolchain (Required)" SecCore
 	File "..\Assembler\a.bat"
 
 	SetOutPath "$INSTDIR"
-    File "3rd party Licenses.txt"
-    File "..\LICENSE"
+	File "3rd party Licenses.txt"
+	File "..\Assembler\divmul.e80asm"
+	File "..\LICENSE"
 	File "Sc1.exe"
 	File "SciTEGlobal.properties"
 	File "e80asm.lua"
-	File "divmul.e80asm"
 	File "e80icon.ico"
-	File "register_e80asm_files.bat"
-	File "unregister_e80asm_files.bat"
 
 	; Store Install Path
 	WriteRegStr HKCU "Software\E80Toolchain" "" $INSTDIR
@@ -113,7 +114,7 @@ Section "E80 Toolchain (Required)" SecCore
 	CreateShortcut "$SMPROGRAMS\E80 Toolchain\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 SectionEnd
 
-Section "Register File Associations (Current User)" SecAssoc
+Section "Register extensions" SecAssoc
 	; Define the ProgID in User Registry
 	WriteRegStr HKCU "Software\Classes\E80ASMfile" "" "E80 Assembly Source"
 	; Define the Default Icon
@@ -126,28 +127,33 @@ Section "Register File Associations (Current User)" SecAssoc
 	System::Call 'shell32.dll::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 SectionEnd
 
-;--------------------------------
+Section /o "Layout for ModelSim" SecModelSim
+	; E80 Layout (requires the strlen_8192 nsis build)
+	WriteRegStr HKCU "SOFTWARE\Model Technology Incorporated\ModelSim" "LayoutV5%2EE80" "vertical {{{{{.main_pane.process {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.locals {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.details {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 1 na {}} {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na paned {.main_pane.wave {-height 556 -hide 0 -minsize 50 -stretch always -width 1440} 533 na {} .main_pane.memdata {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.source1 {-height 600 -hide 1 -minsize 50 -width 600} 0 na {} .main_pane.source2 {-height 600 -hide 1 -minsize 50 -width 600} 0 na {} .main_pane.source3 {-height 600 -hide 1 -minsize 50 -width 600} 0 na {} .main_pane.source4 {-height 600 -hide 1 -minsize 50 -width 600} 0 na {} .main_pane.source5 {-height 600 -hide 1 -minsize 50 -width 600} 0 na {} .main_pane.source {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.dataflow {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.list {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.fsmview {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.msgviewer {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.triageviewer {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.atv {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.schematic {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.tracker {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.browser {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.canalysis {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.duranked {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.watch {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.ranked {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.calltree {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.structural {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.profiledetails {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.assertions {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.fcovers {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.covergroups {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.classtree {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.classgraph {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.trender {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.capacity {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.memdata1 {-height 600 -hide 1 -minsize 50 -width 600} 556 na {}} {-height 556 -hide 0 -minsize 50 -stretch always -width 1440} 1440 na tabbed} {-height 556 -hide 0 -minsize 50 -stretch always -width 1440} 556 na paned {{.main_pane.library {-height 215 -hide 0 -minsize 50 -stretch always -width 317} 215 na {} .main_pane.project {-height 215 -hide 0 -minsize 50 -stretch always -width 317} 256 na {} .main_pane.memory {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.structure {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.files {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.fsmlist {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.powerstatelist {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.stackview {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 0 na {} .main_pane.instance {-height 600 -hide 1 -minsize 50 -stretch always -width 600} 238 na {}} {-height 238 -hide 0 -minsize 50 -stretch always -width 317} 317 na tabbed {.main_pane.objects {-height 238 -hide 0 -minsize 50 -width 336} 238 na {}} {-height 238 -hide 0 -minsize 50 -stretch always -width 336} 659 na paned {.main_pane.transcript {-height 238 -hide 0 -minsize 50 -stretch always -width 775} 238 na {}} {-height 238 -hide 0 -minsize 50 -width 775} 1440 na tabbed} {-height 238 -hide 0 -minsize 50 -width 1440} 800 na paned} {-height 800 -hide 0 -minsize 50 -stretch always -width 1440} 1440 na paned} {-height 800 -hide 0 -minsize 200 -stretch always -width 1440} 800 na paned}"
+	; Enable E80 Layout everywhere (reduces cluttering and subsequent simulation waiting time)
+	WriteRegStr HKCU "SOFTWARE\Model Technology Incorporated\ModelSim" "LayoutForDefault" "E80"
+	WriteRegStr HKCU "SOFTWARE\Model Technology Incorporated\ModelSim" "LayoutForLoad" "E80"
+	WriteRegStr HKCU "SOFTWARE\Model Technology Incorporated\ModelSim" "LayoutForLoadCov" "E80"
+SectionEnd
+
 ; Descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Sc1 editor, E80 Assembler, GHDL, GTKWave, and all the necessary configuration to allow simulation of a program on E80 by pressing F5 on Sc1."
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssoc} "Associate .e80asm files with Sc1."
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssoc} "Associate .e80asm files with Sc1 for the current user."
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecModelSim} "Create and enable a custom E80 layout on ModelSim. You can use ModelSim's Layout menu to reset and delete the custom layout."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
-;--------------------------------
 ; Uninstaller Section
 Section "Uninstall"
-	; Remove Registry Keys (Main settings)
+	; Remove Registry Keys
 	DeleteRegKey HKCU "Software\E80Toolchain"
-	; Remove Associations (From User Classes)
 	DeleteRegKey HKCU "Software\Classes\E80ASMfile"
 	DeleteRegKey HKCU "Software\Classes\.e80asm"
 	; Refresh Icons
 	System::Call 'shell32.dll::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 	; Remove Files and Directories
-	; RMDir /r is safer here because we are inside AppData, not Program Files.
 	RMDir /r "$INSTDIR"
-	; Remove Shortcuts
 	RMDir /r "$SMPROGRAMS\E80 Toolchain"
-    ; Remove the uninstaller entry from Windows Registry
-    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\E80Toolchain"
+	; Remove the uninstaller entry from Windows Registry
+	DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\E80Toolchain"
 SectionEnd

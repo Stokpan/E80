@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,9 +289,9 @@ int main(int argc, char *argv[])
 
 	/* Print the converted VHDL code using the template file.
 	Each instruction reserves one line, followed by a comment specifying the
-	original mnemonic (in which references to labels have been translated
-	to specific values or addresses). Title and frequency are also printed
-	on their specific placeholders. */
+	instruction in hex and the disassembled mnemonic.
+	Title and frequency are also printed on their specific placeholders. */
+	char hex[5] = {0}; // bin to hex conversion string (max 4 digits)
 	while (fgets(str, MAX_LINE_LENGTH, vhdl_template) != NULL) {
 		if (strstr(str, "TITLE_PLACEHOLDER")) {
 			printf("-- ");
@@ -317,25 +317,37 @@ int main(int argc, char *argv[])
 				addr => "instr1",                    -- comment. */
 				sprintf(str + len, "%d", Out.addr);
 				len = strlen(str);
+				n = (unsigned) strtoul(RAM, NULL, 2); // for the hex conversion
 				if (len < 15) {
 					// space after the address in the 1st part of the line
 					// this allows for 1-3 address digits
 					spaces = 4 - len;
+					// write the hexadecimal conversion of the binary instruction
+					// or "data" if the word is from .DATA
+					if (COMMENT[0] && COMMENT[0] < 57) {
+						// comment is data (starts from quote or number)
+						strcpy(hex,"data");
+					} else {
+						sprintf(hex, "%02X", n); // instr1 to hex part of comment
+					}
 				} else {
 					// space after the address in the 2nd part of the line
 					spaces = 23 - len;
+					sprintf(hex + 2, "%02X", n); // instr2 to hex part of comment
 				}
 				// write the VHDL assignment of the word after the address
 				sprintf(str + len, "%*c=> \"%s\", ", spaces, ' ', RAM);
+				// write the hex conversion of the instruction part
 				if (!eq(COMMENT, "")) {
 					// comments are written after single-word instructions
 					// or after the 2nd part of two-word instructions
 					len = strlen(str);
 					// streamline comments for both instruction types
 					spaces = 39 - len;
-					sprintf(str + len, "%*c-- %s", spaces, ' ', COMMENT);
+					sprintf(str + len, "%*c-- %-6s%s", spaces, ' ', hex, COMMENT);
 					puts(str);
 					str[0] = 0; // prepare for new line
+					hex[0] = 0; // prepare for new hex conversion
 				}
 			}
 		} else {

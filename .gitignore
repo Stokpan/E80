@@ -19,9 +19,13 @@ Assembler/*
 !Assembler/*.c
 !Assembler/*.dev
 !Assembler/*.vhd
+!Assembler/*.e80asm
 Gowin/impl/*
 !Gowin/impl/Gowin_process_config.json
 Gowin/Gowin.gprj.user
 desktop.ini
 Installer/GHDL/
 Installer/*.exe
+Vivado/*
+!Vivado/E80.sdc
+!Vivado/E80.xpr

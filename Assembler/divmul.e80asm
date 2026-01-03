@@ -1,4 +1,4 @@
-; Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+; Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 ; This program is for testing and showcasing various features of E80
 ; It calculates 179 div 13 =  14 into R0,
 ;               179 mod 13 =  11 into R1,
@@ -15,38 +15,36 @@
 	POP R2
 	HLT
 
-division:				; "Ascend-descend" division algorithm by Panos Stokas
+division:				; "Ascend-descend" implementation of long division
+    MOV R0, 0			; quotient
+    MOV R3, 1			; multiplier bit, R2 = R3×divisor
     MOV R1, dividend	; remainder (starts as dividend)
     MOV R2, divisor		; scaled divisor, goes up to dividend and back down
-    MOV R0, 0			; quotient
-    MOV R3, 1			; quotient bit, R3 * original divisor = R2
-ascend:					; double divisor until ≥ dividend or 128
+ascend:					; double divisor until R1/R2 ≤ 1
+    JS descend			; R2 ≥ 128 ⇒ R1/R2 ≤ 1 ⇒ stop descending
     CMP R2, R1
-    JC descend			; if R2 ≥ R1
-    BIT R2, 0b10000000
-    JNZ descend			; no divisor ≥ 128 for 8 bits (also prevent overflow)
+    JC descend			; R2 ≥ R1 ⇒ R1/R2 ≤ 1 ⇒ stop descending
+    LSHIFT R3			; move multiplier bit to the left
     LSHIFT R2			; scale divisor
-    LSHIFT R3			; move quotient bit to the left
     JMP ascend
 descend:				; subtract and halve divisor until we're back
     CMP R1, R2
     JNC halve_divisor	; if R2 > R1
     SUB R1, R2			; remainder -= scaled divisor
-    OR R0, R3			; quotient += quotient bit
+    OR R0, R3			; quotient += multiplier bit
 halve_divisor:
-    RSHIFT R2			; halve scaled divisor
-    RSHIFT R3			; move quotient bit to the right
-    JZ division_done	; stop when the quotient bit is dropped
+    RSHIFT R2			; decrease divisor scale
+    RSHIFT R3			; move multiplier bit to the right
+    JZ division_done	; until it's dropped
     JMP descend
 division_done:
 	RETURN
 
 multiply:	    		; Russian Peasant multiplication algorithm
+	MOV R0, 0			; accumulated product
 	LOAD R1, [100]		; multiplicand at memory address 100
 	LOAD R2, [101]		; multiplier at memory address 101
-	MOV R0, 0			; accumulated product
 multiply_loop:
-	BIT R2, 0xFF
 	JZ multiply_done	; stop when multiplier = 0
 	BIT R2, 1
 	JZ skip_add			; even R2 ⇒ R1×R2 = (R1×2)×(R2 div 2) ⇒ skip add R1
