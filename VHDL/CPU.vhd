@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 CPU
--- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+-- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 -- Fetches instruction and data from the RAM and the DIP input.
 -- Decodes the instruction to get the control signals, addresses and values.
 -- Reads registers from the Register Array.
@@ -108,8 +108,8 @@ BEGIN
 	isSTOREr <= match(Instr1,"10001000");   -- STORE reg1,reg2
 	isLOAD   <= match(Instr1,"1001----");
 	isLOADr  <= match(Instr1,"10011000");   -- LOAD reg1,reg2
-	isSHIFT  <= match(Instr1,"10100---") OR -- RSHIFT
-	            match(Instr1,"11000---");   -- LSHIFT
+	isSHIFT  <= match(Instr1,"10100---") OR -- LSHIFT
+	            match(Instr1,"11010---");   -- RSHIFT
 	isPUSH   <= match(Instr1,"11100---");
 	isPOP    <= match(Instr1,"11110---");
 	isStack  <= isPUSH OR isCALL OR isPOP OR isRETURN;

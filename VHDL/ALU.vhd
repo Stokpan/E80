@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------
 -- E80 Arithmetic Logic Unit
--- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+-- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 -- Performs addition, subtraction, rotation, and logical operations.
 -- The calculated result and/or flags is discarded in some operations.
 -----------------------------------------------------------------------
@@ -37,14 +37,14 @@ BEGIN
 	isAssign <= match(ALUop,"-001"); --| B (MOV, LOAD)                |  **  |
 	isADD    <= match(ALUop,"0010"); --| A + B                        | **** | 
 	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** | 
-	isROR    <= match(ALUop,"0100"); --| A rotated by B mod 8 bits    |  **  |         
-	isAND    <= match(ALUop,"-101"); --| A AND B (includes BIT)       |  **  |
-	isOR     <= match(ALUop,"0110"); --| A OR B                       |  **  |
-	isXOR    <= match(ALUop,"0111"); --| A XOR B                      |  **  |
-	isRSHIFT <= match(ALUop,"1010"); --| A >> 1, C ← A(0), V ← S flip | **** | 
+	isAND    <= match(ALUop,"-100"); --| A AND B (includes BIT)       |  **  |
+	isOR     <= match(ALUop,"0101"); --| A OR B                       |  **  |
+	isXOR    <= match(ALUop,"0110"); --| A XOR B                      |  **  |
+	isROR    <= match(ALUop,"0111"); --| A rotated by B mod 8 bits    |  **  |         
+	isLSHIFT <= match(ALUop,"1010"); --| A << 1, C ← A(7), V ← S flip | **** | 
 	isCMP    <= match(ALUop,"1011"); --| SUB, discard result          | **** |
-	isLSHIFT <= match(ALUop,"1100"); --| A << 1, C ← A(7), V ← S flip | **** | 
-	isBIT    <= match(ALUop,"1101"); --| AND, discard result          |  **  |
+	isBIT    <= match(ALUop,"1100"); --| AND, discard result          |  **  |
+	isRSHIFT <= match(ALUop,"1101"); --| A >> 1, C ← A(0), V ← S flip | **** | 
 	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      | 
 	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      | 
 	FullFlags     <= isADD OR isSUB OR isRSHIFT OR isLSHIFT;

@@ -28,7 +28,7 @@ echo Missing 2nd parameter, the simulation duration (eg. 800ps)
 goto :error
 
 :exec
-echo Importing and parsing all files by GHDL
+echo Importing and parsing all files in GHDL
 ghdl -i --std=08 ..\VHDL\*.vhd
 if %errorlevel% NEQ 0 goto :error
 
@@ -36,7 +36,7 @@ echo Making the design with %1 as top unit in GHDL
 ghdl -m --std=08 -Wno-hide %1
 if %errorlevel% NEQ 0 goto :error
 
-echo Running the design by GHDL for %2
+echo Running the design in GHDL for %2 or until Halt
 ghdl -r --std=08 %1 --stop-time=%2 --wave=%1.ghw
 if %errorlevel% NEQ 0 goto :error
 

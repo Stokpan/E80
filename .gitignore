@@ -25,3 +25,6 @@ Gowin/Gowin.gprj.user
 desktop.ini
 Installer/GHDL/
 Installer/*.exe
+Vivado/*
+!Vivado/E80.sdc
+!Vivado/E80.xpr
