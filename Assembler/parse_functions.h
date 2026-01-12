@@ -1,10 +1,11 @@
 #ifndef PARSE_FUNCTIONS_H
 #define PARSE_FUNCTIONS_H
 
-/* Converts s to a number according to this rule:
+/* Converts s to a decimal number according to this rule:
 <number> ::= "0x" <hex+> | "0b" <bit+> | <dec+>
-Strings correspond to unsigned numbers, so a negative return value signifies
-an error or a non-number (eg. a label) */
+Negative numbers are converted to their 2's complement, so when the conversion
+is successful, it always returns beween 0-255. A negative return value signifies
+an error or a non-number (eg. -200 would return signed range error) */
 int number(const char *s);
 
 /* Trims leading and trailing whitespace and comments from s */

@@ -1,8 +1,8 @@
 -- E80 Computer test bench
 LIBRARY ieee, work;
 USE ieee.std_logic_1164.ALL, work.support.ALL, work.firmware.ALL;
-ENTITY Computer_TB IS END;
-ARCHITECTURE a1 OF Computer_TB IS
+ENTITY sim IS END;
+ARCHITECTURE a1 OF sim IS
 	SIGNAL CLK      : STD_LOGIC := '1';
 	SIGNAL Reset    : STD_LOGIC := '1';
 	SIGNAL DIPinput : WORD := SimDIP;

@@ -1,12 +1,12 @@
-<start>         ::= <[directives]> <[codelines]> <[label:]>
+<start>         ::= <[directives]> <[statements]> <[label:]>
 <[directives]>  ::= <directive> | <directive> <nl+> <[directives]> | <[\n]>
 <directive>     ::= ".TITLE" <s+> <quoted_string>
-<directive>     ::= ".LABEL" <s+> <label> <s+> <number>
 <directive>     ::= ".FREQUENCY" <s+> <dec+>
 <directive>     ::= ".SIMDIP" <s+> <value>
-<directive>     ::= ".DATA" <s+> <value> <s+> <array>
-<[codelines]>   ::= <codeline> | <codeline> <nl+> <[codelines]> | <[\n]>
-<codeline>      ::= <instruction> | <label:> <instruction>
+<directive>     ::= ".LABEL" <s+> <label> <s+> <number>
+<directive>     ::= ".DATA" <s+> <label> <s+> <array>
+<[statements]>  ::= <statement> | <statement> <nl+> <[statements]> | <[\n]>
+<statement>     ::= <instruction> | <label:> <instruction>
 <instruction>   ::= <instr_noarg>
 <instruction>   ::= <instr_reg> <s+> <reg>
 <instruction>   ::= <instr_val> <s+> <value>
@@ -26,7 +26,7 @@
 <op2>           ::= <reg> | <value>
 <value>         ::= <number> | <label>
 <[label:]>      ::= <label:> | <[\n]>
-<label:>        ::= <label> <s*> ":" <[\n]>
+<label:>        ::= <label>":" <[\n]>
 <label>         ::= <letter> <label_char*>
 <label_char*>   ::= <label_char> <label_char*> | ""
 <label_char>    ::= <letter> | <dec> | "_"
@@ -35,7 +35,8 @@
 <array_element> ::= <number> | <quoted_string>
 <quoted_string> ::= "\"" <char+> "\""
 <,>             ::= <s*> "," <s*>
-<number>        ::= "0x" <hex+> | "0b" <bit+> | <dec+>
+<number>        ::= <unumber> | "-" <unumber>
+<unumber>       ::= "0x" <hex+> | "0b" <bit+> | <dec+>
 <hex+>          ::= <hex> | <hex> <hex+>
 <dec+>          ::= <dec> | <dec> <dec+>
 <bit+>          ::= <bit> | <bit> <bit+>

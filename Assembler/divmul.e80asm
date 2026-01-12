@@ -1,57 +1,58 @@
 ; Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
-; This program is for testing and showcasing various features of E80
-; It calculates 179 div 13 =  14 into R0,
-;               179 mod 13 =  11 into R1,
-;                 7 mul 29 = 203 into R2.
 
-.TITLE "Multiplication and division with subroutines (divmul.asm)"
-.DATA 100 7,29			; multiplicand = [100] = 7, multiplier = [101] = 29
+.TITLE "Unsigned division and multiplication (divmul.asm)"
 .LABEL dividend 179
 .LABEL divisor 12
+.LABEL multiplicand 7
+.LABEL multiplier 29
 
-	CALL multiply		; R0 = 7×29 = 203
+	CALL multiply
 	PUSH R0
-	CALL division		; R0 = 179 div 13 = 14, R1 = 179 mod 13 = 11
+	CALL division
 	POP R2
 	HLT
 
-division:				; "Ascend-descend" implementation of long division
-    MOV R0, 0			; quotient
-    MOV R3, 1			; multiplier bit, R2 = R3×divisor
-    MOV R1, dividend	; remainder (starts as dividend)
-    MOV R2, divisor		; scaled divisor, goes up to dividend and back down
-ascend:					; double divisor until R1/R2 ≤ 1
-    JS descend			; R2 ≥ 128 ⇒ R1/R2 ≤ 1 ⇒ stop descending
+; R0 = dividend div divisor = 179 div 13 = 14
+; R1 = dividend mod divisor = 179 mod 13 = 11
+; R2 = multiplicand × multiplier = 7 × 29 = 203
+
+division:					; "Ascend-descend" variation of long division
+    MOV R0, 0				; quotient
+    MOV R3, 1				; multiplier bit, R2 = R3×divisor
+    MOV R1, dividend		; remainder (starts as dividend)
+    MOV R2, divisor			; scaled divisor, goes up to dividend and back down
+ascend:						; double divisor until R1/R2 ≤ 1
+    JS descend				; R2 ≥ 128 ⇒ R1/R2 ≤ 1 ⇒ stop descending
     CMP R2, R1
-    JC descend			; R2 ≥ R1 ⇒ R1/R2 ≤ 1 ⇒ stop descending
-    LSHIFT R3			; move multiplier bit to the left
-    LSHIFT R2			; scale divisor
+    JC descend				; R2 ≥ R1 ⇒ R1/R2 ≤ 1 ⇒ stop descending
+    LSHIFT R3				; move multiplier bit to the left
+    LSHIFT R2				; scale divisor
     JMP ascend
-descend:				; subtract and halve divisor until we're back
+descend:					; subtract and halve divisor until we're back
     CMP R1, R2
-    JNC halve_divisor	; if R2 > R1
-    SUB R1, R2			; remainder -= scaled divisor
-    OR R0, R3			; quotient += multiplier bit
+    JNC halve_divisor		; if R2 > R1
+    SUB R1, R2				; remainder -= scaled divisor
+    OR R0, R3				; quotient += multiplier bit
 halve_divisor:
-    RSHIFT R2			; decrease divisor scale
-    RSHIFT R3			; move multiplier bit to the right
-    JZ division_done	; until it's dropped
+    RSHIFT R2				; decrease divisor scale
+    RSHIFT R3				; move multiplier bit to the right
+    JZ division_done		; until it's dropped
     JMP descend
 division_done:
 	RETURN
 
-multiply:	    		; Russian Peasant multiplication algorithm
-	MOV R0, 0			; accumulated product
-	LOAD R1, [100]		; multiplicand at memory address 100
-	LOAD R2, [101]		; multiplier at memory address 101
+multiply:	    			; Russian Peasant multiplication algorithm
+	MOV R0, 0				; accumulated product
+	MOV R1, multiplicand
+	MOV R2, multiplier
 multiply_loop:
-	JZ multiply_done	; stop when multiplier = 0
+	JZ multiply_done		; stop when multiplier = 0
 	BIT R2, 1
-	JZ skip_add			; even R2 ⇒ R1×R2 = (R1×2)×(R2 div 2) ⇒ skip add R1
-	ADD R0, R1			; odd R2 ⇒ R1×R2 = (R1×2)×(R2 div 2)+R1 ⇒ add R1
+	JZ skip_add				; even R2 ⇒ R1×R2 = (R1×2)×(R2 div 2) ⇒ skip add R1
+	ADD R0, R1				; odd R2 ⇒ R1×R2 = (R1×2)×(R2 div 2)+R1 ⇒ add R1
 skip_add:
-	LSHIFT R1			; R1×2
-	RSHIFT R2			; R2 div 2
+	LSHIFT R1				; R1×2
+	RSHIFT R2				; R2 div 2
 	JMP multiply_loop
 multiply_done:
-	RETURN 
+	RETURN

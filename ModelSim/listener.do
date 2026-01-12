@@ -6,7 +6,7 @@ proc checkE80sim {} {
 	if {[file exists E80sim]} {
 		file delete E80sim
 		if {![file exists E80sim]} {
-			do c.do
+			do sim.do
 		}
 	}
 	after 500 checkE80sim

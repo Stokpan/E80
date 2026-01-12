@@ -28,12 +28,18 @@ void uppercase(char *s)
 int number(const char *s)
 {
 	if (!s) return -1;
-	int n; // converted value (or negative)
+	int n; // converted value (or negative error code)
 	char valid[MAX_LINE_LENGTH]; // for sscanf masking -- valid digits
 	char invalid[MAX_LINE_LENGTH]; // for sscanf masking -- invalid characters
 	char S[MAX_LINE_LENGTH]; // uppercase version of the parameter
+	char negative = 0; // is the input negative ?
 	strcpy(S,s);
 	uppercase(S);
+	// check if input is negative
+	if (S[0] == '-') {
+		negative = 1;
+		memmove(S, S+1, strlen(S)); // remove the minus
+	}
 	// extract the valid digits of the parameter and convert it
 	// according to its prefix
 	if (!strncmp(S, "0X", 2)) {
@@ -59,8 +65,12 @@ int number(const char *s)
 			return OCTAL_ERROR;
 		}
 		n = (int)strtol(S, NULL, 10);
-		if (n > 255 || n < 0) return RANGE_ERROR; // unsigned 8 bit
 	}
+	if (n > 0 && negative) {
+		if (n > 128) return SIGNED_RANGE_ERROR; // <= -128
+		n = 256 - n; // 2's complement
+	}
+	if (n > 255 || n < 0) return RANGE_ERROR; // unsigned 8 bit
 	return n;
 }
 

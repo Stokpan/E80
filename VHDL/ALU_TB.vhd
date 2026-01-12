@@ -1,8 +1,8 @@
 -- E80 ALU test bench
 LIBRARY ieee, work;
 USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL, work.support.ALL;
-ENTITY ALU_TB IS END;
-ARCHITECTURE a1 OF ALU_TB IS
+ENTITY alu_tb IS END;
+ARCHITECTURE a1 OF alu_tb IS
 	SIGNAL ALUinA  : WORD := "11000010";
 	SIGNAL ALUinB  : WORD := "01111110";
 	SIGNAL FlagsIn : WORD := "UUUUUUUU";

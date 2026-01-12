@@ -11,28 +11,22 @@ void printf_number_format_help(void) {
 		"Numbers can either be:\n"
 		"1) Hexadecimal preceded by 0x, up to 2 digits (eg. 0x0F)\n"
 		"2) Binary preceded by 0b, up to 8 digits (eg. 0b00001111)\n"
-		"3) Decimal 0-255 with no leading zeroes (eg. 15)\n");
+		"3) Decimal 0-255 with no leading zeroes (eg. 15)\n"
+		"Signed minimum is -128, -0b10000000, -0x80\n");
 }
 
-void printf_val_help(void) {
-	if (number(TOKEN) == HEX_ERROR) {
+void printf_number_error(const char *s) {
+	if (number(s) == HEX_ERROR) {
 		fprintf(stderr,
-			"Hexadecimals are limited to 2 digits (eg. 0xF or 0x1A)\n");
-	} else if (number(TOKEN) == BIN_ERROR) {
-		fprintf(stderr,
-			"Binary numbers are limited to 8 digits (eg. 0b00101011)\n");
-	} else if (number(TOKEN) == OCTAL_ERROR) {
-		fprintf(stderr, "Leading zeroes are not allowed on decimal numbers\n");
-	} else if (number(TOKEN) == RANGE_ERROR) {
-		fprintf(stderr, "Decimal numbers are limited to unsigned 0-255");
-	} else if (!label(TOKEN)) {
-		fprintf(stderr,
-			"It contains letters, but labels must start with a letter and"
-			" followed by letters, numbers and underscores");
-	} else {
-		fprintf(stderr,
-			"Labels must be defined in .LABEL directives"
-			" or between instructions, followed by a colon\n");
+			"Hexadecimals are limited to 2 digits (eg. 0xF or 0x1A).");
+	} else if (number(s) == BIN_ERROR) {
+		fprintf(stderr, "Binaries are limited to 8 digits (eg. 0b00101011).");
+	} else if (number(s) == OCTAL_ERROR) {
+		fprintf(stderr, "Leading zeroes are not allowed on decimal numbers.");
+	} else if (number(s) == SIGNED_RANGE_ERROR) {
+		fprintf(stderr, "Signed minimum is -128.");
+	} else if (number(s) == RANGE_ERROR) {
+		fprintf(stderr, "Unsigned numbers are limited to 0-255,");
 	}
 }
 
@@ -63,22 +57,20 @@ void error(enum ErrorCode errorlevel)
 		break;
 	case ARRAY_ELEMENT:
 		if (eq(TOKEN,"")) {
-			fprintf(stderr, "Expected an array element.\n");
+			fprintf(stderr, "Expected an array element.");
+		} else if (number(TOKEN) != NUMBER_ERROR) {
+			printf_number_error(TOKEN);
 		} else {
 			fprintf(stderr, "'%s' is not a literal.\n", TOKEN);
+			fprintf(stderr, "Example of an array: .DATA str 12, \"abc\", 0xAF, 0b1011.");
 		}
-		fprintf(stderr,
-			"Example of an array: .DATA 100 12, \"abc\", 0xAF, 0b1011\n"
-			"Quotes can be escaped in strings, eg: \"a\\\"b\"\n");
-		printf_number_format_help();
 		break;
 	case FREQUENCY:
 		fprintf(stderr,
-			"Frequency must be a number between '%d' and '%d' deciHertz.\n",
-			MIN_FREQ, MAX_FREQ);
+			"Frequency must be a number between '%d' and '%d' deciHertz.", MIN_FREQ, MAX_FREQ);
 		break;
 	case NUMBER:
-		fprintf(stderr, "'%s' is not a number between 0 and 255.\n", TOKEN);
+		fprintf(stderr, "'%s' is not a valid number.\n", TOKEN);
 		printf_number_format_help();
 		break;
 	case MANY_LABELS:
@@ -91,57 +83,50 @@ void error(enum ErrorCode errorlevel)
 		puts("Memory allocation error!");
 		break;
 	case EXTRANEOUS:
-		fprintf(stderr, "'%s' was unexpected", TOKEN);
+		fprintf(stderr, "'%s' was unexpected.", TOKEN);
 		break;
 	case DIRECTIVE:
-		fprintf(stderr, "'%s' is not a directive", TOKEN);
+		fprintf(stderr, "'%s' is not a directive.", TOKEN);
 		break;
 	case INSTRUCTION_LABEL:
-		fprintf(stderr, "'%s' is no instruction or label", TOKEN);
+		fprintf(stderr, "'%s' is no instruction or label.", TOKEN);
 		break;
 	case INSTRUCTION_COLON:
-		fprintf(stderr, "'%s' is no instruction, or missing a colon", PREVIOUS);
+		fprintf(stderr, "'%s' is no instruction, or missing a colon.", PREVIOUS);
 		break;
 	case INSTRUCTION:
-		fprintf(stderr, "'%s' is no instruction", TOKEN);
+		fprintf(stderr, "'%s' is no instruction.", TOKEN);
 		break;
 	case RESERVED:
-		fprintf(stderr, "'%s' is reserved and cannot be used here", TOKEN);
+		fprintf(stderr, "'%s' is reserved and cannot be used here.", TOKEN);
 		break;
 	case REGISTER:
 		if (eq(TOKEN, "")) {
-			fprintf(stderr,"Expected register after '%s'", PREVIOUS);
+			fprintf(stderr,"Expected register after '%s'.", PREVIOUS);
 		} else {
-			fprintf(stderr, "'%s' is not a register;"
-			" allowed registers are R0-R7", TOKEN);
+			fprintf(stderr, "'%s' is not a register.", TOKEN);
 		}
 		break;
 	case VALUE:
-		fprintf(stderr, "'%s' is not a number or label", TOKEN);
+		fprintf(stderr, "'%s' is not a number or label\n", TOKEN);
+		printf_number_error(TOKEN);
 		break;
 	case COMMA:
-		fprintf(stderr, "Comma expected after '%s'", PREVIOUS);
+		fprintf(stderr, "Comma expected after '%s'.", PREVIOUS);
 		break;
 	case LEFTBRACKET:
-		fprintf(stderr, "LOAD/STORE requires a left bracket before '%s'", TOKEN);
+		fprintf(stderr, "LOAD/STORE requires a left bracket before '%s'.", TOKEN);
 		break;
 	case RIGHTBRACKET:
-		fprintf(stderr, "LOAD/STORE requires a right bracket"
-				" after '%s'", PREVIOUS);
+		fprintf(stderr, "LOAD/STORE requires a right bracket after '%s'.", PREVIOUS);
 		break;
 	case OP:
 		if (eq(TOKEN, "")) {
-			fprintf(stderr,"Expected number, label or register after comma");
+			fprintf(stderr,"Expected number, label or register after comma.");
 		} else {
-			fprintf(stderr, "'%s' is not number, label or register.", TOKEN);
+			fprintf(stderr, "'%s' is not a number, label or register.\n", TOKEN);
+			printf_number_error(TOKEN);
 		}
-		break;
-	case DATA_ADDRESS:
-		fprintf(stderr, "'%s' is not a valid address or label.", TOKEN);
-		printf_val_help();
-		break;
-	case DATA_SPACE:
-		fprintf(stderr, "'%s' is an address in program code.", TOKEN);
 		break;
 	case RAM_LIMIT:
 		fprintf(stderr, "%d-byte RAM limit exceeded.", RAM_SIZE);

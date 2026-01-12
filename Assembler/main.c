@@ -11,6 +11,8 @@
 
 int main(int argc, char *argv[])
 {
+	fprintf(stderr, "Assembling... ");
+	
 	char str[MAX_LINE_LENGTH] = {0}; // scratchpad string
 	char instr[MAX_LINE_LENGTH] = {0}; // current instruction
 	char title[MAX_LINE_LENGTH] = {0}; // .TITLE string (optional)
@@ -18,7 +20,6 @@ int main(int argc, char *argv[])
 	char simdip[9] = "00000000"; // .SIMDIP value
 	int reg, reg2; // register address
 	int n; // scratchpad index or value
-	int data_space; // address after the last instruction
 	int len, spaces; // formatting helpers
 	char* CtrlD = NULL; // check if Ctrl+D is pressed
 	FILE* asm_input = stdin; // fopen("test.e80asm", "r");
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
 	/* Starting message (hide if /Q switch is enabled) */
 	if (argc < 2 || (strcmp(argv[1],"/Q") && strcmp(argv[1],"/q"))) {
 		fprintf(stderr,
-			"E80 CPU Assembler v1.1 - December 2025, Panos Stokas\n\n"
+			"E80 CPU Assembler v1.7 - January 2026, Panos Stokas\n\n"
 			"Translates an E80-assembly program to firmware VHDL code.\n\n"
 			"E80ASM [/Q]\n\n"
 			"  /Q          Silent mode, hides this message.\n\n"
@@ -55,7 +56,6 @@ int main(int argc, char *argv[])
 	/* Collect labels (symbols).
 	Label/value pairs are added to the "Out" structure. Error checking is
 	minimal in this stage. */
-	fprintf(stderr, "Collecting labels... ");
 	Out.addr = 0; // current memory address in the global "Out" structure
 	firstline(); // go to the first token of the queued code
 	while (In.current) { // read until the last line
@@ -65,7 +65,12 @@ int main(int argc, char *argv[])
 			if (!label(str)) error(LABEL);
 			n = number(nexttoken()); // <number>
 			if (n < 0) error(NUMBER); // error codes = negative values
-			addlabel(str, n); // includes sort and check for duplicates
+			addlabel(str, n);
+		} else if (eq(TOKEN, ".DATA")) {
+			// <directive> ::= ".DATA" <s+> <label> <s+> <array>
+			strcpy(str, nexttoken()); // <label>
+			if (!label(str)) error(LABEL);
+			addlabel(str, 0); // data labels are calculated in the next stage
 		} else if (instr_size1(TOKEN)) {
 			nextaddr(); // combines Out.addr++ and ram limit check
 		} else if (instr_size2(TOKEN)) {
@@ -89,22 +94,13 @@ int main(int argc, char *argv[])
 		}
 		nextline();
 	}
-	data_space = Out.addr; // for checking collisions with program code
-
-	// print label-value pairs
-	if (Out.labels == 0) fprintf(stderr, "None.");
-	for (n = 0; n < Out.labels; n++) {
-		fprintf(stderr,
-			"\n- %s = %d", Out.label[n].name, Out.label[n].val);
-	}
-	fprintf(stderr, "\n");
+	
 	sortlabels(); // to allow bsearch in findlabel
 
 	/* Parse directives.
 	E80 is designed according to the Neumann model where machine code and data
 	are stored in the same area. However, .DATA arrays are checked against
 	overwriting program code. */
-	fprintf(stderr, "Parsing directives... ");
 	firstline();
 	while (In.current) {
 		if (eq(TOKEN, ".TITLE")) {
@@ -113,15 +109,23 @@ int main(int argc, char *argv[])
 			nexttoken();
 			if (TOKEN[0] != '"') error(UNQUOTED_TITLE);
 			strncpy(title, TOKEN + 1, strlen(TOKEN) - 2); // unquote
+		} else if (eq(TOKEN, ".FREQUENCY")) {
+			// <directive> ::= ".FREQUENCY" <s+> <number>
+			// <number> is an exception here, it's not restricted to 1 byte
+			frequency = (int)strtol(nexttoken(), NULL, 10);
+			if (frequency < MIN_FREQ || frequency > MAX_FREQ) error(FREQUENCY);
+		} else if (eq(TOKEN, ".SIMDIP")) {
+			// <directive> ::= ".SIMDIP" <s+> <value>
+			bitcopy(simdip, value(nexttoken()), 7, 0);
+		} else if (eq(TOKEN, ".LABEL")) {
+			findlabel(nexttoken()); // includes dupe checking
+			nexttoken(); // number was checked during symbol collection
 		} else if (eq(TOKEN, ".DATA")) {
-			// <directive> ::= ".DATA" <s+> <value> <s+> <array>
-			n = value(nexttoken());
-			if (n < 0) error(DATA_ADDRESS);
-			if (n < data_space) error(DATA_SPACE);
-			// write data on the RAM starting from address n
-			Out.addr = n;
+			// <directive> ::= ".DATA" <s+> <label> <s+> <array>
+			Out.label[findlabel(nexttoken())].val = Out.addr;
 			do {
-				if (!array_element(nexttoken())) error(ARRAY_ELEMENT);
+				nexttoken();
+				if (!array_element(TOKEN)) error(ARRAY_ELEMENT);
 				// <array_element> ::= <number> | <quoted_string>
 				if (TOKEN[0] != '"') {
 					// <number>, write on the RAM as 8 bits
@@ -143,17 +147,6 @@ int main(int argc, char *argv[])
 				// <array> ::= <array_element> | <array_element> <,> <array>
 			} while (eq(nexttoken(), ","));
 			if (!eq(TOKEN, "")) error(COMMA);
-		} else if (eq(TOKEN, ".FREQUENCY")) {
-			// <directive> ::= ".FREQUENCY" <s+> <number>
-			// <number> is an exception here, it's not restricted to 1 byte
-			frequency = (int)strtol(nexttoken(), NULL, 10);
-			if (frequency < MIN_FREQ || frequency > MAX_FREQ) error(FREQUENCY);
-		} else if (eq(TOKEN, ".SIMDIP")) {
-			// <directive> ::= ".SIMDIP" <s+> <value>
-			bitcopy(simdip, value(nexttoken()), 7, 0);
-		} else if (eq(TOKEN, ".LABEL")) {
-			findlabel(nexttoken()); // includes dupe checking
-			nexttoken(); // number was checked during symbol collection
 		} else if (TOKEN[0] == '.') {
 			error(DIRECTIVE);
 		} else if (!eq(TOKEN, "")) {
@@ -163,7 +156,6 @@ int main(int argc, char *argv[])
 		if (nexttoken()) error(EXTRANEOUS);
 		nextline();
 	}
-	fprintf(stderr, "OK.\n");
 	
 	/* Parse instructions according to the BNF syntax rules.
 	The parser functions (instr_argumentless, instr_n, etc) handle syntax
@@ -174,7 +166,6 @@ int main(int argc, char *argv[])
 	the first part will not have a comment. Comments therefore are used to
 	differentiate between one and two word instructions and allows to create
 	well-formatted VHDL code where each instruction is writen in one line. */
-	fprintf(stderr, "Parsing instructions... ");
 	Out.addr = 0;
 	while (In.current) {
 		if ((instr_noarg(TOKEN))) {
@@ -244,7 +235,12 @@ int main(int argc, char *argv[])
 				bitcopy(RAM, reg, 3, 0); // <reg> in Instr1[3:0]
 				nextaddr();
 				bitcopy(RAM, n, 7, 0); // <number> in Instr2
-				sprintf(COMMENT, "%s%d", str, n);
+				if (n < 128 || bracket_op2) {
+					sprintf(COMMENT, "%s%d", str, n);
+				} else {
+					// signed equivalent for non-address
+					sprintf(COMMENT, "%s%d (-%d)", str, n, 256-n);
+				}
 			} else if (reg2 >= 0) {
 				// op2 = <reg>
 				strcpy(&RAM[4], "1000");
@@ -272,7 +268,12 @@ int main(int argc, char *argv[])
 			bitcopy(RAM, reg, 2, 0);
 			nextaddr();
 			bitcopy(RAM, n, 7, 0);
-			sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
+			if (n < 128) {
+				sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
+			} else {
+				// signed equivalent
+				sprintf(COMMENT, "%s R%d, %d (-%d)", instr, reg, n, 256-n);
+			}
 			nextaddr();
 		} else if (findlabel(TOKEN) != -1) { // includes dupe checking
 			// label syntax was checked during symbol collection
@@ -285,7 +286,6 @@ int main(int argc, char *argv[])
 		if (nexttoken()) error(EXTRANEOUS);
 		nextline();
 	}
-	fprintf(stderr, "OK.\n\n");
 
 	/* Print the converted VHDL code using the template file.
 	Each instruction reserves one line, followed by a comment specifying the
@@ -355,5 +355,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	fprintf(stderr, "Done.\n");
 	return NO_ERROR;
 }
