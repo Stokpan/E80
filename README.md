@@ -15,8 +15,8 @@ This makes it easy to use, capable of running pretty complex and realistic progr
 | **Word Size**         | 8-bit                                          |
 | **Buses**             | 8-bit data, 8-bit address, 16-bit instruction  |
 | **Instruction size**  | Variable (1 or 2 words)                        |
-| **RAM**               | 3-port (2R, 1R/W), addressable at 0x00-0xFE    |
-| **Register file**     | 8x8, multiport (1R+W, 2R, 1W)                  |
+| **RAM**               | Multiport (2R, 1R/W), addressable at 0x00-0xFE |
+| **Register file**     | Multiport (1R/W, 1R, 1W), 8x8-bit              |
 | **Registers**         | 6 general purpose (R0-R5), Flags (R6), SP (R7) |
 | **Stack**             | Full descending (Stack Pointer init = 0xFF)    |
 | **Architecture**      | Load/Store, register-register                  |
@@ -188,30 +188,29 @@ The following program writes the null-terminated string `` `az{"0 `` to memory a
 ```
 .TITLE "Converts the lowercase characters of a given string to uppercase"
 .LABEL char_a 97
-.LABEL char_after_z 123
+.LABEL char_after_z 123     ; character after "z" is "{"
 .LABEL case_difference 32
 .DATA string "`az{\"0",0    ; null-terminated string under the last instruction
     MOV R0, string          ; R0 = address of the first character ("`")
 loop:   
-    LOAD R1, [R0]           ; R1 = ANSI value of current character
-    CMP R1, 0
-    JZ finish               ; if R1 = 0 (null character) goto finish
+    LOAD R1, [R0]           ; Updates SZ flags (like 6800 & 6502)
+    JZ finish               ; loop while [R0] != null
     CMP R1, char_a
-    JNC next                ; else if R1 < "a" goto next
+    JNC next                ; if [R0] < "a" goto next
     CMP R1, char_after_z
-    JC next                 ; else if R1 > "z" goto next
-    SUB R1, case_difference ; else change to uppercase
+    JC next                 ; else if [R0] ≥ "{" goto next
+    SUB R1, case_difference ; [R0] ∈ ["a", "z"], so change to uppercase
     STORE R1, [R0]          ; write character back to RAM
 next:
-    ADD R0, 1               ; advance to the next memory address
-    JMP loop                ; repeat loop
+    ADD R0, 1               ; [R0]++
+    JMP loop                ; end loop
 finish:
     HLT                     ; stop execution & simulation
 string:                     ; memory address under HLT
 ```
 To simulate it, first install the E80 Toolchain package from the Releases, then open the E80 Editor and paste the code into it:
 
-<p align="center"><img width="587" height="553" alt="Source code as it appears in the editor" src="https://github.com/user-attachments/assets/b777cc08-bf52-47dd-b0b2-bd196383fc1f" /></p>
+<p align="center"><img width="591" height="508" alt="Assembly code as it appears in the editor" src="https://github.com/user-attachments/assets/a319f7f7-beb1-4063-bbc6-99b6e8c7a27b" /></p>
 
 _Notice that syntax highlighting for the E80 assembly language has been enabled by default for all code (except for VHDL files)._
 
@@ -219,21 +218,21 @@ Press F5. The editor will automatically assemble the code, save the VHDL output,
 
 You should see the following waveform, in which the RAM has been expanded to show how the lowercase letters of the string have changed to uppercase:
 
-<p align="center"><img width="1858" height="1200" alt="GHDL waveform output in GTKWave. The highlighted RAM locations 25-31 have been initialized by the .DATA directive and modified by the program. These have been manually set to ASCII data format in GTKwave." src="https://github.com/user-attachments/assets/f2d6ea5c-f4fd-4b1b-ac63-68b8a3f10847" /></p>
+<p align="center"><img width="1383" height="1177" alt="GHDL waveform output in GTKWave. The highlighted RAM locations 25-31 have been initialized by the .DATA directive and modified by the program. These have been manually set to ASCII data format in GTKwave." src="https://github.com/user-attachments/assets/b0810099-3530-4fdc-b781-d90c2985f407" /></p>
 
 _Notice that the HLT instruction has stopped the simulation in GHDL, allowing for the waveforms to be drawn for the runtime only. This useful feature is supported in ModelSim as well._
 
 You can also press F7 to view the generated `Firmware.vhd` file, without simulation:
 
-<p align="center"><img width="611" height="648" alt="VHDL output of the assembler on the editor" src="https://github.com/user-attachments/assets/982e1c35-cbc7-40ea-b140-034df18b436e" /></p>
+<p align="center"><img width="557" height="646" alt="VHDL output of the assembler on the editor" src="https://github.com/user-attachments/assets/655f6b45-82a2-4ec7-b8c9-6db5f97d1d67" /></p>
 
 _Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
 
 If you have installed ModelSim, you can press F8 to automatically open ModelSim and simulate into it. Subsequent simulations on ModelSim will update its existing window:
 
-<p align="center"><img width="1442" height="900" alt="ModelSim simulation and waveform" src="https://github.com/user-attachments/assets/9ee0c036-501b-40e4-ab9b-904c71e85dbb" /></p>
+<p align="center"><img width="1357" height="874" alt="ModelSim simulation and waveform" src="https://github.com/user-attachments/assets/ca2101c5-192a-4323-9d8a-31312d8fe005" /></p>
 
-_Notice the Memory Data tab next to the Wave tab; this contains the RAM in the end of the simulation. Also notice the tooltip that was opened by hovering on the RAM in the Wave tab. This is even more useful, but there's a catch: if the RAM radix is set to ASCII and its data contain a curly bracket, ModelSim will throw an error when trying to show the tooltip._
+_The Memory Data tab next to the Wave tab contains the RAM in the end of simulation. The contents can also be displayed by hovering on the RAM in the Wave tab, but there's a catch: if the radix is set to ASCII and the data include a curly bracket, ModelSim will throw an error when trying to show the tooltip._
 
 ## Example 2 - Testing on the Tang Primer 25K
 
