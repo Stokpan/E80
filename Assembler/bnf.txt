@@ -1,7 +1,7 @@
 <start>         ::= <[directives]> <[statements]> <[label:]>
 <[directives]>  ::= <directive> | <directive> <nl+> <[directives]> | <[\n]>
 <directive>     ::= ".TITLE" <s+> <quoted_string>
-<directive>     ::= ".FREQUENCY" <s+> <dec+>
+<directive>     ::= ".SPEED" <s+> <dec+>
 <directive>     ::= ".SIMDIP" <s+> <value>
 <directive>     ::= ".LABEL" <s+> <label> <s+> <number>
 <directive>     ::= ".DATA" <s+> <label> <s+> <array>

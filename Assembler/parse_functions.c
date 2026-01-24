@@ -1,4 +1,5 @@
 // Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// Parse functions
 
 #include <stdio.h>
 #include <stdlib.h>

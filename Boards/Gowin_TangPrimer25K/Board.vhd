@@ -1,0 +1,4 @@
+LIBRARY ieee; USE ieee.std_logic_1164.ALL;
+PACKAGE Board IS
+CONSTANT BoardCLK_MHz : NATURAL := 50;
+END;

@@ -1,4 +1,5 @@
 // Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// E80ASM Assembler for the E80 CPU Assembly Language
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +17,7 @@ int main(int argc, char *argv[])
 	char str[MAX_LINE_LENGTH] = {0}; // scratchpad string
 	char instr[MAX_LINE_LENGTH] = {0}; // current instruction
 	char title[MAX_LINE_LENGTH] = {0}; // .TITLE string (optional)
-	int frequency = DEFAULT_FREQ; // .FREQUENCY value
+	int speed = DEFAULT_SPEED; // .SPEED value
 	char simdip[9] = "00000000"; // .SIMDIP value
 	int reg, reg2; // register address
 	int n; // scratchpad index or value
@@ -25,11 +26,11 @@ int main(int argc, char *argv[])
 	FILE* asm_input = stdin; // fopen("test.e80asm", "r");
 	FILE* vhdl_template = fopen(TEMPLATE, "r");
 	if (!vhdl_template) error(OPEN_TEMPLATE);
-	
+
 	/* Starting message (hide if /Q switch is enabled) */
 	if (argc < 2 || (strcmp(argv[1],"/Q") && strcmp(argv[1],"/q"))) {
 		fprintf(stderr,
-			"E80 CPU Assembler v1.7 - January 2026, Panos Stokas\n\n"
+			"E80 CPU Assembler v1.9 - February 2026, Panos Stokas\n\n"
 			"Translates an E80-assembly program to firmware VHDL code.\n\n"
 			"E80ASM [/Q]\n\n"
 			"  /Q          Silent mode, hides this message.\n\n"
@@ -109,11 +110,10 @@ int main(int argc, char *argv[])
 			nexttoken();
 			if (TOKEN[0] != '"') error(UNQUOTED_TITLE);
 			strncpy(title, TOKEN + 1, strlen(TOKEN) - 2); // unquote
-		} else if (eq(TOKEN, ".FREQUENCY")) {
-			// <directive> ::= ".FREQUENCY" <s+> <number>
-			// <number> is an exception here, it's not restricted to 1 byte
-			frequency = (int)strtol(nexttoken(), NULL, 10);
-			if (frequency < MIN_FREQ || frequency > MAX_FREQ) error(FREQUENCY);
+		} else if (eq(TOKEN, ".SPEED")) {
+			// <directive> ::= ".SPEED" <s+> <level>
+			speed = number(nexttoken());
+			if (speed < MIN_SPEED || speed > MAX_SPEED) error(SPEED);
 		} else if (eq(TOKEN, ".SIMDIP")) {
 			// <directive> ::= ".SIMDIP" <s+> <value>
 			bitcopy(simdip, value(nexttoken()), 7, 0);
@@ -289,8 +289,7 @@ int main(int argc, char *argv[])
 
 	/* Print the converted VHDL code using the template file.
 	Each instruction reserves one line, followed by a comment specifying the
-	instruction in hex and the disassembled mnemonic.
-	Title and frequency are also printed on their specific placeholders. */
+	instruction in hex and the disassembled mnemonic. */
 	char hex[5] = {0}; // bin to hex conversion string (max 4 digits)
 	while (fgets(str, MAX_LINE_LENGTH, vhdl_template) != NULL) {
 		if (strstr(str, "TITLE_PLACEHOLDER")) {
@@ -300,8 +299,8 @@ int main(int argc, char *argv[])
 			} else {
 				printf("%s\n", DEFAULT_TITLE);
 			}
-		} else if (strstr(str, "DefaultFrequency")) {
-			printf(str, frequency); // template contains %d specifier
+		} else if (strstr(str, "InitSpeed")) {
+			printf(str, speed); // template contains %d specifier
 		} else if (strstr(str, "SimDIP")) {
 			printf(str, simdip); // template contains %s specifier
 		} else if (strstr(str, "MACHINE_CODE_PLACEHOLDER")) {

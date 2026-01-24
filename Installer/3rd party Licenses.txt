@@ -1,12 +1,15 @@
-This package includes GHDL, GTKWave, and Sc1 (Scintilla compact text editor).
+This package includes software released under the following licenses:
 
-1. GHDL (GPL-2.0 license in the GHDL subdirectory)
+1. GHDL
+   License: GHDL\LICENSE (GPL-2.0)
    Source Code: https://github.com/ghdl/ghdl
 
-2. GTKWave (GPL-2.0 license in the GHDL\GTKWave subdirectory)
+2. GTKWave
+   License: GHDL\GTKWave\LICENSE (GPL-2.0)
    Source Code: https://sourceforge.net/projects/gtkwave/
-   
-3. License for Lexilla, Scintilla, and SciTE
+
+3. Sc1 (Scintilla compact text editor)
+   License:
    Copyright 1998-2021 by Neil Hodgson <neilh@scintilla.org>
    All Rights Reserved
    Permission to use, copy, modify, and distribute this software and its
@@ -22,3 +25,14 @@ This package includes GHDL, GTKWave, and Sc1 (Scintilla compact text editor).
    WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
    TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
    OR PERFORMANCE OF THIS SOFTWARE.
+   Source code: https://www.scintilla.org/SciTEDownload.html
+
+4. openFPGALoader
+   License: Boards\Yosys_GateMateA1\openFPGALoader license.txt (Apache License)
+   Source Code: https://github.com/trabucayre/openFPGALoader
+   
+5. libusb-win32 (dirtyJtag driver) driver
+   Licenses:
+   Boards\Yosys_GateMateA1\Driver\DirtyJTAG_(Interface_0).inf (LGPL)
+   Boards\Yosys_GateMateA1\Driver\license\libusb0\installer_license.txt (GPL3)
+   Source Code: https://github.com/mcuee/libusb-win32

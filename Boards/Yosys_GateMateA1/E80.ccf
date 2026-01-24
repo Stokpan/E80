@@ -1,0 +1,148 @@
+# E80 Computer - Pin Assignments for the Olimex GateMate A1-EVB
+# Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+
+NET "BoardCLK" Loc = "IO_SB_A8"; # onboard CLK0 10MHz crystal oscillator
+
+# BANK_NA1
+# LED row A -- Flags, Register address, Clock
+NET "LED_rowA[0]" Loc = "IO_NA_B0"; # 4   Clock
+NET "LED_rowA[1]" Loc = "IO_NA_B1"; # 6   Register address [0]
+NET "LED_rowA[2]" Loc = "IO_NA_B2"; # 8   Register address [1]
+NET "LED_rowA[3]" Loc = "IO_NA_B3"; # 10  Register address [2]
+NET "LED_rowA[4]" Loc = "IO_NA_B4"; # 12  Overflow
+NET "LED_rowA[5]" Loc = "IO_NA_B5"; # 14  Sign
+NET "LED_rowA[6]" Loc = "IO_NA_B6"; # 16  Zero
+NET "LED_rowA[7]" Loc = "IO_NA_B7"; # 18  Carry
+# LED row B -- Register value
+NET "LED_rowB[0]" Loc = "IO_NA_A0"; # 3   Register value [0]
+NET "LED_rowB[1]" Loc = "IO_NA_A1"; # 5   Register value [1]
+NET "LED_rowB[2]" Loc = "IO_NA_A2"; # 7   Register value [2]
+NET "LED_rowB[3]" Loc = "IO_NA_A3"; # 9   Register value [3]
+NET "LED_rowB[4]" Loc = "IO_NA_A4"; # 11  Register value [4]
+NET "LED_rowB[5]" Loc = "IO_NA_A5"; # 13  Register value [5]
+NET "LED_rowB[6]" Loc = "IO_NA_A6"; # 15  Register value [6]
+NET "LED_rowB[7]" Loc = "IO_NA_A7"; # 17  Register value [7]
+
+# BANK_NB1
+# LED row C -- Program Counter
+NET "LED_rowC[0]" Loc = "IO_NB_B0"; # 3
+NET "LED_rowC[1]" Loc = "IO_NB_B1"; # 4
+NET "LED_rowC[2]" Loc = "IO_NB_B2"; # 5
+NET "LED_rowC[3]" Loc = "IO_NB_B3"; # 6
+NET "LED_rowC[4]" Loc = "IO_NB_B4"; # 7
+NET "LED_rowC[5]" Loc = "IO_NB_B5"; # 8
+NET "LED_rowC[6]" Loc = "IO_NB_B6"; # 9
+NET "LED_rowC[7]" Loc = "IO_NB_B7"; # 10
+
+# BANK_EB1
+# Joystick pins; SCHMITT_TRIGGER is enabled to prevent bouncing
+NET "Up"          Loc = "IO_EB_B6" | SCHMITT_TRIGGER=true; # 6
+NET "Down"        Loc = "IO_EB_B5" | SCHMITT_TRIGGER=true; # 8
+NET "Left"        Loc = "IO_EB_B4" | SCHMITT_TRIGGER=true; # 10
+NET "Right"       Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true; # 12
+# NET "Mid"       Loc = "IO_EB_B2" | SCHMITT_TRIGGER=true; # 14
+NET "SetButton"   Loc = "IO_EB_B1" | SCHMITT_TRIGGER=true; # 16
+NET "ResetButton" Loc = "IO_EB_B0" | SCHMITT_TRIGGER=true; # 18
+# DIP switches
+NET "DIPinput[0]" Loc = "IO_EB_A7" | SCHMITT_TRIGGER=true; # 5
+NET "DIPinput[1]" Loc = "IO_EB_A6" | SCHMITT_TRIGGER=true; # 7
+NET "DIPinput[2]" Loc = "IO_EB_A5" | SCHMITT_TRIGGER=true; # 9
+NET "DIPinput[3]" Loc = "IO_EB_A4" | SCHMITT_TRIGGER=true; # 11
+NET "DIPinput[4]" Loc = "IO_EB_A3" | SCHMITT_TRIGGER=true; # 13
+NET "DIPinput[5]" Loc = "IO_EB_A2" | SCHMITT_TRIGGER=true; # 15
+NET "DIPinput[6]" Loc = "IO_EB_A1" | SCHMITT_TRIGGER=true; # 17
+NET "DIPinput[7]" Loc = "IO_EB_A0" | SCHMITT_TRIGGER=true; # 19
+
+#######################
+# On-board components #
+#######################
+# NET "signal" Loc = "IO_SB_A8"; # onboard CLK0 10MHz crystal oscillator
+# NET "signal" Loc = "IO_SB_B6"; # onboard FPGA_LED1 active low LED
+# NET "signal" Loc = "IO_SB_B7"; # onboard FPGA_BUT1 active low button
+
+##################
+# Bank NA1 GPIOs #
+##################
+# +-----+----+----+----+----+----+----+----+----+----+
+# | GND | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | B8 |
+# +-----+----+----+----+----+----+----+----+----+----+
+# | VDD | A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 |
+# +-----+----+----+----+----+----+----+----+----+----+
+#    1                                      BANK_NA1
+#
+# NET "signal" Loc = "IO_NA_A0"; # 3
+# NET "signal" Loc = "IO_NA_B0"; # 4
+# NET "signal" Loc = "IO_NA_A1"; # 5
+# NET "signal" Loc = "IO_NA_B1"; # 6
+# NET "signal" Loc = "IO_NA_A2"; # 7
+# NET "signal" Loc = "IO_NA_B2"; # 8
+# NET "signal" Loc = "IO_NA_A3"; # 9
+# NET "signal" Loc = "IO_NA_B3"; # 10
+# NET "signal" Loc = "IO_NA_A4"; # 11
+# NET "signal" Loc = "IO_NA_B4"; # 12
+# NET "signal" Loc = "IO_NA_A5"; # 13
+# NET "signal" Loc = "IO_NA_B5"; # 14
+# NET "signal" Loc = "IO_NA_A6"; # 15
+# NET "signal" Loc = "IO_NA_B6"; # 16
+# NET "signal" Loc = "IO_NA_A7"; # 17
+# NET "signal" Loc = "IO_NA_B7"; # 18
+# NET "signal" Loc = "IO_NA_A8"; # 19
+# NET "signal" Loc = "IO_NA_B8"; # 20
+
+##################
+# Bank NB1 GPIOs #
+##################
+# +-----+----+----+----+----+----+----+----+----+----+
+# | GND | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | B8 |
+# +-----+----+----+----+----+----+----+----+----+----+
+# | VDD | A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 |
+# +-----+----+----+----+----+----+----+----+----+----+
+#    1                                      BANK_NB1
+#
+# NET "signal" Loc = "IO_NB_A0"; # 3
+# NET "signal" Loc = "IO_NB_B0"; # 4
+# NET "signal" Loc = "IO_NB_A1"; # 5
+# NET "signal" Loc = "IO_NB_B1"; # 6
+# NET "signal" Loc = "IO_NB_A2"; # 7
+# NET "signal" Loc = "IO_NB_B2"; # 8
+# NET "signal" Loc = "IO_NB_A3"; # 9
+# NET "signal" Loc = "IO_NB_B3"; # 10
+# NET "signal" Loc = "IO_NB_A4"; # 11
+# NET "signal" Loc = "IO_NB_B4"; # 12
+# NET "signal" Loc = "IO_NB_A5"; # 13
+# NET "signal" Loc = "IO_NB_B5"; # 14
+# NET "signal" Loc = "IO_NB_A6"; # 15
+# NET "signal" Loc = "IO_NB_B6"; # 16
+# NET "signal" Loc = "IO_NB_A7"; # 17
+# NET "signal" Loc = "IO_NB_B7"; # 18
+# NET "signal" Loc = "IO_NB_A8"; # 19
+# NET "signal" Loc = "IO_NB_B8"; # 20
+
+##################
+# Bank EB1 GPIOs #
+##################
+# +-----+----+----+----+----+----+----+----+----+----+
+# | GND | B8 | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |
+# +-----+----+----+----+----+----+----+----+----+----+
+# | VDD | A8 | A7 | A6 | A5 | A4 | A3 | A2 | A1 | A0 |
+# +-----+----+----+----+----+----+----+----+----+----+
+#    1                                      BANK_EB1
+#
+# NET "signal" Loc = "IO_EB_A8"; # 3
+# NET "signal" Loc = "IO_EB_B8"; # 4
+# NET "signal" Loc = "IO_EB_A7"; # 5
+# NET "signal" Loc = "IO_EB_B7"; # 6
+# NET "signal" Loc = "IO_EB_A6"; # 7
+# NET "signal" Loc = "IO_EB_B6"; # 8
+# NET "signal" Loc = "IO_EB_A5"; # 9
+# NET "signal" Loc = "IO_EB_B5"; # 10
+# NET "signal" Loc = "IO_EB_A4"; # 11
+# NET "signal" Loc = "IO_EB_B4"; # 12
+# NET "signal" Loc = "IO_EB_A3"; # 13
+# NET "signal" Loc = "IO_EB_B3"; # 14
+# NET "signal" Loc = "IO_EB_A2"; # 15
+# NET "signal" Loc = "IO_EB_B2"; # 16
+# NET "signal" Loc = "IO_EB_A1"; # 17
+# NET "signal" Loc = "IO_EB_B1"; # 18
+# NET "signal" Loc = "IO_EB_A0"; # 19
+# NET "signal" Loc = "IO_EB_B0"; # 20

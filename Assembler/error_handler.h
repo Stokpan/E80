@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// Error handler headers
+
 #ifndef ERROR_HANDLER_H
 #define ERROR_HANDLER_H
 
@@ -13,7 +16,7 @@ enum ErrorCode {
 	EMPTY_STRING,
 	UNCLOSED_STRING,
 	ARRAY_ELEMENT,
-	FREQUENCY,
+	SPEED,
 	NUMBER,
 	SIGNED,
 	MANY_LABELS,
