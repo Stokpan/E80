@@ -1,4 +1,5 @@
-// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// Data structures functions
 
 #include <stdio.h>
 #include <stdlib.h>

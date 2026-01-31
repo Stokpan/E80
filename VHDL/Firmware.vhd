@@ -1,17 +1,17 @@
 -----------------------------------------------------------------------
--- Multiplication and division with subroutines (divmul.asm)
+-- Unsigned division and multiplication (divmul.asm)
 -----------------------------------------------------------------------
 LIBRARY ieee, work; USE ieee.std_logic_1164.ALL, work.support.ALL;
 PACKAGE firmware IS
-CONSTANT DefaultFrequency : DECIHERTZ := 15;
 CONSTANT SimDIP : WORD := "00000000";
+CONSTANT InitSpeed : NATURAL := 2;
 CONSTANT Firmware : WORDx256  := (
 0   => "00001110", 1   => "00101000",  -- 0E28  CALL 40
 2   => "11100000",                     -- E0    PUSH R0
 3   => "00001110", 4   => "00000111",  -- 0E07  CALL 7
 5   => "11110010",                     -- F2    POP R2
 6   => "00000000",                     -- 00    HLT
-7   => "00010000", 8   => "11110110",  -- 10F6  MOV R0, 246 (-10)
+7   => "00010000", 8   => "00000000",  -- 1000  MOV R0, 0
 9   => "00010011", 10  => "00000001",  -- 1301  MOV R3, 1
 11  => "00010001", 12  => "10110011",  -- 11B3  MOV R1, 179 (-77)
 13  => "00010010", 14  => "00001100",  -- 120C  MOV R2, 12

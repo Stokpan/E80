@@ -1,4 +1,5 @@
-// Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// Error handler functions
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,9 +66,8 @@ void error(enum ErrorCode errorlevel)
 			fprintf(stderr, "Example of an array: .DATA str 12, \"abc\", 0xAF, 0b1011.");
 		}
 		break;
-	case FREQUENCY:
-		fprintf(stderr,
-			"Frequency must be a number between '%d' and '%d' deciHertz.", MIN_FREQ, MAX_FREQ);
+	case SPEED:
+		fprintf(stderr, "Speed must be between '%d' and '%d'.", MIN_SPEED, MAX_SPEED);
 		break;
 	case NUMBER:
 		fprintf(stderr, "'%s' is not a valid number.\n", TOKEN);

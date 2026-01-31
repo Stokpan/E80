@@ -19,8 +19,10 @@ REM Running the design in GHDL for %2 or until Halt
 ghdl -r --std=08 %1 --stop-time=%2 --wave=%1.ghw
 if %errorlevel% NEQ 0 goto :error
 
-echo Opening waveforms in GTKWave.
+REM Close the previous GTKWave window
 taskkill /im gtkwave.exe >nul 2>&1
+echo Opening waveforms in GTKWave.
+REM Through powershell, otherwise GTKWave will lock the caller process (Sc1) until it's closed!
 powershell -Command "Start-Process gtkwave.exe -ArgumentList '%1.gtkw --rcvar \"hide_sst on\"'"
 
 goto :end

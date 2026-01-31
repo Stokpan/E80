@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// Parse functions headers
+
 #ifndef PARSE_FUNCTIONS_H
 #define PARSE_FUNCTIONS_H
 

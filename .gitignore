@@ -24,7 +24,7 @@ Gowin/impl/*
 !Gowin/impl/Gowin_process_config.json
 Gowin/Gowin.gprj.user
 desktop.ini
-Installer/GHDL/
+Installer/ExtrasIgnore/
 Installer/*.exe
 Vivado/*
 !Vivado/E80.sdc

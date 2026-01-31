@@ -1,23 +1,23 @@
 # E80 CPU
 
-A simple CPU in VHDL, developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld to evoke the powerful idea of program execution on logic gates and flip-flops, through the low floor of elementary textbook components and one-click simulation, and the high ceiling of a textbook-complete instruction set including subroutine calling.
+A simple CPU in structural VHDL, developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) to evoke the powerful idea of program execution on logic gates and flip-flops as a Papertian Microworld: with a low floor of one-click simulation, and a high ceiling of a textbook-complete instruction set.
 
-| Feature               | Description                                      |
-|-----------------------|--------------------------------------------------|
-| **Architecture**      | 8-bit, single-cycle, Load/Store                  |
-| **Dependencies**      | ieee.std_logic_1164 (no arithmetic libraries)    |
-| **Memory**            | Addressable at 0x00-0xFE                         |
-| **Registers**         | 6 General-purpose (R0-R5), Flags (R6), SP (R7)   |
-| **Instruction format**| Variable size (8 or 16-bit), up to 2 operands    |
-| **Addressing**        | Immediate, direct, register, register-indirect   |
-| **Stack**             | Full descending, SP initialized at 0xFF          |
-| **Input**             | 8-bit memory-mapped at 0xFF (DIP switches)       |
-| **Output**            | Flags, Registers, PC, Clock (3x8 LEDs)           |
-| **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode      |
-| **Assembler**         | ISO C99 stdin I/O                                |
-| **Simulated on**      | GHDL/GTKWave & ModelSim via one-click scripts    |
-| **Synthesized on**    | Quartus Lite, Gowin Education, Vivado Standard   |
-| **Tested on**         | Tang Primer 25K, Altera Cyclone IV               |
+| Feature               | Description                                        |
+|-----------------------|----------------------------------------------------|
+| **Architecture**      | 8-bit, single-cycle, Load/Store                    |
+| **Dependencies**      | ieee.std_logic_1164 (no arithmetic libraries)      |
+| **Memory**            | Addressable at 0x00-0xFE                           |
+| **Registers**         | 6 General-purpose (R0-R5), Flags (R6), SP (R7)     |
+| **Instruction format**| Variable size (8 or 16-bit), up to 2 operands      |
+| **Addressing**        | Immediate, direct, register, register-indirect     |
+| **Stack**             | Full descending, SP initialized at 0xFF            |
+| **Input**             | 8-bit memory-mapped at 0xFF (DIP switches)         |
+| **Output**            | Flags, Registers, PC, Clock (3x8 LEDs)             |
+| **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode        |
+| **Assembler**         | ISO C99 stdin I/O                                  |
+| **Simulated on**      | GHDL/GTKWave & ModelSim via one-click scripts      |
+| **Synthesized on**    | GHDL+Yosys, Gowin, Quartus, Vivado                 |
+| **Tested on**         | GateMateA1-EVB, Tang Primer 25K, Altera Cyclone IV |
 
 # ISA cheatsheet
 ```
@@ -124,9 +124,9 @@ op1/op2 : Reg or val (flexible operand)
 +----------------------+----------------------------------------------------+
 | .TITLE "string"      | Set the title for the Firmware.vhd output          |
 | .LABEL label number  | Assign a number to a label                         |
-| .SIMDIP value        | Set the DIP switch input (for simulation only      |
 | .DATA label csv      | Append csv at label address after program space    |
-| .FREQUENCY deciHertz | Set default FPGA frequency to deciHertz (1-1000)   |
+| .SIMDIP value        | Set the DIP switch input (simulation only)         |
+| .SPEED level         | Initialize clock speed to level 0-6 on the FPGA    |
 +----------------------+----------------------------------------------------+
 
 +----------------------+----------------------------------------------------+
@@ -162,8 +162,8 @@ op1/op2 : Reg or val (flexible operand)
 * Labels are case sensitive; directives and instructions are not.
 * .DATA sets a label after the last instruction and writes the csv data to it; consecutive .DATA directives append after each other.
 * Comments start with a semicolon.
-* The grammar is available in BNF notation at [Piber's Testing suite](https://cpiber.github.io/CFG-Tester/#input=.TITLE%20%22Division%20testing%22%0A.FREQUENCY%2015%20%0A%0A.LABEL%20a%2010%0A.DATA%20a%202%2C%220%22%0A%0A%09MOV%20R1%2C%20-0b0101%0A%09LOAD%20R2%2C%20%5B0xFF%5D%0A%09CALL%20mult%0A%09JMP%20fin%0Amult%3A%20PUSH%20R1%09%09%09%09%0A%09PUSH%20R2%0A%09MOV%20R0%2C%200%0Aloop%3A&rules=%3Cstart%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3C%5Bdirectives%5D%3E%20%3C%5Bstatements%5D%3E%20%3C%5Blabel%3A%5D%3E%0A%3C%5Bdirectives%5D%3E%20%20%3A%3A%3D%20%3Cdirective%3E%20%7C%20%3Cdirective%3E%20%3Cnl%2B%3E%20%3C%5Bdirectives%5D%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.TITLE%22%20%3Cs%2B%3E%20%3Cquoted_string%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.FREQUENCY%22%20%3Cs%2B%3E%20%3Cdec%2B%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.SIMDIP%22%20%3Cs%2B%3E%20%3Cvalue%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.LABEL%22%20%3Cs%2B%3E%20%3Clabel%3E%20%3Cs%2B%3E%20%3Cnumber%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.DATA%22%20%3Cs%2B%3E%20%3Clabel%3E%20%3Cs%2B%3E%20%3Carray%3E%0A%3C%5Bstatements%5D%3E%20%20%3A%3A%3D%20%3Cstatement%3E%20%7C%20%3Cstatement%3E%20%3Cnl%2B%3E%20%3C%5Bstatements%5D%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Cstatement%3E%20%20%20%20%20%3A%3A%3D%20%3Cinstruction%3E%20%7C%20%3Clabel%3A%3E%20%3Cinstruction%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_noarg%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg%3E%20%3Cs%2B%3E%20%3Creg%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_val%3E%20%3Cs%2B%3E%20%3Cvalue%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_op1%3E%20%3Cs%2B%3E%20%3Cop1%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg_op2%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cop2%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_ldst%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cbracket_op2%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg_n%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cvalue%3E%0A%3Cinstr_noarg%3E%20%20%20%3A%3A%3D%20%22HLT%22%20%7C%20%22NOP%22%20%7C%20%22RETURN%22%0A%3Cinstr_reg%3E%20%20%20%20%20%3A%3A%3D%20%22RSHIFT%22%20%7C%20%22LSHIFT%22%20%7C%20%22PUSH%22%20%7C%20%22POP%22%0A%3Cinstr_val%3E%20%20%20%20%20%3A%3A%3D%20%22JC%22%20%7C%20%22JNC%22%20%7C%20%22JZ%22%20%7C%20%22JNZ%22%20%7C%20%22JS%22%20%7C%20%22JNS%22%20%7C%20%22JV%22%20%7C%20%22JNV%22%20%7C%20%22CALL%22%0A%3Cinstr_op1%3E%20%20%20%20%20%3A%3A%3D%20%22JMP%22%0A%3Cinstr_reg_op2%3E%20%3A%3A%3D%20%22MOV%22%20%7C%20%22ADD%22%20%7C%20%22ROR%22%20%7C%20%22SUB%22%20%7C%20%22CMP%22%20%7C%20%22AND%22%20%7C%20%22OR%22%20%7C%20%22XOR%22%0A%3Cinstr_ldst%3E%20%20%20%20%3A%3A%3D%20%22LOAD%22%20%7C%20%22STORE%22%0A%3Cinstr_reg_n%3E%20%20%20%3A%3A%3D%20%22BIT%22%0A%3Cop1%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cop2%3E%0A%3Cbracket_op2%3E%20%20%20%3A%3A%3D%20%22%5B%22%20%3Cop2%3E%20%22%5D%22%0A%3Cop2%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Creg%3E%20%7C%20%3Cvalue%3E%0A%3Cvalue%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnumber%3E%20%7C%20%3Clabel%3E%0A%3C%5Blabel%3A%5D%3E%20%20%20%20%20%20%3A%3A%3D%20%3Clabel%3A%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Clabel%3A%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Clabel%3E%22%3A%22%20%3C%5B%5Cn%5D%3E%0A%3Clabel%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%3Clabel_char%2A%3E%0A%3Clabel_char%2A%3E%20%20%20%3A%3A%3D%20%3Clabel_char%3E%20%3Clabel_char%2A%3E%20%7C%20%22%22%0A%3Clabel_char%3E%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%7C%20%3Cdec%3E%20%7C%20%22_%22%0A%3Creg%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%22R0%22%20%7C%20%22R1%22%20%7C%20%22R2%22%20%7C%20%22R3%22%20%7C%20%22R4%22%20%7C%20%22R5%22%20%7C%20%22R6%22%20%7C%20%22R7%22%20%7C%20%22FLAGS%22%20%7C%20%22SP%22%0A%3Carray%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Carray_element%3E%20%7C%20%3Carray_element%3E%20%3C%2C%3E%20%3Carray%3E%0A%3Carray_element%3E%20%3A%3A%3D%20%3Cnumber%3E%20%7C%20%3Cquoted_string%3E%0A%3Cquoted_string%3E%20%3A%3A%3D%20%22%5C%22%22%20%3Cchar%2B%3E%20%22%5C%22%22%0A%3C%2C%3E%20%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2A%3E%20%22%2C%22%20%3Cs%2A%3E%0A%3Cnumber%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cunumber%3E%20%7C%20%22-%22%20%3Cunumber%3E%0A%3Cunumber%3E%20%20%20%20%20%20%20%3A%3A%3D%20%220x%22%20%3Chex%2B%3E%20%7C%20%220b%22%20%3Cbit%2B%3E%20%7C%20%3Cdec%2B%3E%0A%3Chex%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Chex%3E%20%7C%20%3Chex%3E%20%3Chex%2B%3E%0A%3Cdec%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cdec%3E%20%7C%20%3Cdec%3E%20%3Cdec%2B%3E%0A%3Cbit%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cbit%3E%20%7C%20%3Cbit%3E%20%3Cbit%2B%3E%0A%3Chex%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cdec%3E%20%7C%20%22A%22%20%7C%20%22B%22%20%7C%20%22C%22%20%7C%20%22D%22%20%7C%20%22E%22%20%7C%20%22F%22%20%7C%20%22a%22%20%7C%20%22b%22%20%7C%20%22c%22%20%7C%20%22d%22%20%7C%20%22e%22%20%7C%20%22f%22%0A%3Cdec%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%220%22%20%7C%20%221%22%20%7C%20%222%22%20%7C%20%223%22%20%7C%20%224%22%20%7C%20%225%22%20%7C%20%226%22%20%7C%20%227%22%20%7C%20%228%22%20%7C%20%229%22%0A%3Cbit%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%220%22%20%7C%20%221%22%0A%3Cchar%2B%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cchar%3E%20%7C%20%3Cchar%3E%20%3Cchar%2B%3E%0A%3Cchar%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%7C%20%3Cdec%3E%20%7C%20%22%20%22%0A%3C%5B%5Cn%5D%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnl%2B%3E%20%7C%20%3Cs%2A%3E%0A%3Cnl%2B%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnl%3E%20%7C%20%3Cnl%3E%20%3Cnl%2B%3E%0A%3Cnl%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2A%3E%20%22%5Cn%22%20%3Cs%2A%3E%0A%3Cs%2A%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2B%3E%20%7C%20%22%22%0A%3Cs%2B%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%3E%20%7C%20%3Cs%3E%20%3Cs%2B%3E%0A%3Cs%3E%20%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%22%20%22%20%7C%20%22%5Ct%22%0A%3Cletter%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%22A%22%20%7C%20%22B%22%20%7C%20%22C%22%20%7C%20%22D%22%20%7C%20%22E%22%20%7C%20%22F%22%20%7C%20%22G%22%20%7C%20%22H%22%20%7C%20%22I%22%20%7C%20%22J%22%20%7C%20%22K%22%20%7C%20%22L%22%20%7C%20%22M%22%20%7C%20%22N%22%20%7C%20%22O%22%20%7C%20%22P%22%20%7C%20%22Q%22%20%7C%20%22R%22%20%7C%20%22S%22%20%7C%20%22T%22%20%7C%20%22U%22%20%7C%20%22V%22%20%7C%20%22W%22%20%7C%20%22X%22%20%7C%20%22Y%22%20%7C%20%22Z%22%20%7C%20%22a%22%20%7C%20%22b%22%20%7C%20%22c%22%20%7C%20%22d%22%20%7C%20%22e%22%20%7C%20%22f%22%20%7C%20%22g%22%20%7C%20%22h%22%20%7C%20%22i%22%20%7C%20%22j%22%20%7C%20%22k%22%20%7C%20%22l%22%20%7C%20%22m%22%20%7C%20%22n%22%20%7C%20%22o%22%20%7C%20%22p%22%20%7C%20%22q%22%20%7C%20%22r%22%20%7C%20%22s%22%20%7C%20%22t%22%20%7C%20%22u%22%20%7C%20%22v%22%20%7C%20%22w%22%20%7C%20%22x%22%20%7C%20%22y%22%20%7C%20%22z%22). To test your input, first select BNF from the settings cogwheel on the top right. This syntax is a structural blueprint, not a full specification, and lacks features such as comments.
-* The `.FREQUENCY` directive doesn't affect simulation; it's used in the FPGA unit only.
+* The grammar is available in BNF notation at [Piber's Testing suite](https://cpiber.github.io/CFG-Tester/#input=.TITLE%20%22Division%20testing%22%0A.SPEED%203%20%0A%0A.LABEL%20a%2010%0A.DATA%20a%202%2C%220%22%0A%0A%09MOV%20R1%2C%20-0b0101%0A%09LOAD%20R2%2C%20%5B0xFF%5D%0A%09CALL%20mult%0A%09JMP%20fin%0Amult%3A%20PUSH%20R1%09%09%09%09%0A%09PUSH%20R2%0A%09MOV%20R0%2C%200%0Aloop%3A&rules=%3Cstart%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3C%5Bdirectives%5D%3E%20%3C%5Bstatements%5D%3E%20%3C%5Blabel%3A%5D%3E%0A%3C%5Bdirectives%5D%3E%20%20%3A%3A%3D%20%3Cdirective%3E%20%7C%20%3Cdirective%3E%20%3Cnl%2B%3E%20%3C%5Bdirectives%5D%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.TITLE%22%20%3Cs%2B%3E%20%3Cquoted_string%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.SPEED%22%20%3Cs%2B%3E%20%3Cdec%2B%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.SIMDIP%22%20%3Cs%2B%3E%20%3Cvalue%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.LABEL%22%20%3Cs%2B%3E%20%3Clabel%3E%20%3Cs%2B%3E%20%3Cnumber%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.DATA%22%20%3Cs%2B%3E%20%3Clabel%3E%20%3Cs%2B%3E%20%3Carray%3E%0A%3C%5Bstatements%5D%3E%20%20%3A%3A%3D%20%3Cstatement%3E%20%7C%20%3Cstatement%3E%20%3Cnl%2B%3E%20%3C%5Bstatements%5D%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Cstatement%3E%20%20%20%20%20%3A%3A%3D%20%3Cinstruction%3E%20%7C%20%3Clabel%3A%3E%20%3Cinstruction%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_noarg%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg%3E%20%3Cs%2B%3E%20%3Creg%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_val%3E%20%3Cs%2B%3E%20%3Cvalue%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_op1%3E%20%3Cs%2B%3E%20%3Cop1%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg_op2%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cop2%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_ldst%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cbracket_op2%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg_n%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cvalue%3E%0A%3Cinstr_noarg%3E%20%20%20%3A%3A%3D%20%22HLT%22%20%7C%20%22NOP%22%20%7C%20%22RETURN%22%0A%3Cinstr_reg%3E%20%20%20%20%20%3A%3A%3D%20%22RSHIFT%22%20%7C%20%22LSHIFT%22%20%7C%20%22PUSH%22%20%7C%20%22POP%22%0A%3Cinstr_val%3E%20%20%20%20%20%3A%3A%3D%20%22JC%22%20%7C%20%22JNC%22%20%7C%20%22JZ%22%20%7C%20%22JNZ%22%20%7C%20%22JS%22%20%7C%20%22JNS%22%20%7C%20%22JV%22%20%7C%20%22JNV%22%20%7C%20%22CALL%22%0A%3Cinstr_op1%3E%20%20%20%20%20%3A%3A%3D%20%22JMP%22%0A%3Cinstr_reg_op2%3E%20%3A%3A%3D%20%22MOV%22%20%7C%20%22ADD%22%20%7C%20%22ROR%22%20%7C%20%22SUB%22%20%7C%20%22CMP%22%20%7C%20%22AND%22%20%7C%20%22OR%22%20%7C%20%22XOR%22%0A%3Cinstr_ldst%3E%20%20%20%20%3A%3A%3D%20%22LOAD%22%20%7C%20%22STORE%22%0A%3Cinstr_reg_n%3E%20%20%20%3A%3A%3D%20%22BIT%22%0A%3Cop1%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cop2%3E%0A%3Cbracket_op2%3E%20%20%20%3A%3A%3D%20%22%5B%22%20%3Cop2%3E%20%22%5D%22%0A%3Cop2%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Creg%3E%20%7C%20%3Cvalue%3E%0A%3Cvalue%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnumber%3E%20%7C%20%3Clabel%3E%0A%3C%5Blabel%3A%5D%3E%20%20%20%20%20%20%3A%3A%3D%20%3Clabel%3A%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Clabel%3A%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Clabel%3E%22%3A%22%20%3C%5B%5Cn%5D%3E%0A%3Clabel%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%3Clabel_char%2A%3E%0A%3Clabel_char%2A%3E%20%20%20%3A%3A%3D%20%3Clabel_char%3E%20%3Clabel_char%2A%3E%20%7C%20%22%22%0A%3Clabel_char%3E%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%7C%20%3Cdec%3E%20%7C%20%22_%22%0A%3Creg%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%22R0%22%20%7C%20%22R1%22%20%7C%20%22R2%22%20%7C%20%22R3%22%20%7C%20%22R4%22%20%7C%20%22R5%22%20%7C%20%22R6%22%20%7C%20%22R7%22%20%7C%20%22FLAGS%22%20%7C%20%22SP%22%0A%3Carray%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Carray_element%3E%20%7C%20%3Carray_element%3E%20%3C%2C%3E%20%3Carray%3E%0A%3Carray_element%3E%20%3A%3A%3D%20%3Cnumber%3E%20%7C%20%3Cquoted_string%3E%0A%3Cquoted_string%3E%20%3A%3A%3D%20%22%5C%22%22%20%3Cchar%2B%3E%20%22%5C%22%22%0A%3C%2C%3E%20%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2A%3E%20%22%2C%22%20%3Cs%2A%3E%0A%3Cnumber%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cunumber%3E%20%7C%20%22-%22%20%3Cunumber%3E%0A%3Cunumber%3E%20%20%20%20%20%20%20%3A%3A%3D%20%220x%22%20%3Chex%2B%3E%20%7C%20%220b%22%20%3Cbit%2B%3E%20%7C%20%3Cdec%2B%3E%0A%3Chex%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Chex%3E%20%7C%20%3Chex%3E%20%3Chex%2B%3E%0A%3Cdec%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cdec%3E%20%7C%20%3Cdec%3E%20%3Cdec%2B%3E%0A%3Cbit%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cbit%3E%20%7C%20%3Cbit%3E%20%3Cbit%2B%3E%0A%3Chex%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cdec%3E%20%7C%20%22A%22%20%7C%20%22B%22%20%7C%20%22C%22%20%7C%20%22D%22%20%7C%20%22E%22%20%7C%20%22F%22%20%7C%20%22a%22%20%7C%20%22b%22%20%7C%20%22c%22%20%7C%20%22d%22%20%7C%20%22e%22%20%7C%20%22f%22%0A%3Cdec%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%220%22%20%7C%20%221%22%20%7C%20%222%22%20%7C%20%223%22%20%7C%20%224%22%20%7C%20%225%22%20%7C%20%226%22%20%7C%20%227%22%20%7C%20%228%22%20%7C%20%229%22%0A%3Cbit%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%220%22%20%7C%20%221%22%0A%3Cchar%2B%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cchar%3E%20%7C%20%3Cchar%3E%20%3Cchar%2B%3E%0A%3Cchar%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%7C%20%3Cdec%3E%20%7C%20%22%20%22%0A%3C%5B%5Cn%5D%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnl%2B%3E%20%7C%20%3Cs%2A%3E%0A%3Cnl%2B%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnl%3E%20%7C%20%3Cnl%3E%20%3Cnl%2B%3E%0A%3Cnl%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2A%3E%20%22%5Cn%22%20%3Cs%2A%3E%0A%3Cs%2A%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2B%3E%20%7C%20%22%22%0A%3Cs%2B%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%3E%20%7C%20%3Cs%3E%20%3Cs%2B%3E%0A%3Cs%3E%20%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%22%20%22%20%7C%20%22%5Ct%22%0A%3Cletter%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%22A%22%20%7C%20%22B%22%20%7C%20%22C%22%20%7C%20%22D%22%20%7C%20%22E%22%20%7C%20%22F%22%20%7C%20%22G%22%20%7C%20%22H%22%20%7C%20%22I%22%20%7C%20%22J%22%20%7C%20%22K%22%20%7C%20%22L%22%20%7C%20%22M%22%20%7C%20%22N%22%20%7C%20%22O%22%20%7C%20%22P%22%20%7C%20%22Q%22%20%7C%20%22R%22%20%7C%20%22S%22%20%7C%20%22T%22%20%7C%20%22U%22%20%7C%20%22V%22%20%7C%20%22W%22%20%7C%20%22X%22%20%7C%20%22Y%22%20%7C%20%22Z%22%20%7C%20%22a%22%20%7C%20%22b%22%20%7C%20%22c%22%20%7C%20%22d%22%20%7C%20%22e%22%20%7C%20%22f%22%20%7C%20%22g%22%20%7C%20%22h%22%20%7C%20%22i%22%20%7C%20%22j%22%20%7C%20%22k%22%20%7C%20%22l%22%20%7C%20%22m%22%20%7C%20%22n%22%20%7C%20%22o%22%20%7C%20%22p%22%20%7C%20%22q%22%20%7C%20%22r%22%20%7C%20%22s%22%20%7C%20%22t%22%20%7C%20%22u%22%20%7C%20%22v%22%20%7C%20%22w%22%20%7C%20%22x%22%20%7C%20%22y%22%20%7C%20%22z%22). To test your input, first select BNF from the settings cogwheel on the top right. This syntax is a structural blueprint, not a full specification, and lacks features such as comments.
+* The `.SPEED` directive doesn't affect simulation; it's used for execution in the FPGA. Speed levels are 0 (0 Hz), 1 (0.24 Hz), 2 (~1 Hz, default), 3 (~4 Hz), 4 (~15 Hz), 5 (2 KHz).
 * Likewise, the `.SIMDIP` directive doesn't affect execution on FPGAs; it's used in simulation only.
 
 ## Example 1 - One-click simulation with GHDL/GTKWave or ModelSim
@@ -206,7 +206,7 @@ _Notice that the HLT instruction has stopped the simulation in GHDL, allowing fo
 
 You can also press F7 to view the generated `Firmware.vhd` file, without simulation:
 
-<p align="center"><img width="564" height="592" alt="VHDL output of the assembler on the editor" src="https://github.com/user-attachments/assets/2277cfe8-dc68-4734-a00d-a46290c6fd56" /></p>
+<p align="center"><img width="591" height="577" alt="VHDL output of the assembler" src="https://github.com/user-attachments/assets/a10a54a1-60e7-43cd-b89f-3b4ef980bc06" /></p>
 
 _Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
 
@@ -222,7 +222,7 @@ First, install Gowin EDA Student Edition ([Windows](https://cdn.gowinsemi.com.cn
 
 Study the pin assignments in the `Gowin\E80.cst` file and apply them to your board. Use a five-direction navigation button/joystick with Left, Right, Up, Down, Set (for Pause), and Reset. All input pins must be *active high* with a 10kΩ pull-down resistor and the joystick's COM port must be connected to a 3.3V output. Below is a reference photo of the board setup:
 
-<p align="center"><img width="2300" height="1294" alt="Tang Primer 25K Board Setup for E80" src="https://github.com/user-attachments/assets/d1b91bf1-b6d4-4091-96af-2e636041546f" /></p>
+<p align="center"><img width="2300" height="1294" alt="Tang Primer 25K Board Setup" src="https://github.com/user-attachments/assets/d1b91bf1-b6d4-4091-96af-2e636041546f" /></p>
 
 The top module (FPGA.vhd) uses three 8-LED rows for display, and the joystick buttons for control:
 
@@ -230,16 +230,15 @@ The top module (FPGA.vhd) uses three 8-LED rows for display, and the joystick bu
 * **Row A (Status):**
     * **[7:4] (Flags):** Carry, Zero, Sign, Overflow.
     * **[3:1] (Register Selection):** Binary index of the register currently displayed on Row B.
-    * **[0] (Clock):** Pulses dimly during normal execution, pulses brightly during reset, and turns solid bright on HLT.
+    * **[0] (Clock):** Pulses dimly during normal execution and turns solid bright on HLT.
 * **Row B (Data):** Displays the value of the selected register. When Reset is held, it mirrors the DIP switch input instead.
 * **Row C (PC):** Displays the current Program Counter.
 
 **Buttons**
 * **Joystick Left/Right:** Adjust clock speed; supports auto-repeat when held down.
-* **Joystick Center:** Reset clock speed.
 * **Joystick Up/Down:** Select which register is displayed on Row B; supports auto-repeat when held down.
-* **Set:** Pause execution.
-* **Reset:** CPU initialization and firmware reset; press until the Clock LED starts flashing brightly.
+* **Set:** Pause execution. When clock speed is set to 0 Hz, this button allows for step execution.
+* **Reset:** CPU initialization and firmware reset.
 
 To run the test, paste the following program into the editor and press F7. This will automatically update `Firmware.vhd` with your new code.
 
@@ -259,4 +258,24 @@ You can also simulate (F5 or F8) the program prior to running in the FPGA; in th
 
 Open the `Gowin\Gowin.gprj` file in the Gowin IDE. Compile the project using *Run All*, wait for completion, connect your Tang Primer 25K board on your PC, and then use the *Programmer* function to upload the configuration.
 
-When the upload is finished, press the Reset button to initialize the RAM with your firmware, and release it when the Clock LED stops pulsing. The Clock LED will be pulsing as the program runs. LED Row B defaults to R0, so you will see it rotating. Then the HLT instruction will be executed and the Clock LED will stop pulsing.
+When the upload is finished, press the Reset button to initialize the RAM with your firmware, and release it when the Clock LED stops pulsing. The Clock LED will be pulsing as the program runs. LED row B defaults to R0, so you will see it rotating. Then the HLT instruction will be executed and the Clock LED will stop pulsing.
+
+## Example 3 - Testing on the Olimex GateMateA1-EVB (on Windows)
+
+The following assumes you have installed the latest E80 Toolchain release and the paths mentioned will always be relative to its installation folder.
+
+First, open the `Boards\Yosys_GateMateA1\E80.ccf` file and connect the components using a breadboard, as suggested in the previous section for the Gowin board:
+
+<p align="center"><img width="1200" height="1002" alt="GateMateA1-EVB Board Setup" src="https://github.com/user-attachments/assets/8613203f-9cb4-4e8f-85e8-0e674c599457" /></p>
+
+Connect the GateMate to your computer via USB, locate the new DirtyJtag device on the Device Manager, and update its driver to `Boards\Yosys_GateMateA1\Driver`. The device should now appear under `Universal Serial Bus devices` (not the standard USB adapters).
+
+Download the latest [oss-cad-suite](https://github.com/YosysHQ/oss-cad-suite-build) release and extract it so that the `oss-cad-suite` directory in the toolchain installation folder contains bin, lib, etc.
+
+You can now run `Boards\Yosys_GateMateA1\synth.bat`. It will go through all the necessary steps, from checking requirements to flashing:
+
+<p align="center"><img width="685" height="319" alt="image" src="https://github.com/user-attachments/assets/51b4f0f6-e2c8-4d57-8166-704fb4a1c778" /></p>
+
+After step 7, the board will start running the pre-generated Division-Multiplication program. Press **Right** on the joystick to speed it up until the the clock LED stops flashing. Open the E80 editor, load the divmul.e80asm program from the installation folder and hit `F5` to verify the simulated results (R0, R1, R2) on the board. Remember, as specified in the Gowin section, press **Up** or **Down** on the joystick to change the register shown on the LEDs.
+
+In the E80 Editor, paste the 256-ROR program from the previous section into a new tab and hit `F5` to assemble and simulate it. Go back to the synth.bat window and press `3` to repeat the process using the new Firmware.vhd generated by the toolchain. While waiting, set a value on the DIP switches. Once the program starts running, this value should be rotating right on LED row B.

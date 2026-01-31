@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+// Data structures declarations and headers
+
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
 

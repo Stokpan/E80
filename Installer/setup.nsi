@@ -62,14 +62,10 @@ Section "Portable requirements" SecCore
 
 	; Copy files
 	SetOutPath "$INSTDIR\GHDL"
-	File /r "GHDL\*.*"
 	File /r "..\GHDL\*.*"
 
 	SetOutPath "$INSTDIR\VHDL"
 	File /r "..\VHDL\*.*"
-
-	SetOutPath "$INSTDIR\Gowin"
-	File /r "..\Gowin\*.*"
 
 	SetOutPath "$INSTDIR\ModelSim"
 	File /r "..\ModelSim\*.*"
@@ -79,14 +75,17 @@ Section "Portable requirements" SecCore
 	File "..\Assembler\template.vhd"
 	File "..\Assembler\a.bat"
 
+	SetOutPath "$INSTDIR\Boards"
+	File /r "..\Boards\*.*"
+
 	SetOutPath "$INSTDIR"
 	File "3rd party Licenses.txt"
 	File "..\Assembler\divmul.e80asm"
 	File "..\LICENSE"
-	File "Sc1.exe"
 	File "SciTEGlobal.properties"
 	File "e80asm.lua"
 	File "e80icon.ico"
+	File /r "ExtrasIgnore\*.*"
 
 	; Store Install Path
 	WriteRegStr HKCU "Software\E80Toolchain" "" $INSTDIR
