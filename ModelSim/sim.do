@@ -1,3 +1,4 @@
+# E80 ModelSim simulation and layout automation script
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
 quit -sim

@@ -26,12 +26,8 @@ This package includes software released under the following licenses:
    TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
    OR PERFORMANCE OF THIS SOFTWARE.
    Source code: https://www.scintilla.org/SciTEDownload.html
-
-4. openFPGALoader
-   License: Boards\Yosys_GateMateA1\openFPGALoader license.txt (Apache License)
-   Source Code: https://github.com/trabucayre/openFPGALoader
    
-5. libusb-win32 (dirtyJtag driver) driver
+4. libusb-win32 (dirtyJtag driver) driver
    Licenses:
    Boards\Yosys_GateMateA1\Driver\DirtyJTAG_(Interface_0).inf (LGPL)
    Boards\Yosys_GateMateA1\Driver\license\libusb0\installer_license.txt (GPL3)

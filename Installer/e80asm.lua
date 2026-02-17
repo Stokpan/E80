@@ -3,10 +3,17 @@
 
 local firmware_vhd = 'VHDL\\Firmware.vhd'
 local write_error = 'Error: Cannot write file '
-
--- Help message on editor startup
+local refreshlogfile = false
 local welcome_msg_shown = false
-function OnOpen(file)
+
+ function OnOpen(file)
+	-- Check if a logfile is (re)opened and rely on OnUpdateUI() to refresh it;
+	-- this requires check.if.already.open=1 and load.on.activate=1
+	if string.match(file, "%.log$") then
+		refreshlogfile = true
+		return -- don't show welcome message on logs
+	end
+	-- show a help message on editor startup
 	if welcome_msg_shown then return end
 	print ("************ E80 Toolchain Hotkeys ***********")
 	print (" F5: Assemble and simulate (GHDL/GTKWave)     ")
@@ -14,6 +21,16 @@ function OnOpen(file)
 	print (" F8: Assemble and simulate (ModelSim)         ")
 	print ("**********************************************")
 	welcome_msg_shown = true
+end
+
+-- If it's a log file, move to its last line (had to be performed here
+-- because editor:DocumentEnd() doesn't always work on OnOpen() event
+function OnUpdateUI()
+	if refreshlogfile then
+		editor:DocumentEnd()
+		editor:VerticalCentreCaret()
+		refreshlogfile = false
+	end
 end
 
 -- Assemble with E80asm and save VHDL output to Firmware.vhd
@@ -93,7 +110,7 @@ function Show_VHDL()
 	scite.MenuCommand(IDM_CLEAROUTPUT) -- clear log pane
 	if not Assemble() then return end
 	scite.Open(firmware_vhd)
-	scite.MenuCommand(IDM_REVERT) -- reload VHDL in case it was already opened
+	scite.MenuCommand(IDM_REVERT) -- reload in case it was already opened
 end
 
 -- Assemble and simulate with ModelSim (F8 on .e80asm)

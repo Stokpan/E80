@@ -80,7 +80,7 @@ Section "Portable requirements" SecCore
 
 	SetOutPath "$INSTDIR"
 	File "3rd party Licenses.txt"
-	File "..\Assembler\divmul.e80asm"
+	File "..\Assembler\*.e80asm"
 	File "..\LICENSE"
 	File "SciTEGlobal.properties"
 	File "e80asm.lua"
@@ -113,7 +113,7 @@ Section "Portable requirements" SecCore
 	CreateShortcut "$SMPROGRAMS\E80 Toolchain\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 SectionEnd
 
-Section "Register extensions" SecAssoc
+Section "Register .e80asm" SecAssoc
 	; Define the ProgID in User Registry
 	WriteRegStr HKCU "Software\Classes\E80ASMfile" "" "E80 Assembly Source"
 	; Define the Default Icon
@@ -137,7 +137,7 @@ SectionEnd
 
 ; Descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Sc1 editor, E80 Assembler, GHDL, GTKWave, and all the necessary configuration to allow simulation of a program on E80 by pressing F5 on Sc1."
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Sc1 editor, E80 Assembler, GHDL, GTKWave, and board-specific settings and scripts."
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssoc} "Associate .e80asm files with Sc1 for the current user."
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecModelSim} "Create and enable a custom E80 layout on ModelSim. You can use ModelSim's Layout menu to reset and delete the custom layout."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

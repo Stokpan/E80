@@ -8,10 +8,7 @@
 
 3. Go to https://github.com/YosysHQ/oss-cad-suite-build/releases and
    download the latest oss-cad-suite release for Windows. Extract it on the
-   main Toolchain directory so that it contains an oss-cad-suite directory.
+   main toolchain directory so that it contains an oss-cad-suite directory.
 
 4. Run synth.bat. It will go through all the necessary steps, from checking
    requirements to flashing.
-   
-5. Whenever you update your Firmware.vhd (probably through the E80 Editor
-   hotkeys) you can hit 3 to restart synthesis.

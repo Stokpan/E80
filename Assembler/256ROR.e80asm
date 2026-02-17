@@ -1,0 +1,9 @@
+.TITLE "256ROR.e80asm - Performs 256 RORs to test speed controls"
+.SIMDIP 0b00000010     ; for simulation only, FPGA ignores this
+	LOAD R0, [0xFF]    ; loads the DIP input word to R0
+	MOV R1, 0
+loop:
+	ROR R0, 1
+	ADD R1, 1
+	JNC loop            ; stop after 256 RORs (32 full rotations)
+	HLT

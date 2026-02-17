@@ -64,15 +64,21 @@ set_global_assignment -name VHDL_FILE ../../VHDL/DFF8.vhd
 set_global_assignment -name VHDL_FILE ../../VHDL/ALU.vhd
 set_global_assignment -name VHDL_FILE ../../VHDL/FA8.vhd
 
+# Onboard 50 MHz crystal oscillator (frequency is specified at Board.vhd)
 set_location_assignment PIN_23 -to BoardCLK
 
+# MAX7219 4x8x8 LED Matrix
+set_location_assignment PIN_53 -to MAX7219CLK
+set_location_assignment PIN_55 -to MAX7219CS
+set_location_assignment PIN_59 -to MAX7219DIN
+
+# Joystick controls
 set_location_assignment PIN_85 -to ResetButton
-set_location_assignment PIN_87 -to Up
-set_location_assignment PIN_89 -to Down
 set_location_assignment PIN_91 -to Left
 set_location_assignment PIN_99 -to Right
 set_location_assignment PIN_104 -to SetButton
 
+# DIP switches
 set_location_assignment PIN_54 -to DIPinput[0]
 set_location_assignment PIN_58 -to DIPinput[1]
 set_location_assignment PIN_60 -to DIPinput[2]
@@ -81,33 +87,6 @@ set_location_assignment PIN_67 -to DIPinput[4]
 set_location_assignment PIN_69 -to DIPinput[5]
 set_location_assignment PIN_71 -to DIPinput[6]
 set_location_assignment PIN_73 -to DIPinput[7]
-
-set_location_assignment PIN_110 -to LED_rowA[7]
-set_location_assignment PIN_111 -to LED_rowA[6]
-set_location_assignment PIN_112 -to LED_rowA[5]
-set_location_assignment PIN_113 -to LED_rowA[4]
-set_location_assignment PIN_114 -to LED_rowA[3]
-set_location_assignment PIN_115 -to LED_rowA[2]
-set_location_assignment PIN_119 -to LED_rowA[1]
-set_location_assignment PIN_120 -to LED_rowA[0]
-
-set_location_assignment PIN_121 -to LED_rowB[7]
-set_location_assignment PIN_124 -to LED_rowB[6]
-set_location_assignment PIN_125 -to LED_rowB[5]
-set_location_assignment PIN_126 -to LED_rowB[4]
-set_location_assignment PIN_127 -to LED_rowB[3]
-set_location_assignment PIN_128 -to LED_rowB[2]
-set_location_assignment PIN_129 -to LED_rowB[1]
-set_location_assignment PIN_132 -to LED_rowB[0]
-
-set_location_assignment PIN_133 -to LED_rowC[7]
-set_location_assignment PIN_135 -to LED_rowC[6]
-set_location_assignment PIN_136 -to LED_rowC[5]
-set_location_assignment PIN_137 -to LED_rowC[4]
-set_location_assignment PIN_138 -to LED_rowC[3]
-set_location_assignment PIN_141 -to LED_rowC[2]
-set_location_assignment PIN_142 -to LED_rowC[1]
-set_location_assignment PIN_143 -to LED_rowC[0]
 
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top

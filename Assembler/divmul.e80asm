@@ -1,10 +1,11 @@
 ; Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
-.TITLE "Unsigned division and multiplication (divmul.asm)"
+.TITLE "DivMul.e80asm - Unsigned division and multiplication"
 .LABEL dividend 179
 .LABEL divisor 12
 .LABEL multiplicand 7
 .LABEL multiplier 29
+.SPEED 4					; default speed ~4 Hz on hardware
 
 	CALL multiply
 	PUSH R0

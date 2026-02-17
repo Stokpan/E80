@@ -1,25 +1,25 @@
 # E80 CPU
 
-A simple CPU in structural VHDL, developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) to evoke the powerful idea of program execution on logic gates and flip-flops as a Papertian Microworld: with a low floor of one-click simulation, and a high ceiling of a textbook-complete instruction set.
+A simple CPU in structural VHDL, originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld, to evoke the powerful idea of program execution on logic gates and flip-flops through a low floor of one-click simulation, and a high ceiling of a textbook-complete instruction set.
 
 | Feature               | Description                                        |
 |-----------------------|----------------------------------------------------|
 | **Architecture**      | 8-bit, single-cycle, Load/Store                    |
 | **Dependencies**      | ieee.std_logic_1164 (no arithmetic libraries)      |
 | **Memory**            | Addressable at 0x00-0xFE                           |
-| **Registers**         | 6 General-purpose (R0-R5), Flags (R6), SP (R7)     |
+| **Registers**         | 6 General-purpose, Flags, Stack Pointer            |
 | **Instruction format**| Variable size (8 or 16-bit), up to 2 operands      |
 | **Addressing**        | Immediate, direct, register, register-indirect     |
 | **Stack**             | Full descending, SP initialized at 0xFF            |
-| **Input**             | 8-bit memory-mapped at 0xFF (DIP switches)         |
-| **Output**            | Flags, Registers, PC, Clock (3x8 LEDs)             |
+| **Input**             | 8-bit DIP switches memory-mapped at 0xFF           |
+| **Output**            | Serial 4x8x8 LED Matrix (MAX7219)                  |
 | **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode        |
 | **Assembler**         | ISO C99 stdin I/O                                  |
-| **Simulated on**      | GHDL/GTKWave & ModelSim via one-click scripts      |
+| **Simulated on**      | GHDL+GTKWave, ModelSim via one-click scripts       |
 | **Synthesized on**    | GHDL+Yosys, Gowin, Quartus, Vivado                 |
-| **Tested on**         | GateMateA1-EVB, Tang Primer 25K, Altera Cyclone IV |
+| **Tested on**         | GateMateA1-EVB, Tang Primer 25K, DSD-i1 Cyclone IV |
 
-# ISA cheatsheet
+# ISA Cheatsheet
 ```
 Operands : n = 8-bit immediate value or direct memory address
            r, r1, r2 = 3-bit register address (R0 to R7)
@@ -108,7 +108,7 @@ Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
  |         | S=0  | a ≥ b                       | a-b < 128 (if C=1)   |
  +---------+------+-----------------------------+----------------------+
 ```
-# Assembly cheatsheet
+# Assembly Cheatsheet
 ```
 string  : ASCII with escaped quotes, eg. "a\"bc" is quoted a"bc
 label   : Starts from a letter, may contain letters, numbers, underscores
@@ -162,12 +162,13 @@ op1/op2 : Reg or val (flexible operand)
 * Labels are case sensitive; directives and instructions are not.
 * .DATA sets a label after the last instruction and writes the csv data to it; consecutive .DATA directives append after each other.
 * Comments start with a semicolon.
-* The grammar is available in BNF notation at [Piber's Testing suite](https://cpiber.github.io/CFG-Tester/#input=.TITLE%20%22Division%20testing%22%0A.SPEED%203%20%0A%0A.LABEL%20a%2010%0A.DATA%20a%202%2C%220%22%0A%0A%09MOV%20R1%2C%20-0b0101%0A%09LOAD%20R2%2C%20%5B0xFF%5D%0A%09CALL%20mult%0A%09JMP%20fin%0Amult%3A%20PUSH%20R1%09%09%09%09%0A%09PUSH%20R2%0A%09MOV%20R0%2C%200%0Aloop%3A&rules=%3Cstart%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3C%5Bdirectives%5D%3E%20%3C%5Bstatements%5D%3E%20%3C%5Blabel%3A%5D%3E%0A%3C%5Bdirectives%5D%3E%20%20%3A%3A%3D%20%3Cdirective%3E%20%7C%20%3Cdirective%3E%20%3Cnl%2B%3E%20%3C%5Bdirectives%5D%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.TITLE%22%20%3Cs%2B%3E%20%3Cquoted_string%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.SPEED%22%20%3Cs%2B%3E%20%3Cdec%2B%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.SIMDIP%22%20%3Cs%2B%3E%20%3Cvalue%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.LABEL%22%20%3Cs%2B%3E%20%3Clabel%3E%20%3Cs%2B%3E%20%3Cnumber%3E%0A%3Cdirective%3E%20%20%20%20%20%3A%3A%3D%20%22.DATA%22%20%3Cs%2B%3E%20%3Clabel%3E%20%3Cs%2B%3E%20%3Carray%3E%0A%3C%5Bstatements%5D%3E%20%20%3A%3A%3D%20%3Cstatement%3E%20%7C%20%3Cstatement%3E%20%3Cnl%2B%3E%20%3C%5Bstatements%5D%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Cstatement%3E%20%20%20%20%20%3A%3A%3D%20%3Cinstruction%3E%20%7C%20%3Clabel%3A%3E%20%3Cinstruction%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_noarg%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg%3E%20%3Cs%2B%3E%20%3Creg%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_val%3E%20%3Cs%2B%3E%20%3Cvalue%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_op1%3E%20%3Cs%2B%3E%20%3Cop1%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg_op2%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cop2%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_ldst%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cbracket_op2%3E%0A%3Cinstruction%3E%20%20%20%3A%3A%3D%20%3Cinstr_reg_n%3E%20%3Cs%2B%3E%20%3Creg%3E%20%3C%2C%3E%20%3Cvalue%3E%0A%3Cinstr_noarg%3E%20%20%20%3A%3A%3D%20%22HLT%22%20%7C%20%22NOP%22%20%7C%20%22RETURN%22%0A%3Cinstr_reg%3E%20%20%20%20%20%3A%3A%3D%20%22RSHIFT%22%20%7C%20%22LSHIFT%22%20%7C%20%22PUSH%22%20%7C%20%22POP%22%0A%3Cinstr_val%3E%20%20%20%20%20%3A%3A%3D%20%22JC%22%20%7C%20%22JNC%22%20%7C%20%22JZ%22%20%7C%20%22JNZ%22%20%7C%20%22JS%22%20%7C%20%22JNS%22%20%7C%20%22JV%22%20%7C%20%22JNV%22%20%7C%20%22CALL%22%0A%3Cinstr_op1%3E%20%20%20%20%20%3A%3A%3D%20%22JMP%22%0A%3Cinstr_reg_op2%3E%20%3A%3A%3D%20%22MOV%22%20%7C%20%22ADD%22%20%7C%20%22ROR%22%20%7C%20%22SUB%22%20%7C%20%22CMP%22%20%7C%20%22AND%22%20%7C%20%22OR%22%20%7C%20%22XOR%22%0A%3Cinstr_ldst%3E%20%20%20%20%3A%3A%3D%20%22LOAD%22%20%7C%20%22STORE%22%0A%3Cinstr_reg_n%3E%20%20%20%3A%3A%3D%20%22BIT%22%0A%3Cop1%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cop2%3E%0A%3Cbracket_op2%3E%20%20%20%3A%3A%3D%20%22%5B%22%20%3Cop2%3E%20%22%5D%22%0A%3Cop2%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Creg%3E%20%7C%20%3Cvalue%3E%0A%3Cvalue%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnumber%3E%20%7C%20%3Clabel%3E%0A%3C%5Blabel%3A%5D%3E%20%20%20%20%20%20%3A%3A%3D%20%3Clabel%3A%3E%20%7C%20%3C%5B%5Cn%5D%3E%0A%3Clabel%3A%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Clabel%3E%22%3A%22%20%3C%5B%5Cn%5D%3E%0A%3Clabel%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%3Clabel_char%2A%3E%0A%3Clabel_char%2A%3E%20%20%20%3A%3A%3D%20%3Clabel_char%3E%20%3Clabel_char%2A%3E%20%7C%20%22%22%0A%3Clabel_char%3E%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%7C%20%3Cdec%3E%20%7C%20%22_%22%0A%3Creg%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%22R0%22%20%7C%20%22R1%22%20%7C%20%22R2%22%20%7C%20%22R3%22%20%7C%20%22R4%22%20%7C%20%22R5%22%20%7C%20%22R6%22%20%7C%20%22R7%22%20%7C%20%22FLAGS%22%20%7C%20%22SP%22%0A%3Carray%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Carray_element%3E%20%7C%20%3Carray_element%3E%20%3C%2C%3E%20%3Carray%3E%0A%3Carray_element%3E%20%3A%3A%3D%20%3Cnumber%3E%20%7C%20%3Cquoted_string%3E%0A%3Cquoted_string%3E%20%3A%3A%3D%20%22%5C%22%22%20%3Cchar%2B%3E%20%22%5C%22%22%0A%3C%2C%3E%20%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2A%3E%20%22%2C%22%20%3Cs%2A%3E%0A%3Cnumber%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cunumber%3E%20%7C%20%22-%22%20%3Cunumber%3E%0A%3Cunumber%3E%20%20%20%20%20%20%20%3A%3A%3D%20%220x%22%20%3Chex%2B%3E%20%7C%20%220b%22%20%3Cbit%2B%3E%20%7C%20%3Cdec%2B%3E%0A%3Chex%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Chex%3E%20%7C%20%3Chex%3E%20%3Chex%2B%3E%0A%3Cdec%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cdec%3E%20%7C%20%3Cdec%3E%20%3Cdec%2B%3E%0A%3Cbit%2B%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cbit%3E%20%7C%20%3Cbit%3E%20%3Cbit%2B%3E%0A%3Chex%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cdec%3E%20%7C%20%22A%22%20%7C%20%22B%22%20%7C%20%22C%22%20%7C%20%22D%22%20%7C%20%22E%22%20%7C%20%22F%22%20%7C%20%22a%22%20%7C%20%22b%22%20%7C%20%22c%22%20%7C%20%22d%22%20%7C%20%22e%22%20%7C%20%22f%22%0A%3Cdec%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%220%22%20%7C%20%221%22%20%7C%20%222%22%20%7C%20%223%22%20%7C%20%224%22%20%7C%20%225%22%20%7C%20%226%22%20%7C%20%227%22%20%7C%20%228%22%20%7C%20%229%22%0A%3Cbit%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%220%22%20%7C%20%221%22%0A%3Cchar%2B%3E%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cchar%3E%20%7C%20%3Cchar%3E%20%3Cchar%2B%3E%0A%3Cchar%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cletter%3E%20%7C%20%3Cdec%3E%20%7C%20%22%20%22%0A%3C%5B%5Cn%5D%3E%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnl%2B%3E%20%7C%20%3Cs%2A%3E%0A%3Cnl%2B%3E%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cnl%3E%20%7C%20%3Cnl%3E%20%3Cnl%2B%3E%0A%3Cnl%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2A%3E%20%22%5Cn%22%20%3Cs%2A%3E%0A%3Cs%2A%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%2B%3E%20%7C%20%22%22%0A%3Cs%2B%3E%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%3Cs%3E%20%7C%20%3Cs%3E%20%3Cs%2B%3E%0A%3Cs%3E%20%20%20%20%20%20%20%20%20%20%20%20%20%3A%3A%3D%20%22%20%22%20%7C%20%22%5Ct%22%0A%3Cletter%3E%20%20%20%20%20%20%20%20%3A%3A%3D%20%22A%22%20%7C%20%22B%22%20%7C%20%22C%22%20%7C%20%22D%22%20%7C%20%22E%22%20%7C%20%22F%22%20%7C%20%22G%22%20%7C%20%22H%22%20%7C%20%22I%22%20%7C%20%22J%22%20%7C%20%22K%22%20%7C%20%22L%22%20%7C%20%22M%22%20%7C%20%22N%22%20%7C%20%22O%22%20%7C%20%22P%22%20%7C%20%22Q%22%20%7C%20%22R%22%20%7C%20%22S%22%20%7C%20%22T%22%20%7C%20%22U%22%20%7C%20%22V%22%20%7C%20%22W%22%20%7C%20%22X%22%20%7C%20%22Y%22%20%7C%20%22Z%22%20%7C%20%22a%22%20%7C%20%22b%22%20%7C%20%22c%22%20%7C%20%22d%22%20%7C%20%22e%22%20%7C%20%22f%22%20%7C%20%22g%22%20%7C%20%22h%22%20%7C%20%22i%22%20%7C%20%22j%22%20%7C%20%22k%22%20%7C%20%22l%22%20%7C%20%22m%22%20%7C%20%22n%22%20%7C%20%22o%22%20%7C%20%22p%22%20%7C%20%22q%22%20%7C%20%22r%22%20%7C%20%22s%22%20%7C%20%22t%22%20%7C%20%22u%22%20%7C%20%22v%22%20%7C%20%22w%22%20%7C%20%22x%22%20%7C%20%22y%22%20%7C%20%22z%22). To test your input, first select BNF from the settings cogwheel on the top right. This syntax is a structural blueprint, not a full specification, and lacks features such as comments.
-* The `.SPEED` directive doesn't affect simulation; it's used for execution in the FPGA. Speed levels are 0 (0 Hz), 1 (0.24 Hz), 2 (~1 Hz, default), 3 (~4 Hz), 4 (~15 Hz), 5 (2 KHz).
+* The `.SPEED` directive defines the initial CPU clock frequency in the FPGA. The seven levels are defined in the [Hardware Implementation section](https://github.com/Stokpan/E80/edit/main/README.md#hardware-implementation). Default `.SPEED` value is 2 (~1 Hz).
 * Likewise, the `.SIMDIP` directive doesn't affect execution on FPGAs; it's used in simulation only.
 
-## Example 1 - One-click simulation with GHDL/GTKWave or ModelSim
+## Example - One-click simulation with GHDL/GTKWave or ModelSim
+
 The following program writes the null-terminated string `` `az{"0 `` to memory after the last instruction (notice the label under HLT) and converts the lowercase characters to uppercase, stopping when it hits the terminator:
+
 ```
 .TITLE "Converts the lowercase characters of a given string to uppercase"
 .LABEL char_a 97
@@ -190,7 +191,8 @@ next:
 finish:
     HLT                     ; stop execution & simulation
 ```
-To simulate it, first install the E80 Toolchain package from the Releases, then open the E80 Editor and paste the code into it:
+
+To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
 
 <p align="center"><img width="594" height="525" alt="Sc1 editor window with assembly code" src="https://github.com/user-attachments/assets/e91c689d-6519-46de-bff9-124ed50d6dc4" /></p>
 
@@ -216,62 +218,75 @@ If you have installed ModelSim, you can press F8 to automatically open ModelSim 
 
 _The Memory Data tab next to the Wave tab contains the RAM at the end of simulation. The contents can also be displayed by hovering on the RAM in the Wave tab, but there's a catch: if the radix is set to ASCII and the data include a curly bracket, ModelSim will throw an error when trying to show the tooltip._
 
+# Hardware Implementation
+
+The design is complemented by an Interface unit which requires a hardware clock of at least 2 MHz and, optionally, an 8-bit DIP switch and four buttons for Reset, Pause, Left and Right functions. A 5-direction button joystick provides more than enough buttons for this purpose. All input pins must be active high with a 10kΩ pull-down resistor. If you use a joystick, connect its Set button as Pause and its COM port to a 3.3V output. The input pins serve the following functions:
+
+* **Left/Right buttons:** Adjust clock speed level; support auto-repeat when held down.
+	* Speed level 0: 0 Hz and clock is constantly high
+	* Speed level 1: 0.24 Hz
+	* Speed level 2: ~1 Hz
+	* Speed level 3: ~2 Hz
+	* Speed level 4: ~4 Hz
+	* Speed level 5: ~15 Hz
+	* Speed level 6: 2 KHz
+* **Pause:** The clock falls to 0 while Pause is pressed, and resumes pulsing when Pause is released. This is useful in Speed level 0: releasing the Pause button will resume clock to high, causing a rising edge, thereby allowing for step execution.
+* **Reset:** The RAM is re-initialized to the Firmware, the Program Counter and the Halt flag are cleared, and the Stack Pointer is reset to 255.
+
+Output is provided on 4x8x8 LED MAX7219-based module. The code assumes that the module is read with its connected pins on the left. In the following list, Matrix 1 is leftmost and Row 1 is topmost:
+
+* **Matrix 1:**
+	* Row 1: **Speed level** (one-hot encoded on first seven LEDs), **Clock** (rightmost LED)
+	* Row 2: blank
+	* Row 3: **Program Counter**
+	* Row 4: **Instr1** (Instruction Word part 1)
+	* Row 5: **Instr2** (Instruction Word part 2)
+	* Row 6: blank
+	* Row 7: **Carry**, **Zero**, **Sign**, **Overflow**, **Halt**
+	* Row 8: blank
+* **Matrix 2:**
+	* Rows 1-6: **General Purpose Registers R0-R5**
+	* Row 7: blank
+	* Row 8: **Stack Pointer (R7)**
+* **Matrix 3:**
+	* Rows 1-8: **RAM block 200-207**
+* **Matrix 4:**
+	* Rows 1-7: **RAM block 248-254**
+	* Row 8: **DIP switch input**
+
+## Example 1 - Testing on the Olimex GateMateA1-EVB on Windows
+
+The following assumes you have installed the latest E80 Toolchain release and the paths mentioned will always be relative to its installation folder. You will also need to download the latest [oss-cad-suite](https://github.com/YosysHQ/oss-cad-suite-build) and run it on the toolchain installation folder.
+
+To prepare your hardware, open `Boards\Yosys_GateMateA1\E80.ccf` in a text editor, study its pin assignments and connect the components accordingly. This my setup:
+
+<p align="center"><img width="1300" height="780" alt="GateMateA1-EVB Board Setup" src="https://github.com/user-attachments/assets/ec6f141c-a11d-4d31-b4f9-2ff5ced1fcb7" /></p>
+
+Connect the board to your computer via USB, locate the new DirtyJtag device on the Device Manager on "Other Devices", and update its driver to `Boards\Yosys_GateMateA1\Driver`. The device should now appear under "Universal Serial Bus devices" (not the standard USB adapters).
+
+From the toolchain installation folder, open divmul.e80asm and hit `F5` to assemble and simulate it. You can now run `Boards\Yosys_GateMateA1\synth.bat`. It will go through all the necessary steps, from checking requirements to flashing:
+
+<p align="center"><img width="685" height="304" alt="E80 VHDL Synthesis batch" src="https://github.com/user-attachments/assets/c1da3d47-b38b-4d41-8d8a-bad2ff39a87a" /></p>
+
+After step 5, the board will start running the previously assembled program. Use the Left or Right buttons to control the clock speed as shown at the 1st row. When the Halt flag LED turns on (Matrix 1, Row 7, LED #5) the program is finished. You can now compare the simulated results (R0, R1, R2) on GTKWave with the LEDs on Matrix 2, Rows 1-3 as seen here:
+
+<p align="center">
+	<img width="915" height="594" alt="divmul.e80asm simulation on GHDL+GTKWave" src="https://github.com/user-attachments/assets/c2eab69b-5092-4748-aa62-5375078fabc1" />
+	<img width="1271" height="691" alt="divmul.e80asm verification on the 4x8x8 LED display" src="https://github.com/user-attachments/assets/5480f387-ed66-4a08-98c1-ab87ddc88d15" />
+</p>
+
+_Notice that undefined is not equivalent to zero. While some tools may initialize undefined spaces to 0, Yosys/Gatemate doesn't._
+
 ## Example 2 - Testing on the Tang Primer 25K
 
 First, install Gowin EDA Student Edition ([Windows](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_x64_win.zip), [Linux](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_Linux.tar.gz), [MacOS](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03Education_macOS.dmg)).
 
-Study the pin assignments in the `Gowin\E80.cst` file and apply them to your board. Use a five-direction navigation button/joystick with Left, Right, Up, Down, Set (for Pause), and Reset. All input pins must be *active high* with a 10kΩ pull-down resistor and the joystick's COM port must be connected to a 3.3V output. Below is a reference photo of the board setup:
+Like the previous example, open `Boards\Gowin_TangPrimer25K\E80.cst` in a text editor and connect the components accordingly. This my setup -- without a joystick or DIP switch input:
 
-<p align="center"><img width="2300" height="1294" alt="Tang Primer 25K Board Setup" src="https://github.com/user-attachments/assets/d1b91bf1-b6d4-4091-96af-2e636041546f" /></p>
+<p align="center"><img width="1300" height="532" alt="Tang Primer 25K Board Setup" src="https://github.com/user-attachments/assets/5685f56a-0cbf-4a71-ae9d-2158c978ed72" /></p>
 
-The top module (FPGA.vhd) uses three 8-LED rows for display, and the joystick buttons for control:
+_Gowin sets all undefined memory to zero, but considers the non-connected 8-bit DIP switch input as high._
 
-**LEDs**
-* **Row A (Status):**
-    * **[7:4] (Flags):** Carry, Zero, Sign, Overflow.
-    * **[3:1] (Register Selection):** Binary index of the register currently displayed on Row B.
-    * **[0] (Clock):** Pulses dimly during normal execution and turns solid bright on HLT.
-* **Row B (Data):** Displays the value of the selected register.
-* **Row C (PC):** Displays the current Program Counter.
+Open divmul.e80asm as in the previous example and assemble it to create Firmware.vhd.
 
-**Buttons**
-* **Joystick Left/Right:** Adjust clock speed; supports auto-repeat when held down.
-* **Joystick Up/Down:** Select which register is displayed on Row B; supports auto-repeat when held down.
-* **Set:** Pause execution. When clock speed is set to 0 Hz, this button allows for step execution.
-* **Reset:** CPU initialization and firmware reset.
-
-To run the test, paste the following program into the editor and press F7. This will automatically update `Firmware.vhd` with your new code.
-
-```
-.TITLE "256-ROR to test joystick control"
-.SIMDIP 0b00000010     ; for simulation only, FPGA ignores this
-	LOAD R0, [0xFF]    ; loads the DIP input word to R0
-	MOV R1, 0
-loop:
-	ROR R0, 1
-	ADD R1, 1
-	JNC loop            ; stop after 256 RORs (32 full rotations)
-	HLT
-```
-
-Set the DIP switches to match the .SIMDIP value of the program. Open the `Gowin\Gowin.gprj` file in the Gowin IDE. Compile the project using *Run All*, wait for completion, connect your Tang Primer 25K board to your PC, and then use the *Programmer* function to upload the configuration. The clock LED will be pulsing as the program runs. LED row B defaults to R0, so you will see it rotating right. Then the HLT instruction will be executed and the clock LED will stop pulsing.
-
-## Example 3 - Testing on the Olimex GateMateA1-EVB (on Windows)
-
-The following assumes you have installed the latest E80 Toolchain release and the paths mentioned will always be relative to its installation folder.
-
-First, open the `Boards\Yosys_GateMateA1\E80.ccf` file and connect the components using a breadboard, as suggested in the previous section for the Gowin board:
-
-<p align="center"><img width="1200" height="1002" alt="GateMateA1-EVB Board Setup" src="https://github.com/user-attachments/assets/8613203f-9cb4-4e8f-85e8-0e674c599457" /></p>
-
-Connect your GateMate board to your computer via USB, locate the new DirtyJtag device on the Device Manager, and update its driver to `Boards\Yosys_GateMateA1\Driver`. The device should now appear under `Universal Serial Bus devices` (not the standard USB adapters).
-
-Download the latest [oss-cad-suite](https://github.com/YosysHQ/oss-cad-suite-build) release and extract it so that the `oss-cad-suite` directory in the toolchain installation folder contains bin, lib, etc.
-
-You can now run `Boards\Yosys_GateMateA1\synth.bat`. It will go through all the necessary steps, from checking requirements to flashing:
-
-<p align="center"><img width="685" height="319" alt="image" src="https://github.com/user-attachments/assets/51b4f0f6-e2c8-4d57-8166-704fb4a1c778" /></p>
-
-After step 7, the board will start running the pre-generated Division-Multiplication program. Press **Right** on the joystick to speed it up until the clock LED stops flashing, signifying execution halt. Open the E80 editor, load the divmul.e80asm program from the installation folder and hit `F5` to verify the simulated results (R0, R1, R2) on the board. Remember, as specified in the Gowin section, press **Up** or **Down** on the joystick to change the register shown on the LEDs.
-
-In the E80 Editor, paste the 256-ROR program from the previous section into a new tab and hit `F5` to assemble and simulate it. Go back to the synth.bat window and press `3` to repeat the process using the new Firmware.vhd generated by the toolchain. Remember to set a value on the DIP switches before step 7. Once the program starts running, this value should be rotating right on LED row B.
+Open the `Boards\Gowin_TangPrimer25K\Gowin.gprj` file in the Gowin IDE. Compile the project using Run All, connect your Tang Primer 25K board to your PC, and when the compilation is finished use the Programmer function to upload the bitstream. After the Halt flag turns on, the results should be similar to the photo above.

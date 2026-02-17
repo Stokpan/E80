@@ -1,48 +1,21 @@
 # E80 Computer - Pin Assignments for the Olimex GateMate A1-EVB
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+# Includes a quick reference for onboard components and GPIO banks.
 
-NET "BoardCLK" Loc = "IO_SB_A8"; # onboard CLK0 10MHz crystal oscillator
+# Onboard 10MHz crystal oscillator CLK0 (frequency is specified at Board.vhd)
+NET "BoardCLK" Loc = "IO_SB_A8";
 
-# BANK_NA1
-# LED row A -- Flags, Register address, Clock
-NET "LED_rowA[0]" Loc = "IO_NA_B0"; # 4   Clock
-NET "LED_rowA[1]" Loc = "IO_NA_B1"; # 6   Register address [0]
-NET "LED_rowA[2]" Loc = "IO_NA_B2"; # 8   Register address [1]
-NET "LED_rowA[3]" Loc = "IO_NA_B3"; # 10  Register address [2]
-NET "LED_rowA[4]" Loc = "IO_NA_B4"; # 12  Overflow
-NET "LED_rowA[5]" Loc = "IO_NA_B5"; # 14  Sign
-NET "LED_rowA[6]" Loc = "IO_NA_B6"; # 16  Zero
-NET "LED_rowA[7]" Loc = "IO_NA_B7"; # 18  Carry
-# LED row B -- Register value
-NET "LED_rowB[0]" Loc = "IO_NA_A0"; # 3   Register value [0]
-NET "LED_rowB[1]" Loc = "IO_NA_A1"; # 5   Register value [1]
-NET "LED_rowB[2]" Loc = "IO_NA_A2"; # 7   Register value [2]
-NET "LED_rowB[3]" Loc = "IO_NA_A3"; # 9   Register value [3]
-NET "LED_rowB[4]" Loc = "IO_NA_A4"; # 11  Register value [4]
-NET "LED_rowB[5]" Loc = "IO_NA_A5"; # 13  Register value [5]
-NET "LED_rowB[6]" Loc = "IO_NA_A6"; # 15  Register value [6]
-NET "LED_rowB[7]" Loc = "IO_NA_A7"; # 17  Register value [7]
+# MAX7219 4x8x8 LED Matrix inputs 
+NET "MAX7219DIN" Loc = "IO_NB_B0";
+NET "MAX7219CS"  Loc = "IO_NB_B1";
+NET "MAX7219CLK" Loc = "IO_NB_B2";
 
-# BANK_NB1
-# LED row C -- Program Counter
-NET "LED_rowC[0]" Loc = "IO_NB_B0"; # 3
-NET "LED_rowC[1]" Loc = "IO_NB_B1"; # 4
-NET "LED_rowC[2]" Loc = "IO_NB_B2"; # 5
-NET "LED_rowC[3]" Loc = "IO_NB_B3"; # 6
-NET "LED_rowC[4]" Loc = "IO_NB_B4"; # 7
-NET "LED_rowC[5]" Loc = "IO_NB_B5"; # 8
-NET "LED_rowC[6]" Loc = "IO_NB_B6"; # 9
-NET "LED_rowC[7]" Loc = "IO_NB_B7"; # 10
-
-# BANK_EB1
-# Joystick pins; SCHMITT_TRIGGER is enabled to prevent bouncing
-NET "Up"          Loc = "IO_EB_B6" | SCHMITT_TRIGGER=true; # 6
-NET "Down"        Loc = "IO_EB_B5" | SCHMITT_TRIGGER=true; # 8
+# Joystick controls; SCHMITT_TRIGGER is enabled to prevent bouncing
 NET "Left"        Loc = "IO_EB_B4" | SCHMITT_TRIGGER=true; # 10
 NET "Right"       Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true; # 12
-# NET "Mid"       Loc = "IO_EB_B2" | SCHMITT_TRIGGER=true; # 14
 NET "SetButton"   Loc = "IO_EB_B1" | SCHMITT_TRIGGER=true; # 16
 NET "ResetButton" Loc = "IO_EB_B0" | SCHMITT_TRIGGER=true; # 18
+
 # DIP switches
 NET "DIPinput[0]" Loc = "IO_EB_A7" | SCHMITT_TRIGGER=true; # 5
 NET "DIPinput[1]" Loc = "IO_EB_A6" | SCHMITT_TRIGGER=true; # 7
@@ -53,9 +26,13 @@ NET "DIPinput[5]" Loc = "IO_EB_A2" | SCHMITT_TRIGGER=true; # 15
 NET "DIPinput[6]" Loc = "IO_EB_A1" | SCHMITT_TRIGGER=true; # 17
 NET "DIPinput[7]" Loc = "IO_EB_A0" | SCHMITT_TRIGGER=true; # 19
 
-#######################
-# On-board components #
-#######################
+###################
+# Quick Reference #
+###################
+
+######################
+# Onboard components #
+######################
 # NET "signal" Loc = "IO_SB_A8"; # onboard CLK0 10MHz crystal oscillator
 # NET "signal" Loc = "IO_SB_B6"; # onboard FPGA_LED1 active low LED
 # NET "signal" Loc = "IO_SB_B7"; # onboard FPGA_BUT1 active low button

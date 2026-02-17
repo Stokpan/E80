@@ -1,10 +1,10 @@
 -----------------------------------------------------------------------
--- Unsigned division and multiplication (divmul.asm)
+-- DivMul.e80asm - Unsigned division and multiplication
 -----------------------------------------------------------------------
 LIBRARY ieee, work; USE ieee.std_logic_1164.ALL, work.support.ALL;
 PACKAGE firmware IS
 CONSTANT SimDIP : WORD := "00000000";
-CONSTANT InitSpeed : NATURAL := 2;
+CONSTANT InitSpeed : NATURAL := 4;
 CONSTANT Firmware : WORDx256  := (
 0   => "00001110", 1   => "00101000",  -- 0E28  CALL 40
 2   => "11100000",                     -- E0    PUSH R0

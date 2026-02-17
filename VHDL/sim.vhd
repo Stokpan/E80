@@ -1,4 +1,4 @@
--- E80 Computer test bench
+-- E80 Computer simulation test bench
 LIBRARY ieee, work;
 USE ieee.std_logic_1164.ALL, work.support.ALL, work.firmware.ALL;
 ENTITY sim IS END;
