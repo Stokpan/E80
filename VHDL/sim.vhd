@@ -1,5 +1,5 @@
 -- E80 Computer simulation test bench
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL, work.firmware.ALL;
 ENTITY sim IS END;
 ARCHITECTURE a1 OF sim IS

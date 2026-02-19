@@ -72,11 +72,11 @@ set_location_assignment PIN_53 -to MAX7219CLK
 set_location_assignment PIN_55 -to MAX7219CS
 set_location_assignment PIN_59 -to MAX7219DIN
 
-# Joystick controls
+# Control buttons
 set_location_assignment PIN_85 -to ResetButton
-set_location_assignment PIN_91 -to Left
-set_location_assignment PIN_99 -to Right
-set_location_assignment PIN_104 -to SetButton
+set_location_assignment PIN_91 -to LeftButton
+set_location_assignment PIN_99 -to RightButton
+set_location_assignment PIN_104 -to PauseButton
 
 # DIP switches
 set_location_assignment PIN_54 -to DIPinput[0]

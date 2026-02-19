@@ -10,10 +10,10 @@ NET "MAX7219DIN" Loc = "IO_NB_B0";
 NET "MAX7219CS"  Loc = "IO_NB_B1";
 NET "MAX7219CLK" Loc = "IO_NB_B2";
 
-# Joystick controls; SCHMITT_TRIGGER is enabled to prevent bouncing
-NET "Left"        Loc = "IO_EB_B4" | SCHMITT_TRIGGER=true; # 10
-NET "Right"       Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true; # 12
-NET "SetButton"   Loc = "IO_EB_B1" | SCHMITT_TRIGGER=true; # 16
+# Control buttons; SCHMITT_TRIGGER is enabled to prevent bouncing
+NET "LeftButton"  Loc = "IO_EB_B4" | SCHMITT_TRIGGER=true; # 10
+NET "RightButton" Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true; # 12
+NET "PauseButton" Loc = "IO_EB_B1" | SCHMITT_TRIGGER=true; # 16
 NET "ResetButton" Loc = "IO_EB_B0" | SCHMITT_TRIGGER=true; # 18
 
 # DIP switches

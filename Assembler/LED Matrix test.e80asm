@@ -1,0 +1,30 @@
+.TITLE "LED Matrix display test -- fills matrices 3 and 4 with counters"
+; The last row on matrix 4 is not included because it mirrors the DIP input
+.SPEED 5
+	MOV R0, 200
+	MOV R1, 0
+loop:
+	CMP R0, 255
+	JZ nextval
+
+	STORE R1, [R0]
+	CMP R0, 207
+	JZ nextblock
+
+	ADD R0, 1
+	JMP loop
+
+nextaddr:
+	CMP R0, 208
+	JZ nextblock
+	ADD R0, 1
+	JMP loop
+
+nextblock:
+	MOV R0, 248
+	JMP loop
+	
+nextval:
+	ADD R1, 1
+	MOV R0, 200
+	JMP loop

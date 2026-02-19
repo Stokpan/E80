@@ -12,8 +12,7 @@
 
 int main(int argc, char *argv[])
 {
-	fprintf(stderr, "Assembling... ");
-	
+
 	char str[MAX_LINE_LENGTH] = {0}; // scratchpad string
 	char instr[MAX_LINE_LENGTH] = {0}; // current instruction
 	char title[MAX_LINE_LENGTH] = {0}; // .TITLE string (optional)
@@ -34,13 +33,14 @@ int main(int argc, char *argv[])
 			"Translates an E80-assembly program to firmware VHDL code.\n\n"
 			"E80ASM [/Q]\n\n"
 			"  /Q          Silent mode, hides this message.\n\n"
-			"I/O is handled via stdin/stdout. Eg. to read 'program.e80asm'\n"
-			"and write the result to 'firmware.vhd', type:\n\n"
-			"e80asm < program.e80asm > firmware.vhd\n\n"
-			"You can also paste your code here and then press\n"
-			"Ctrl-D & [Enter] to translate it, or Ctrl-C to exit.\n\n");
+			"I/O is handled via stdin/stdout. Example:'\n\n"
+			"e80asm < myprogram.e80asm > ..\\VHDL\\firmware.vhd\n\n"
+			"You can also paste your code here and press Ctrl-D & [Enter].\n"
+			"-------------------------------------------------------------\n");
 	}
 
+	fprintf(stderr, "Assembling... ");
+	
 	/* Read lines from stdin until EOF or end-of-transmit (Ctrl-D). */
 	while (!CtrlD && fgets(str, MAX_LINE_LENGTH, asm_input)) {
 		 if ((CtrlD = strchr(str, 4))) { // end of transmit found

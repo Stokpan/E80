@@ -1,30 +1,26 @@
 -----------------------------------------------------------------------
--- E80 Board Interface, Clock Generator, and MAX7219 driver
+-- E80 Clock Generator, MAX7219x4 driver, and Board Interface
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
--- Interfaces the E80 Computer system with the FPGA board
+-- Interfaces the E80 Computer with I/O hardware components.
 -----------------------------------------------------------------------
 
 -----------------------------------------------------------------------
--- Clock Generator for the E80 Computer FPGA Board Interface
--- Requires a 2 MHz minimum clock input with its frequency supplied by
--- the board-specific mini-library (Board.vhd) in the Board subfolders.
--- Converts the onboard oscillator input to 8 clock speeds.
+-- The Clock Generator converts the input clock (BoardCLK) to an array (GenCLK)
+-- of eight clocks between 0 Hz and 1 MHz. It requires the BoardCLK's frequency 
+-- (BoardCLK_MHz) from the \Boards\*\Board.vhd file.
 -----------------------------------------------------------------------
-
 LIBRARY ieee;
-USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL;
-ENTITY ClockGenerator IS
-	GENERIC (BoardCLK_MHz : NATURAL := 50);
-	PORT (
-		BoardCLK : IN STD_LOGIC;
-		GenCLK   : OUT STD_LOGIC_VECTOR(7 DOWNTO 0));
-END;
+USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL, work.board.ALL;
+ENTITY ClockGenerator IS PORT (
+	BoardCLK : IN STD_LOGIC;
+	GenCLK   : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+); END;
 ARCHITECTURE a1 OF ClockGenerator IS
 	SIGNAL Count500ns : UNSIGNED(23 DOWNTO 1) := (OTHERS => '0');
 BEGIN
 	PROCESS (BoardCLK)
-		-- Divisor = BoardCLK_MHz / 2 = frequency * 10^(-6) / 2
-		-- Period = 1 sec / frequency
+		-- Divisor = BoardCLK_MHz / 2 = hardware_frequency * 10^(-6) / 2
+		-- Period = 1 sec / hardware_frequency
 		CONSTANT Divisor : NATURAL := BoardCLK_MHz / 2;
 		VARIABLE Period : NATURAL RANGE 1 TO Divisor := 1;
 	BEGIN
@@ -32,19 +28,13 @@ BEGIN
 			IF Period < Divisor THEN
 				Period := Period + 1;
 			ELSE
-				-- runs every Period * Divisor = 1 sec * 10(-6) / 2 = 500 ns
+				-- runs every Period * Divisor = 500 ns
 				Period := 1;
 				Count500ns <= Count500ns + 1;
 			END IF;
 		END IF;
 	END PROCESS;
-	-- Each x bit of Count500ns provides a 2 MHz / 2^x frequency. They are used
-	-- to provide various frequencies for pause, execution from 0.24 Hz up to
-	-- 2 KHz, and a 1 MHz clock to run the board interface.
-	-- GenCLK(0) is set to a constant to allow pausing, and specifically high
-	-- to allow for user-controlled rising edges for step execution when the
-	-- Pause button gates the CPU clock to low.
-	GenCLK(0) <= '1';            -- 0 Hz
+	GenCLK(0) <= '1';            -- 0 Hz with clock set to high
 	GenCLK(1) <= Count500ns(23); -- 2 MHz / 2^23 ~ 0.24 Hz
 	GenCLK(2) <= Count500ns(21); -- 2 MHz / 2^21 ~ 1 Hz
 	GenCLK(3) <= Count500ns(20); -- 2 MHz / 2^20 ~ 2 Hz
@@ -55,40 +45,41 @@ BEGIN
 END;
 
 -----------------------------------------------------------------------
--- Simple MAX7219 driver for 4 daisy‑chained 8x8 LED matrices
+-- Simple MAX7219 driver for 4 daisy‑chained 8x8 LED matrices.
 -- Comprises two main states: data preparation, and bit shifting.
 -- Once the data are prepared, CS is pulled low and the bits are shifted
--- serially via DIN on CLK rising edges; once finished, CS is raised and
--- latches all four shift registers.
+-- serially via DIN on CLK rising edges; once finished, CS is raised to
+-- latch the four MAX7219 shift registers and return to data preparation.
 -- For table references, see the MAX7219 datasheet.
 -----------------------------------------------------------------------
 LIBRARY ieee;
-USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL, work.support.ALL;
+USE ieee.std_logic_1164.ALL, work.support.ALL;
 
-ENTITY MAX7219 IS PORT (
-	CLK1MHz : IN  STD_LOGIC;
+ENTITY MAX7219x4 IS PORT (
+	MainCLK : IN  STD_LOGIC; -- main process clock
 	Reset	: IN  STD_LOGIC;
-	Matrix1 : IN  WORDx8;    -- leftmost
+	Matrix1 : IN  WORDx8;    -- leftmost, gets the last shifted data
 	Matrix2 : IN  WORDx8;
 	Matrix3 : IN  WORDx8;
-	Matrix4 : IN  WORDx8;
+	Matrix4 : IN  WORDx8;    -- rightmost, gets the first shifted data
 	DIN		: OUT STD_LOGIC; -- shift register data, loaded on rising CLK edge
 	CS		: OUT STD_LOGIC; -- latches the shift register on its rising edge
-	CLK		: OUT STD_LOGIC	 -- serial clock
+	CLK		: OUT STD_LOGIC	 -- serial clock output to MAX7219
 ); END;
 
-ARCHITECTURE a1 OF MAX7219 IS
+ARCHITECTURE a1 OF MAX7219x4 IS
 BEGIN
-	PROCESS(CLK1MHz)
-		-- ShiftRegister contains a packet of 64 bits (16 for each matrix) which
-		-- either control the matrix (eg. intensity) or the LEDs in one row.
+	PROCESS(MainCLK)
+		-- ShiftRegister contains a packet of 16 bits for each matrix. As seen
+		-- on Tables 2-10, bits D15-D12 are don't cares, D11-D8 define control
+		-- and D7-D0 are data. The module is assumed with its input pins on the
+		-- left, so the the first packet is shifted on matrix 4 (the rightmost).
 		SUBTYPE SRpacket IS STD_LOGIC_VECTOR(63 DOWNTO 0);
 		VARIABLE ShiftRegister : SRpacket;
-		VARIABLE Shifted : NATURAL RANGE 0 TO 64; -- number of shifted bits
-		-- Initialization packets (see specification tables 2-10) ordered
-		-- with a bit of trial and error until I got a reliable initialization
-		-- in multiple reflashes
-		TYPE InitPackets IS ARRAY (0 TO 4) OF SRpacket;
+		VARIABLE Shifted : NATURAL RANGE 0 TO 63; -- number of shifted bits
+		-- Initialization packets (see specification tables 2-10) were set
+		-- to ensure a reliable startup in repeated board reflashes.
+		TYPE InitPackets IS ARRAY (NATURAL RANGE <>) OF SRpacket;
 		CONSTANT InitPacket : InitPackets := (
 			0 => x"-F-1-F-1-F-1-F-1", -- display test: enabled
 			1 => x"-C-1-C-1-C-1-C-1", -- shutdown: disabled (normal operation)
@@ -96,69 +87,73 @@ BEGIN
 			3 => x"-A-F-A-F-A-F-A-F", -- intensity: max
 			4 => x"-B-7-B-7-B-7-B-7"  -- scan-limit: max, allow all LEDs
 		);
-		VARIABLE InitStage : NATURAL RANGE 0 TO InitPacket'length := 0;
-		-- Physical LED rows map to "digits" per table 2. The module is assumed
-		-- to be read with pin inputs on the left, so physical rows are in
-		-- reverse order which translates to RowHexCode = 8 - Row.
-		VARIABLE Row : NATURAL RANGE 0 TO 8;
-		VARIABLE RowHexCode : STD_LOGIC_VECTOR(3 DOWNTO 0);
+		VARIABLE InitState : NATURAL RANGE 0 TO InitPacket'length := 0;
+		VARIABLE Row : NATURAL RANGE 0 TO 7; -- physical LED row on all matrices
+		VARIABLE RowAddress : STD_LOGIC_VECTOR(7 DOWNTO 0); -- D15-D8 on Table 2
 	BEGIN
-		IF RISING_EDGE(CLK1MHz) THEN
+		IF RISING_EDGE(MainCLK) THEN
 			IF Reset = '1' THEN
-				InitStage := 0;
-			-- ----------------------------------------------------------------
-			-- Initialization and shift register preparation state
-			-- ----------------------------------------------------------------
-			-- Triggered after latching previous packet on CS rising edge
-			ELSIF CS = '1' OR InitStage = 0 THEN
-				IF InitStage < InitPacket'length THEN
-					IF InitStage = 0 THEN
+				InitState := 0;
+			-------------------------------------------------------------------
+			-- Data preparation & initialization state
+			-------------------------------------------------------------------
+			ELSIF CS = '1' OR InitState = 0 THEN
+				-- CS='1' ⇒ Previous packet was latched
+				IF InitState < InitPacket'length THEN
+					-- Prepare initialization data
+					IF InitState = 0 THEN
 						-- Initialize the serial clock to high to allow for
 						-- a full first period at the Shifting state.
 						CLK <= '1';
 						Row := 0;
 						Shifted := 0;
 					END IF;
-					ShiftRegister := InitPacket(InitStage);
-					InitStage := InitStage + 1;
+					ShiftRegister := InitPacket(InitState);
+					InitState := InitState + 1;
 				ELSE
-					IF Row = 8 THEN
+					-- Prepare "No-Decode" LED bits (see Tables 2 & 6).
+					-- Physical rows map to D11-D8 "digits" per Table 2, but
+					-- in reverse order to allow the module to be read with
+					-- its input pins on the left.
+					-- Physical columns map to D7-D0 LEDs per Table 6 (since
+					-- no-decode mode is enabled by default). These are filled
+					-- by the input matrix row -- reversed for the same reason.
+					WITH Row SELECT RowAddress(3 DOWNTO 0) :=
+						x"8" WHEN 0, x"7" WHEN 1, x"6" WHEN 2, x"5" WHEN 3,
+						x"4" WHEN 4, x"3" WHEN 5, x"2" WHEN 6, x"1" WHEN 7;
+					--RowAddress := STD_LOGIC_VECTOR(TO_UNSIGNED(8-Row,8));
+					ShiftRegister :=
+						RowAddress & reverse_vector(Matrix4(Row)) &
+						RowAddress & reverse_vector(Matrix3(Row)) &
+						RowAddress & reverse_vector(Matrix2(Row)) &
+						RowAddress & reverse_vector(Matrix1(Row));
+					IF Row < 7 THEN
+						Row := Row + 1;
+					ELSE
 						Row := 0;
 					END IF;
-					RowHexCode := STD_LOGIC_VECTOR(TO_UNSIGNED(8-Row,4));
-					-- the MSB will be shifted out first into the 4th matrix
-					ShiftRegister(63 DOWNTO 56) := x"-" & RowHexCode;
-					ShiftRegister(55 DOWNTO 48) := reverse_vector(Matrix4(Row));
-					ShiftRegister(47 DOWNTO 40) := x"-" & RowHexCode;
-					ShiftRegister(39 DOWNTO 32) := reverse_vector(Matrix3(Row));
-					ShiftRegister(31 DOWNTO 24) := x"-" & RowHexCode;
-					ShiftRegister(23 DOWNTO 16) := reverse_vector(Matrix2(Row));
-					ShiftRegister(15 DOWNTO 8)	:= x"-" & RowHexCode;
-					ShiftRegister(7 DOWNTO 0)   := reverse_vector(Matrix1(Row));
-					Row := Row + 1;
 				END IF;
 				CS <= '0'; -- proceed to the Shifting state
-			-- ----------------------------------------------------------------
+			-------------------------------------------------------------------
 			-- Shifting state
-			-- ----------------------------------------------------------------
+			-------------------------------------------------------------------
 			ELSE
-				IF Shifted < 64 THEN -- more bits to shift
-					IF CLK = '1' THEN
-						-- shift the new bit before the next rising edge
-						DIN <= ShiftRegister(63);
-						CLK <= '0';
-					ELSE
-						-- increase the counter in the low phase, otherwise
-						-- there won't be a rising edge for the last bit
-						ShiftRegister := ShiftRegister(62 DOWNTO 0) & '0';
+				IF CLK = '1' THEN
+					CLK <= '0';
+					-- shift the new bit before the next rising edge
+					DIN <= ShiftRegister(63);
+					ShiftRegister(63 DOWNTO 1) := ShiftRegister(62 DOWNTO 0);
+				ELSE
+					CLK <= '1'; -- rising edge, send DIN to register
+					IF Shifted < 63 THEN
 						Shifted := Shifted + 1;
-						CLK <= '1'; -- rising edge, send DIN to register
+					ELSE
+						-- All bits have been shifted, latch them and return
+						-- to the preparation state. Also, tCSHmin = 0, so
+						-- both CLK & CS can be raised at the same time.
+						CS <= '1';
+						Shifted := 0;
 					END IF;
-				ELSE 
-					-- All bits have been shifted; latch them to the MAX7219
-					-- shift registers, and return to the preparation state
-					CS <= '1';
-					Shifted := 0;
 				END IF;
 			END IF;
 		END IF;
@@ -166,25 +161,20 @@ BEGIN
 END;
 
 -----------------------------------------------------------------------
--- E80 Board Interface
--- Generates a GenCLK vector with up to 1MHz frequencies from the BoardCLK.
--- Runs the E80 CPU with a DIP input and variable clock speeds from 0 to 2KHz.
--- Runs the main interface process on a 1MHz clock to:
--- * Debounce reset, pause, and speed selection signals
--- * Provide a stable initialization/reset with hysteresis
--- * Control the CPU clock frequency
--- * Stop the clock to allow for stepped execution via the pause button
--- * Output the display signals to four MAX7219 8x8 LED matrices.
+-- The Interface unit runs the E80 Computer with its CLK provided by the
+-- clock generator and its frequency selected by the control buttons. User
+-- input is provided by an 8-bit DIP switch. Output is presented on 4 LED
+-- matrices (see LED display section). Step execution is provided by
+-- controlling the clock with the Pause button. All buttons are debounced.
 -----------------------------------------------------------------------
-
-LIBRARY ieee, work;
-USE ieee.std_logic_1164.ALL, work.board.ALL, work.support.ALL, work.firmware.ALL;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL, work.support.ALL, work.firmware.ALL;
 ENTITY Interface IS PORT (
 	BoardCLK    : IN STD_LOGIC;  -- board clock (frequency in Board.vhd)
 	ResetButton : IN STD_LOGIC;  -- resets PC, SP, & uploads the firmware
-	SetButton   : IN STD_LOGIC;  -- raises one clock edge and pauses
-	Right       : IN STD_LOGIC;  -- increases CLK frequency up to 1 MHz
-	Left        : IN STD_LOGIC;  -- decreases CLK frequency down to 0 (pause)
+	PauseButton : IN STD_LOGIC;  -- sets the clock to low while held down
+	LeftButton  : IN STD_LOGIC;  -- decreases CLK frequency down to 0 (pause)
+	RightButton : IN STD_LOGIC;  -- increases CLK frequency up to 2 KHz
 	DIPinput    : IN WORD;       -- 8-pin DIP switch input
 	MAX7219DIN	: OUT STD_LOGIC; -- MAX7219 4x8x8 LED matrix DIN
 	MAX7219CS	: OUT STD_LOGIC; -- MAX7219 4x8x8 LED matrix CS
@@ -192,16 +182,16 @@ ENTITY Interface IS PORT (
 ); END;
 ARCHITECTURE a1 OF Interface IS
 	SIGNAL Reset  : STD_LOGIC := '0'; -- debounced ResetButton
-	SIGNAL Pause    : STD_LOGIC := '0'; -- debounced SetButton
+	SIGNAL Pause    : STD_LOGIC := '0'; -- debounced PauseButton
 	SIGNAL GenCLK : STD_LOGIC_VECTOR(7 DOWNTO 0); -- see ClockGenerator
 	SIGNAL Speed  : NATURAL RANGE 0 TO 6 := InitSpeed; -- GenCLK index
 	ALIAS CLK1MHz : STD_LOGIC IS GenCLK(7); -- for board interface only
 	SIGNAL CLK    : STD_LOGIC; -- CPU clock speeds range from 0 to 2 KHz
 	-- Display signals
 	SIGNAL PC       : WORD;
-	SIGNAL R        : WORDx8;
 	SIGNAL Instr1   : WORD;
 	SIGNAL Instr2   : WORD;
+	SIGNAL R        : WORDx8;
 	SIGNAL RAMdisp1 : WORDx8;
 	SIGNAL RAMdisp2 : WORDx8;
 	SIGNAL Matrix1  : WORDx8;
@@ -210,10 +200,9 @@ ARCHITECTURE a1 OF Interface IS
 	SIGNAL Matrix4  : WORDx8;
 BEGIN
 	-------------------------------------------------------------------
-	-- 1MHz clock generator
+	-- Variable frequency clock generator
 	-------------------------------------------------------------------
-	ClockGenerator: ENTITY work.ClockGenerator
-		GENERIC MAP (BoardCLK_MHz) PORT MAP (BoardCLK, GenCLK);
+	ClockGenerator: ENTITY work.ClockGenerator PORT MAP (BoardCLK, GenCLK);
 	-------------------------------------------------------------------
 	-- E80 Computer instantiation
 	-------------------------------------------------------------------
@@ -280,23 +269,23 @@ BEGIN
 			ELSIF PauseRelease < MinPause THEN
 				Pause <= '1';
 				PauseRelease := PauseRelease + 1;
-			ELSIF SetButton THEN
+			ELSIF PauseButton THEN
 				PauseRelease := 0;
 			ELSE
 				Pause <= '0';
 			END IF;
-			IF ResetButton OR SetButton THEN
+			IF ResetButton OR PauseButton THEN
 				-- don't allow combined buttons
 			ELSIF JoystickPress < Idle THEN
 				JoystickPress := JoystickPress + 1;
-			ELSIF Right THEN
+			ELSIF RightButton THEN
 				IF JoystickPress < Ready THEN
 					JoystickPress := JoystickPress + 1;
 				ELSIF Speed < 6 THEN
 					Speed <= Speed + 1;
 					JoystickPress := 0;
 				END IF;
-			ELSIF Left THEN
+			ELSIF LeftButton THEN
 				IF JoystickPress < Ready THEN
 					JoystickPress := JoystickPress + 1;
 				ELSIF Speed > 0 THEN
@@ -309,7 +298,7 @@ BEGIN
 	-------------------------------------------------------------------
 	-- LED display
 	-------------------------------------------------------------------
-	MatrixDriver: ENTITY work.MAX7219 PORT MAP (
+	MatrixDriver: ENTITY work.MAX7219x4 PORT MAP (
 		CLK1MHz,
 		Reset,
 		Matrix1,

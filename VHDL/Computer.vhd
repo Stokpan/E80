@@ -6,7 +6,7 @@
 -- Outputs some internal signals and two 8-word RAM blocks for LED display.
 -----------------------------------------------------------------------
 
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY Computer IS PORT (
 	CLK      : IN STD_LOGIC;
@@ -52,5 +52,6 @@ BEGIN
 		MemAddr,
 		MemWriteEn,
 		MemNext,
-		R);
+		R
+	);
 END;

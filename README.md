@@ -1,3 +1,4 @@
+
 # E80 CPU
 
 A simple CPU in structural VHDL, originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld, to evoke the powerful idea of program execution on logic gates and flip-flops through a low floor of one-click simulation, and a high ceiling of a textbook-complete instruction set.
@@ -6,13 +7,13 @@ A simple CPU in structural VHDL, originally developed for [my undergraduate thes
 |-----------------------|----------------------------------------------------|
 | **Architecture**      | 8-bit, single-cycle, Load/Store                    |
 | **Dependencies**      | ieee.std_logic_1164 (no arithmetic libraries)      |
-| **Memory**            | Addressable at 0x00-0xFE                           |
 | **Registers**         | 6 General-purpose, Flags, Stack Pointer            |
 | **Instruction format**| Variable size (8 or 16-bit), up to 2 operands      |
+| **Memory**            | 1R/W and 2R ports, addressable at 0x00-0xFE        |
 | **Addressing**        | Immediate, direct, register, register-indirect     |
 | **Stack**             | Full descending, SP initialized at 0xFF            |
 | **Input**             | 8-bit DIP switches memory-mapped at 0xFF           |
-| **Output**            | Serial 4x8x8 LED Matrix (MAX7219)                  |
+| **Output**            | Serial 4x8x8 LED Matrix (4x daisy-chained MAX7219) |
 | **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode        |
 | **Assembler**         | ISO C99 stdin I/O                                  |
 | **Simulated on**      | GHDL+GTKWave, ModelSim via one-click scripts       |
@@ -90,23 +91,23 @@ Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
 * Comparison of unsigned numbers via the Carry flag can be confusing because `SUB R1,R2` is done via standard adder logic (R1 + ~R2 + 1). See the flags cheatsheet below.
 ## Flags cheatsheet
 ```
-           +------+-----------------------------+----------------------+
-           | Flag | Signed                      | Unsigned             |
- +---------+------+-----------------------------+----------------------+
- | ADD a,b | C=1  |                             | a+b > 255 (overflow) |
- |         | C=0  |                             | a+b ≤ 255            |
- |         | V=1  | a+b ∉ [-128,127] (overflow) |                      |
- |         | V=0  | a+b ∈ [-128,127]            |                      |
- |         | S=1  | a+b < 0                     | a+b ≥ 128 (if C=0)   |
- |         | S=0  | a+b ≥ 0                     | a+b < 128 (if C=0)   |
- +---------+------+-----------------------------+----------------------+
- | SUB a,b | C=1  |                             | a ≥ b                |
- | or      | C=0  |                             | a < b (overflow)     |
- | CMP a,b | V=1  | a-b ∉ [-128,127] (overflow) |                      |
- |         | V=0  | a-b ∈ [-128,127]            |                      |
- |         | S=1  | a < b                       | a-b ≥ 128 (if C=1)   |
- |         | S=0  | a ≥ b                       | a-b < 128 (if C=1)   |
- +---------+------+-----------------------------+----------------------+
+               +------+-----------------------------+----------------------+
+               | Flag | Signed                      | Unsigned             |
+ +-------------+------+-----------------------------+----------------------+
+ | ADD a,b     | C=1  |                             | a+b > 255 (overflow) |
+ |             | C=0  |                             | a+b ≤ 255            |
+ |             | V=1  | a+b ∉ [-128,127] (overflow) |                      |
+ |             | V=0  | a+b ∈ [-128,127]            |                      |
+ |             | S=1  | a+b < 0                     | a+b ≥ 128 (if C=0)   |
+ |             | S=0  | a+b ≥ 0                     | a+b < 128 (if C=0)   |
+ +-------------+------+-----------------------------+----------------------+
+ | SUB/CMP a,b | C=1  |                             | a ≥ b                |
+ |             | C=0  |                             | a < b (overflow)     |
+ |             | V=1  | a-b ∉ [-128,127] (overflow) |                      |
+ |             | V=0  | a-b ∈ [-128,127]            |                      |
+ |             | S=1  | a < b (if V=0)              | a-b ≥ 128 (if C=1)   |
+ |             | S=0  | a ≥ b (if V=0)              | a-b < 128 (if C=1)   |
+ +-------------+------+-----------------------------+----------------------+
 ```
 # Assembly Cheatsheet
 ```
@@ -136,7 +137,7 @@ op1/op2 : Reg or val (flexible operand)
 | HLT                  | Set the H flag and halt execution                  |
 | NOP                  | No operation                                       |
 | JMP op1              | Jump to op1 address                                |
-| J⟨flag⟩ n            | Jump if flag=1 (flags: C,Z,N,V)                    |
+| J⟨flag⟩ n            | Jump if flag=1 (flags: C,Z,S,V)                    |
 | JN⟨flag⟩ n           | Jump if flag=0                                     |
 | CALL n               | Call subroutine at n                               |
 | RETURN               | Return from subroutine                             |
@@ -162,7 +163,7 @@ op1/op2 : Reg or val (flexible operand)
 * Labels are case sensitive; directives and instructions are not.
 * .DATA sets a label after the last instruction and writes the csv data to it; consecutive .DATA directives append after each other.
 * Comments start with a semicolon.
-* The `.SPEED` directive defines the initial CPU clock frequency in the FPGA. The seven levels are defined in the [Hardware Implementation section](https://github.com/Stokpan/E80/edit/main/README.md#hardware-implementation). Default `.SPEED` value is 2 (~1 Hz).
+* The `.SPEED` directive defines the initial CPU clock frequency in the FPGA. The seven levels are defined in the [Hardware Implementation section](https://github.com/Stokpan/E80/?tab=readme-ov-file#hardware-implementation). Default `.SPEED` value is 2 (~1 Hz).
 * Likewise, the `.SIMDIP` directive doesn't affect execution on FPGAs; it's used in simulation only.
 
 ## Example - One-click simulation with GHDL/GTKWave or ModelSim
@@ -194,7 +195,7 @@ finish:
 
 To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
 
-<p align="center"><img width="594" height="525" alt="Sc1 editor window with assembly code" src="https://github.com/user-attachments/assets/e91c689d-6519-46de-bff9-124ed50d6dc4" /></p>
+<p align="center"><img alt="Sc1 editor window with assembly code" src="https://github.com/user-attachments/assets/e91c689d-6519-46de-bff9-124ed50d6dc4" /></p>
 
 _Notice that syntax highlighting for the E80 assembly language has been enabled by default for all code (except for VHDL files)._
 
@@ -202,27 +203,30 @@ Press F5. The editor will automatically assemble the code, save the VHDL output,
 
 You should see the following waveform, in which the RAM has been expanded to show how the lowercase letters of the string have changed to uppercase:
 
-<p align="center"><img width="1383" height="1177" alt="GHDL waveform output in GTKWave. The highlighted RAM locations 25-31 have been initialized by the .DATA directive and modified by the program. These have been manually set to ASCII data format in GTKwave." src="https://github.com/user-attachments/assets/5c0606e3-69f4-4e06-8caa-f3125d3c4ef8" /></p>
+<p align="center"><img alt="GHDL waveform output in GTKWave. The highlighted RAM locations 25-31 have been initialized by the .DATA directive and modified by the program. These have been manually set to ASCII data format in GTKwave." src="https://github.com/user-attachments/assets/5c0606e3-69f4-4e06-8caa-f3125d3c4ef8" /></p>
 
 _Notice that the HLT instruction has stopped the simulation in GHDL, allowing for the waveforms to be drawn for the runtime only. This useful feature is supported in ModelSim as well._
 
 You can also press F7 to view the generated `Firmware.vhd` file, without simulation:
 
-<p align="center"><img width="591" height="577" alt="VHDL output of the assembler" src="https://github.com/user-attachments/assets/a10a54a1-60e7-43cd-b89f-3b4ef980bc06" /></p>
+<p align="center"><img alt="VHDL output of the assembler" src="https://github.com/user-attachments/assets/a10a54a1-60e7-43cd-b89f-3b4ef980bc06" /></p>
 
 _Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
 
 If you have installed ModelSim, you can press F8 to automatically open ModelSim and simulate into it. Subsequent simulations on ModelSim will update its existing window:
 
-<p align="center"><img width="1357" height="874" alt="ModelSim simulation and waveform" src="https://github.com/user-attachments/assets/ca2101c5-192a-4323-9d8a-31312d8fe005" /></p>
+<p align="center"><img alt="ModelSim simulation and waveform" src="https://github.com/user-attachments/assets/e767a3a9-15e8-443a-9e1f-bd6bef93ae58" /></p>
 
 _The Memory Data tab next to the Wave tab contains the RAM at the end of simulation. The contents can also be displayed by hovering on the RAM in the Wave tab, but there's a catch: if the radix is set to ASCII and the data include a curly bracket, ModelSim will throw an error when trying to show the tooltip._
 
+
 # Hardware Implementation
 
-The design is complemented by an Interface unit which requires a hardware clock of at least 2 MHz and, optionally, an 8-bit DIP switch and four buttons for Reset, Pause, Left and Right functions. A 5-direction button joystick provides more than enough buttons for this purpose. All input pins must be active high with a 10kΩ pull-down resistor. If you use a joystick, connect its Set button as Pause and its COM port to a 3.3V output. The input pins serve the following functions:
+The design is complemented by an Interface unit which requires a hardware clock of at least 2 MHz and, optionally, an 8-bit DIP switch and four buttons for Reset, Pause, Left and Right functions. A 5-direction button joystick with its COM port connected to a VDD pin provides more than enough buttons for this purpose. All input pins must be active high with a 10kΩ pull-down resistor.
 
-* **Left/Right buttons:** Adjust clock speed level; support auto-repeat when held down.
+The input pins serve the following functions:
+
+* **Left/Right buttons:** Adjust speed level (clock frequency) as follows:
 	* Speed level 0: 0 Hz and clock is constantly high
 	* Speed level 1: 0.24 Hz
 	* Speed level 2: ~1 Hz
@@ -230,10 +234,10 @@ The design is complemented by an Interface unit which requires a hardware clock 
 	* Speed level 4: ~4 Hz
 	* Speed level 5: ~15 Hz
 	* Speed level 6: 2 KHz
-* **Pause:** The clock falls to 0 while Pause is pressed, and resumes pulsing when Pause is released. This is useful in Speed level 0: releasing the Pause button will resume clock to high, causing a rising edge, thereby allowing for step execution.
-* **Reset:** The RAM is re-initialized to the Firmware, the Program Counter and the Halt flag are cleared, and the Stack Pointer is reset to 255.
+* **Pause:** Sets the clock to 0 while pressed. Combined with Speed Level 0, releasing the Pause button will resume clock to high, triggering a rising edge, thereby allowing for step execution.
+* **Reset:** Initializes the RAM to the Firmware, and resets the Program Counter and the Halt flag to 0, and the Stack Pointer to 255.
 
-Output is provided on 4x8x8 LED MAX7219-based module. The code assumes that the module is read with its connected pins on the left. In the following list, Matrix 1 is leftmost and Row 1 is topmost:
+Output is provided on 4x8x8 LED module driven by four daisy-chained MAX7219 chips. The code assumes that the module is to be read with its connected pins on the left. In the following list, Matrix 1 is leftmost and Row 1 is topmost:
 
 * **Matrix 1:**
 	* Row 1: **Speed level** (one-hot encoded on first seven LEDs), **Clock** (rightmost LED)
@@ -258,21 +262,23 @@ Output is provided on 4x8x8 LED MAX7219-based module. The code assumes that the 
 
 The following assumes you have installed the latest E80 Toolchain release and the paths mentioned will always be relative to its installation folder. You will also need to download the latest [oss-cad-suite](https://github.com/YosysHQ/oss-cad-suite-build) and run it on the toolchain installation folder.
 
-To prepare your hardware, open `Boards\Yosys_GateMateA1\E80.ccf` in a text editor, study its pin assignments and connect the components accordingly. This my setup:
+To prepare your hardware, open `Boards\Yosys_GateMateA1\E80.ccf` in a text editor, study its pin assignments and connect the components accordingly. This is an example setup with all components:
 
-<p align="center"><img width="1300" height="780" alt="GateMateA1-EVB Board Setup" src="https://github.com/user-attachments/assets/ec6f141c-a11d-4d31-b4f9-2ff5ced1fcb7" /></p>
+<p align="center"><img alt="GateMateA1-EVB full setup" src="https://github.com/user-attachments/assets/ec6f141c-a11d-4d31-b4f9-2ff5ced1fcb7" /></p>
+
+_The LED module requires a minimum 4.0V power supply at 330mA. For the sake of simplicity, I connected it to 3.3V pins in 3 different boards (GateMate, Gowin, DSD-i1) for several hours without issues; if you are using an expensive FPGA, please avoid my example and use a dedicated 5V supply._
 
 Connect the board to your computer via USB, locate the new DirtyJtag device on the Device Manager on "Other Devices", and update its driver to `Boards\Yosys_GateMateA1\Driver`. The device should now appear under "Universal Serial Bus devices" (not the standard USB adapters).
 
 From the toolchain installation folder, open divmul.e80asm and hit `F5` to assemble and simulate it. You can now run `Boards\Yosys_GateMateA1\synth.bat`. It will go through all the necessary steps, from checking requirements to flashing:
 
-<p align="center"><img width="685" height="304" alt="E80 VHDL Synthesis batch" src="https://github.com/user-attachments/assets/c1da3d47-b38b-4d41-8d8a-bad2ff39a87a" /></p>
+<p align="center"><img alt="E80 VHDL Synthesis batch" src="https://github.com/user-attachments/assets/bd71546d-410e-47fa-89c8-0e8773392a1f" /></p>
 
 After step 5, the board will start running the previously assembled program. Use the Left or Right buttons to control the clock speed as shown at the 1st row. When the Halt flag LED turns on (Matrix 1, Row 7, LED #5) the program is finished. You can now compare the simulated results (R0, R1, R2) on GTKWave with the LEDs on Matrix 2, Rows 1-3 as seen here:
 
 <p align="center">
-	<img width="915" height="594" alt="divmul.e80asm simulation on GHDL+GTKWave" src="https://github.com/user-attachments/assets/c2eab69b-5092-4748-aa62-5375078fabc1" />
-	<img width="1271" height="691" alt="divmul.e80asm verification on the 4x8x8 LED display" src="https://github.com/user-attachments/assets/5480f387-ed66-4a08-98c1-ab87ddc88d15" />
+	<img alt="divmul.e80asm simulation on GHDL+GTKWave" src="https://github.com/user-attachments/assets/c2eab69b-5092-4748-aa62-5375078fabc1" />
+	<img alt="divmul.e80asm verification on the 4x8x8 LED display" src="https://github.com/user-attachments/assets/5480f387-ed66-4a08-98c1-ab87ddc88d15" />
 </p>
 
 _Notice that undefined is not equivalent to zero. While some tools may initialize undefined spaces to 0, Yosys/Gatemate doesn't._
@@ -281,12 +287,12 @@ _Notice that undefined is not equivalent to zero. While some tools may initializ
 
 First, install Gowin EDA Student Edition ([Windows](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_x64_win.zip), [Linux](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_Linux.tar.gz), [MacOS](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03Education_macOS.dmg)).
 
-Like the previous example, open `Boards\Gowin_TangPrimer25K\E80.cst` in a text editor and connect the components accordingly. This my setup -- without a joystick or DIP switch input:
+Like the previous example, open `Boards\Gowin_TangPrimer25K\E80.cst` in a text editor and connect the components accordingly. This is a barebones setup without input buttons:
 
-<p align="center"><img width="1300" height="532" alt="Tang Primer 25K Board Setup" src="https://github.com/user-attachments/assets/5685f56a-0cbf-4a71-ae9d-2158c978ed72" /></p>
+<p align="center"><img alt="Tang Primer 25K barebones setup" src="https://github.com/user-attachments/assets/5685f56a-0cbf-4a71-ae9d-2158c978ed72" /></p>
 
-_Gowin sets all undefined memory to zero, but considers the non-connected 8-bit DIP switch input as high._
+_Gowin sets all undefined memory to zero; the non-connected 8-bit DIP switch input defaults to high._
 
 Open divmul.e80asm as in the previous example and assemble it to create Firmware.vhd.
 
-Open the `Boards\Gowin_TangPrimer25K\Gowin.gprj` file in the Gowin IDE. Compile the project using Run All, connect your Tang Primer 25K board to your PC, and when the compilation is finished use the Programmer function to upload the bitstream. After the Halt flag turns on, the results should be similar to the photo above.
+Open the `Boards\Gowin_TangPrimer25K\Gowin.gprj` file in the Gowin IDE. Compile the project using Run All and connect your Tang Primer 25K board to your PC/ When the compilation is finished use the Programmer function (click on USB Cable Setting > Save, and then click on Program/Configure) to upload the bitstream. After the Halt flag turns on, the results should be similar to the photo above.

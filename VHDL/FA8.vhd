@@ -7,15 +7,15 @@
 -----------------------------------------------------------------------
 -- 1-bit full adder
 -----------------------------------------------------------------------
-LIBRARY ieee, work; 
+LIBRARY ieee; 
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY FA IS PORT (
 	A    : IN STD_LOGIC;
 	B    : IN STD_LOGIC;
 	Cin  : IN STD_LOGIC;
 	S    : OUT STD_LOGIC;
-	Cout : OUT STD_LOGIC);
-END;
+	Cout : OUT STD_LOGIC
+); END;
 ARCHITECTURE a1 OF FA IS
 	SIGNAL X : STD_LOGIC;
 BEGIN
@@ -26,7 +26,7 @@ END;
 -----------------------------------------------------------------------
 -- 8-bit full adder
 -----------------------------------------------------------------------
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY FA8 IS PORT (
 	A    : IN WORD;
