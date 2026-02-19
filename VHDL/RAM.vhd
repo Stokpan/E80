@@ -8,7 +8,7 @@
 -- Outputs two 8-word blocks for LED display on Interface.vhd
 -----------------------------------------------------------------------
 
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL, work.firmware.ALL;
 ENTITY RAM IS PORT (
 	CLK        : IN STD_LOGIC;

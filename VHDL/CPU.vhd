@@ -9,7 +9,7 @@
 -- Advances to the next instruction.
 -----------------------------------------------------------------------
 
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY CPU IS PORT (
 	CLK        : IN STD_LOGIC;
@@ -21,8 +21,8 @@ ENTITY CPU IS PORT (
 	MemAddr    : OUT WORD;      -- memory address to be read or written
 	MemWriteEn : OUT STD_LOGIC; -- write enable for [MemAddr]
 	MemNext    : OUT WORD;      -- next cycle value of [MemAddr]
-	R          : OUT WORDx8);   -- FPGA LED output
-END;
+	R          : OUT WORDx8     -- FPGA LED output
+); END;
 ARCHITECTURE a1 OF CPU IS
 	-- Instruction format signal aliases
 	--                     Instr1                          Instr2

@@ -46,7 +46,7 @@ PACKAGE BODY support IS
 		FOR I IN v2'RANGE LOOP -- match("abc","a") = true
 			IF v1(I) = '-' OR v2(I) = '-' THEN  -- skip don't cares
 				NEXT;
-			-- compare as bit to avoid std_logic's matching table
+			-- compare as bit to treat undefined as zeros in simulation
 			ELSIF To_bit(v1(I)) XOR To_bit(v2(I)) THEN
 				RETURN FALSE;
 			END IF;
@@ -67,7 +67,7 @@ PACKAGE BODY support IS
 		VARIABLE result: STD_LOGIC_VECTOR(arg'REVERSE_RANGE);
 	BEGIN
 		FOR i IN arg'RANGE LOOP
-			result(I) := arg(i);
+			result(i) := arg(i);
 		END LOOP;
 		RETURN result;
 	END;

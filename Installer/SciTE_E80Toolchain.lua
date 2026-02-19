@@ -1,7 +1,9 @@
 -- E80 Assembler-GHDL-GTKWave one-click script
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
-local firmware_vhd = 'VHDL\\Firmware.vhd'
+local homedir = props['SciteDefaultHome']
+local asmdir = homedir .. '\\Assembler'
+local firmware_vhd = homedir .. '\\VHDL\\Firmware.vhd'
 local write_error = 'Error: Cannot write file '
 local refreshlogfile = false
 local welcome_msg_shown = false
@@ -36,7 +38,7 @@ end
 -- Assemble with E80asm and save VHDL output to Firmware.vhd
 function Assemble()
 	-- Copy the source from the editor to a temp_src file
-	local temp_src = 'Assembler\\e80asm.' .. os.time() .. '.tmp'
+	local temp_src = asmdir .. '\\e80asm.' .. os.time() .. '.tmp'
 	local vhdl_end = '\nOTHERS => "UUUUUUUU");END;'
 	local e80_error = 'Error in line (%d+)'
 	local f = io.open(temp_src, "w")
@@ -47,8 +49,10 @@ function Assemble()
 	-- Run the assembler and capture its output
 	-- E80asm outputs VHDL code to stdout and logs to stderr. Lua does not read
 	-- stderr, so we redirect stderr to stdout (via 2>&1) and split them by the
-	-- ending string of the VHDL output.
-	local handle = io.popen('cmd /c Assembler\\a.bat /Q < ' .. temp_src .. ' 2>&1')
+	-- ending string of the VHDL output. E80ASM requires the presence of
+	-- template.vhd in the current folder, so we must first change to asmdir.
+	local handle = io.popen('cd "' .. asmdir .. '" && '
+		.. 'E80ASM.exe /Q < "' .. temp_src .. '" 2>&1')
 	local assembler_out = handle:read("*a")
 	handle:close()
 	assembler_out = assembler_out:gsub("%s+$", "") -- chomp output
@@ -89,7 +93,7 @@ end
 function Assembler_GHDL_GTKWave()
 	scite.MenuCommand(IDM_CLEAROUTPUT) -- clear log pane
 	if not Assemble() then return end
-	local handle = io.popen('cmd /c GHDL\\g sim 100ns 2>&1')
+	local handle = io.popen('cmd /c GHDL\\g 2>&1')
 	local g_bat_output = handle:read("*a")
 	handle:close()
 	print(g_bat_output)
@@ -99,7 +103,7 @@ end
 function GHDL_GTKWave()
 	scite.MenuCommand(IDM_CLEAROUTPUT) -- clear log pane
 	scite.MenuCommand(106) -- save first, Firmware.vhd could have been modified
-	local handle = io.popen('cmd /c GHDL\\g sim 100ns 2>&1')
+	local handle = io.popen('cmd /c GHDL\\g 2>&1')
 	local g_bat_output = handle:read("*a")
 	handle:close()
 	print(g_bat_output)

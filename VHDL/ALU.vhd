@@ -4,7 +4,7 @@
 -- Performs addition, subtraction, rotation, and logical operations.
 -- The calculated result and/or flags is discarded in some operations.
 -----------------------------------------------------------------------
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY ALU IS PORT (
 	ALUop    : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
@@ -12,8 +12,8 @@ ENTITY ALU IS PORT (
 	ALUinB   : IN WORD;
 	FlagsIn  : IN WORD; -- Carry, Zero, Sign, Overflow, Halt
 	ALUout   : OUT WORD;
-	FlagsOut : OUT WORD);
-END;
+	FlagsOut : OUT WORD
+); END;
 ARCHITECTURE a1 OF ALU IS
 	ALIAS A : WORD IS ALUinA;
 	SIGNAL B : WORD; -- ALUinB or 1 for INR/DCR

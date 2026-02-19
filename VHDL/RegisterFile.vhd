@@ -9,7 +9,7 @@
 -- R0-R5: General-purpose registers, R6: Flags register, R7: Stack pointer
 -----------------------------------------------------------------------
 
-LIBRARY ieee, work;
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY RegisterFile IS PORT (
 	CLK    : IN STD_LOGIC;
@@ -22,8 +22,8 @@ ENTITY RegisterFile IS PORT (
 	A_val  : OUT WORD;       -- current value of A_reg
 	B_val  : OUT WORD;       -- current value of B_reg
 	Flags  : OUT WORD;       -- current value of Flags Register
-	R      : OUT WORDx8);    -- all current register values for FPGA LED output
-END;
+	R      : OUT WORDx8      -- all current register values for FPGA LED output
+); END;
 ARCHITECTURE a1 OF RegisterFile IS
 	SIGNAL Rnext : WORDx8; -- stored values
 	SIGNAL a, b, w : NATURAL RANGE 0 TO 7; -- indexes
