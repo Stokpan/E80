@@ -1,42 +1,66 @@
 # E80 Computer - Pin Assignments for the Tang Primer 25K
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
-# Onboard 50 MHz crystal oscillator (frequency is specified at Board.vhd)
+#########################
+# Board Quick Reference #
+#########################
+
+#   Top header 2x20 vertical
+#   +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+# 2 | K1  | L2  | J4  | G2  | L4  | GND | B2  | F2  | E1  | E3  | J1  | G4  | H1  | K7  | L7  | L10 | L9  | J8  | J7  | J11 | 40
+#   +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+# 1 | K2  | L1  | K4  | G1  | L3  | 5V  | C2  | F1  | A1  | D1  | J2  | H4  | H2  | J7  | L8  | K10 | K9  | K8  | F6  | J10 | 39
+#   +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+#
+#   Left socket 2x6 horizontal                Middle socket 2x6 horizontal              Right socket 2x6 horizontal
+#   +-----+-----+-----+-----+-----+-----+     +-----+-----+-----+-----+-----+-----+     +-----+-----+-----+-----+-----+-----+
+#   | 3V3 | GND | H5  | H8  | G7  | F5  |     | 3V3 | GND | L5  | K11 | E11 | A11 |     | 3V3 | GND | C11 | B11 | D11 | G11 |
+#   +-----+-----+-----+-----+-----+-----+     +-----+-----+-----+-----+-----+-----+     +-----+-----+-----+-----+-----+-----+
+#   | 3V3 | GND | J5  | H7  | G8  | G5  |     | 3V3 | GND | K5  | L11 | E10 | A10 |     | 3V3 | GND | C10 | B10 | D10 | G10 |
+#   +-----+-----+-----+-----+-----+-----+     +-----+-----+-----+-----+-----+-----+     +-----+-----+-----+-----+-----+-----+
+
+###################
+# Pin Assignments #
+###################
+
+# Onboard 50 MHz crystal oscillator (frequency specified at Board.vhd).
 IO_LOC "BoardCLK" E2;
-IO_PORT "BoardCLK" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_PORT "BoardCLK" IO_TYPE=LVCMOS33;
 
-# MAX7219 4x8x8 LED Matrix 
-IO_LOC "MAX7219DIN" J5;
-IO_PORT "MAX7219DIN" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_LOC "MAX7219CS" H7;
-IO_PORT "MAX7219CS" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_LOC "MAX7219CLK" G8;
-IO_PORT "MAX7219CLK" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+# Control buttons - active high with 10kΩ pull-down resistors
+# If you're using a 5-button joystick, connect its COMmon port to a 3V3 pin
+IO_LOC "LeftButton" G1;
+IO_PORT "LeftButton" IO_TYPE=LVCMOS33;
+IO_LOC "RightButton" K4;
+IO_PORT "RightButton" IO_TYPE=LVCMOS33;
+IO_LOC "PauseButton" L1;
+IO_PORT "PauseButton" IO_TYPE=LVCMOS33;
+IO_LOC "ResetButton" K2;
+IO_PORT "ResetButton" IO_TYPE=LVCMOS33;
 
-# DIP switches
-IO_LOC "DIPinput[7]" H1;
-IO_PORT "DIPinput[7]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[6]" K7;
-IO_PORT "DIPinput[6]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[5]" L7;
-IO_PORT "DIPinput[5]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[4]" L10;
-IO_PORT "DIPinput[4]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[3]" L9;
-IO_PORT "DIPinput[3]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[2]" J8;
-IO_PORT "DIPinput[2]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[1]" F7;
-IO_PORT "DIPinput[1]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "DIPinput[0]" J11;
-IO_PORT "DIPinput[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+# 8-bit DIP switch - active high with 10kΩ pull-down resistors
+IO_LOC "DIPinput[7]" H2;
+IO_PORT "DIPinput[7]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[6]" J7;
+IO_PORT "DIPinput[6]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[5]" L8;
+IO_PORT "DIPinput[5]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[4]" K10;
+IO_PORT "DIPinput[4]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[3]" K9;
+IO_PORT "DIPinput[3]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[2]" K8;
+IO_PORT "DIPinput[2]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[1]" F6;
+IO_PORT "DIPinput[1]" IO_TYPE=LVCMOS33;
+IO_LOC "DIPinput[0]" J10;
+IO_PORT "DIPinput[0]" IO_TYPE=LVCMOS33;
 
-# Control buttons
-IO_LOC "LeftButton" K9;
-IO_PORT "LeftButton" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "RightButton" K10;
-IO_PORT "RightButton" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "PauseButton" J7;
-IO_PORT "PauseButton" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
-IO_LOC "ResetButton" H2;
-IO_PORT "ResetButton" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+# Output to 4 in 1 MAX7219 4x8x8 LED module
+# Connect the module's VCC pin to the board's 5V top header pin #11
+IO_LOC "MAX7219DIN" A1;
+IO_PORT "MAX7219DIN" IO_TYPE=LVCMOS33 DRIVE=8;
+IO_LOC "MAX7219CS" F1;
+IO_PORT "MAX7219CS" IO_TYPE=LVCMOS33 DRIVE=8;
+IO_LOC "MAX7219CLK" C2;
+IO_PORT "MAX7219CLK" IO_TYPE=LVCMOS33 DRIVE=8;

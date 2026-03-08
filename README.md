@@ -11,7 +11,7 @@ A simple CPU in structural VHDL, originally developed for [my undergraduate thes
 | **Memory**            | 1R/W and 2R ports, addressable at 0x00-0xFE        |
 | **Addressing**        | Immediate, direct, register, register-indirect     |
 | **Stack**             | Full descending, SP initialized at 0xFF            |
-| **Input**             | 8-bit DIP switches memory-mapped at 0xFF           |
+| **Input**             | 8-bit static user input memory-mapped at 0xFF      |
 | **Output**            | Serial 4x8x8 LED Matrix (4x daisy-chained MAX7219) |
 | **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode        |
 | **Assembler**         | ISO C99 stdin I/O                                  |
@@ -19,7 +19,8 @@ A simple CPU in structural VHDL, originally developed for [my undergraduate thes
 | **Synthesized on**    | GHDL+Yosys, Gowin, Quartus, Vivado                 |
 | **Tested on**         | GateMateA1-EVB, Tang Primer 25K, DSD-i1 Cyclone IV |
 
-# ISA Cheatsheet
+## Instruction Set Architecture
+
 ```
 Operands : n = 8-bit immediate value or direct memory address
            r, r1, r2 = 3-bit register address (R0 to R7)
@@ -87,28 +88,63 @@ Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
 * The Sign and Zero flags are updated by `CMP`, `BIT`, and any instruction that modifies a register, except for stack-related instructions.
 * Explicit modifications of the FLAGS register take precedence over normal flag changes, eg. `OR FLAGS, 0b01000000` sets Z=1 although the result is non-zero.
 * The `HLT` instruction sets the H flag and freezes the PC, thereby stopping execution in the current cycle. Setting the Halt flag by modifying the Flags (R6) register will stop execution on the next cycle.
-* Comparison of unsigned numbers via the Carry flag can be confusing because `SUB R1,R2` is done via standard adder logic (R1 + ~R2 + 1). See the flags cheatsheet below.
-## Flags cheatsheet
+* Comparison of unsigned numbers via the Carry flag can be confusing because `SUB R1,R2` is done via standard adder logic (R1 + ~R2 + 1).
+
+## An example of one-click simulation
+
+The following program writes the null-terminated string `` `az{"0 `` to memory after the last instruction (notice the label under HLT) and converts the lowercase characters to uppercase, stopping when it hits the terminator:
+
 ```
-               +------+-----------------------------+----------------------+
-               | Flag | Signed                      | Unsigned             |
- +-------------+------+-----------------------------+----------------------+
- | ADD a,b     | C=1  |                             | a+b > 255 (overflow) |
- |             | C=0  |                             | a+b ≤ 255            |
- |             | V=1  | a+b ∉ [-128,127] (overflow) |                      |
- |             | V=0  | a+b ∈ [-128,127]            |                      |
- |             | S=1  | a+b < 0                     | a+b ≥ 128 (if C=0)   |
- |             | S=0  | a+b ≥ 0                     | a+b < 128 (if C=0)   |
- +-------------+------+-----------------------------+----------------------+
- | SUB/CMP a,b | C=1  |                             | a ≥ b                |
- |             | C=0  |                             | a < b (overflow)     |
- |             | V=1  | a-b ∉ [-128,127] (overflow) |                      |
- |             | V=0  | a-b ∈ [-128,127]            |                      |
- |             | S=1  | a < b (if V=0)              | a-b ≥ 128 (if C=1)   |
- |             | S=0  | a ≥ b (if V=0)              | a-b < 128 (if C=1)   |
- +-------------+------+-----------------------------+----------------------+
+.TITLE "Converts the lowercase characters of a given string to uppercase"
+.LABEL char_a 97
+.LABEL char_after_z 123     ; character after "z" is "{"
+.LABEL case_difference 32
+.DATA string "`az{\"0",0    ; null-terminated string under the last instruction
+    MOV R0, string          ; R0 = address of the first character ("`")
+loop:   
+    LOAD R1, [R0]           ; updates SZ flags (like 6800 & 6502)
+    JZ finish               ; loop while [R0] != null
+    CMP R1, char_a
+    JNC next                ; if [R0] < "a" goto next
+    CMP R1, char_after_z
+    JC next                 ; else if [R0] ≥ "{" goto next
+    SUB R1, case_difference ; [R0] ∈ ["a", "z"], so change to uppercase
+    STORE R1, [R0]          ; write character back to RAM
+next:
+    ADD R0, 1               ; go to the next character
+    JMP loop                ; end loop
+finish:
+    HLT                     ; stop execution & simulation
 ```
-# Assembly Cheatsheet
+
+To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
+
+<p align="center"><img alt="Sc1 editor window with assembly code" src="Images/Simulation/Sc1%20Assembly%20tab.png" width="591" height="496" /></p>
+
+_Notice that syntax highlighting for the E80 assembly language has been enabled by default._
+
+Press F5. The editor will automatically assemble the code, save the VHDL output, compile the entire design with GHDL, and launch a GTKWave instance. Subsequent simulations will close the previous GTKWave window to open a new one.
+
+You should see the following waveform, in which the RAM has been expanded to show how the lowercase letters of the string have changed to uppercase:
+
+<p align="center"><img alt="GHDL waveform output in GTKWave; the highlighted RAM locations 25-31 (shown in ASCII radix) have been initialized by the .DATA directive and modified by the program" src="Images/Simulation/GTKWave.png" width="1383" height="1177" /></p>
+
+_Notice that the HLT instruction has stopped the simulation in GHDL, allowing for the waveforms to be drawn for the runtime only. This useful feature is supported in ModelSim as well._
+
+You can also press F7 to view the generated Firmware.vhd file, without simulation:
+
+<p align="center"><img alt="VHDL output of the assembler" src="Images/Simulation/Sc1%20VHDL%20tab.png" width="591" height="581" /></p>
+
+_Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
+
+If you have installed ModelSim, you can press F8 to automatically open ModelSim and simulate into it. Subsequent simulations on ModelSim will update its existing window:
+
+<p align="center"><img alt="ModelSim simulation and waveform" src="Images/Simulation/ModelSim.png" width="1440" height="900" /></p>
+
+_The Memory Data tab next to the Wave tab contains the RAM at the end of simulation. The contents can also be displayed by hovering on the RAM in the Wave tab, but there's a catch: if the radix is set to ASCII and the data include a curly bracket, ModelSim will throw an error when trying to show the tooltip._
+
+## Assembly and Flags Cheatsheet
+
 ```
 string  : ASCII with escaped quotes, eg. "a\"bc" is quoted a"bc
 label   : Starts from a letter, may contain letters, numbers, underscores
@@ -156,6 +192,24 @@ op1/op2 : Reg or val (flexible operand)
 | PUSH reg             | Push reg to stack                                  |
 | POP reg              | Pop reg from stack                                 |
 +----------------------+----------------------------------------------------+
+
+                +------+-----------------------------+----------------------+
+                | Flag | Signed                      | Unsigned             |
+ +--------------+------+-----------------------------+----------------------+
+ | ADD a,b      | C=1  |                             | a+b > 255 (overflow) |
+ |              | C=0  |                             | a+b ≤ 255            |
+ |              | V=1  | a+b ∉ [-128,127] (overflow) |                      |
+ |              | V=0  | a+b ∈ [-128,127]            |                      |
+ |              | S=1  | a+b < 0                     | a+b ≥ 128 (if C=0)   |
+ |              | S=0  | a+b ≥ 0                     | a+b < 128 (if C=0)   |
+ +--------------+------+-----------------------------+----------------------+
+ | SUB/CMP a,b  | C=1  |                             | a ≥ b                |
+ |              | C=0  |                             | a < b (overflow)     |
+ |              | V=1  | a-b ∉ [-128,127] (overflow) |                      |
+ |              | V=0  | a-b ∈ [-128,127]            |                      |
+ |              | S=1  | a < b (if V=0)              | a-b ≥ 128 (if C=1)   |
+ |              | S=0  | a ≥ b (if V=0)              | a-b < 128 (if C=1)   |
+ +--------------+------+-----------------------------+----------------------+
 ```
 **Notes**
 * Directives must precede instructions.
@@ -165,79 +219,25 @@ op1/op2 : Reg or val (flexible operand)
 * The `.SPEED` directive defines the initial CPU clock frequency in the FPGA. The seven levels are defined in the [Hardware Implementation section](https://github.com/Stokpan/E80/?tab=readme-ov-file#hardware-implementation). Default `.SPEED` value is 2 (~1 Hz).
 * Likewise, the `.SIMDIP` directive doesn't affect execution on FPGAs; it's used in simulation only.
 
-## Example - One-click simulation with GHDL/GTKWave or ModelSim
+## Hardware Implementation
 
-The following program writes the null-terminated string `` `az{"0 `` to memory after the last instruction (notice the label under HLT) and converts the lowercase characters to uppercase, stopping when it hits the terminator:
+The design is complemented by an Interface unit which requires a clock input; its frequency (2 MHz minimum) must be specified in `\Boards\*\Board.vhd`. This generates an array of seven clocks from 0 to 2 kHz, one of which is selected to drive the CPU.
 
-```
-.TITLE "Converts the lowercase characters of a given string to uppercase"
-.LABEL char_a 97
-.LABEL char_after_z 123     ; character after "z" is "{"
-.LABEL case_difference 32
-.DATA string "`az{\"0",0    ; null-terminated string under the last instruction
-    MOV R0, string          ; R0 = address of the first character ("`")
-loop:   
-    LOAD R1, [R0]           ; updates SZ flags (like 6800 & 6502)
-    JZ finish               ; loop while [R0] != null
-    CMP R1, char_a
-    JNC next                ; if [R0] < "a" goto next
-    CMP R1, char_after_z
-    JC next                 ; else if [R0] ≥ "{" goto next
-    SUB R1, case_difference ; [R0] ∈ ["a", "z"], so change to uppercase
-    STORE R1, [R0]          ; write character back to RAM
-next:
-    ADD R0, 1               ; go to the next character
-    JMP loop                ; end loop
-finish:
-    HLT                     ; stop execution & simulation
-```
+User input is provided via an 8-bit DIP switch. Reset, pause, and speed throttling are provided by four buttons; a 5-way joystick provides more than enough buttons. All input pins must be active-high with 10kΩ pull-down resistors.
 
-To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
+Output is provided via a 4x8x8 LED module driven by four daisy-chained MAX7219 chips, requiring three input lines. The logic assumes the module is oriented with its pins on the left, where Matrix 1 is the leftmost and Row 1 is the topmost.
 
-<p align="center"><img alt="Sc1 editor window with assembly code" src="https://github.com/user-attachments/assets/e91c689d-6519-46de-bff9-124ed50d6dc4" /></p>
-
-_Notice that syntax highlighting for the E80 assembly language has been enabled by default._
-
-Press F5. The editor will automatically assemble the code, save the VHDL output, compile the entire design with GHDL, and launch a GTKWave instance. Subsequent simulations will close the previous GTKWave window to open a new one.
-
-You should see the following waveform, in which the RAM has been expanded to show how the lowercase letters of the string have changed to uppercase:
-
-<p align="center"><img alt="GHDL waveform output in GTKWave. The highlighted RAM locations 25-31 have been initialized by the .DATA directive and modified by the program. These have been manually set to ASCII data format in GTKwave." src="https://github.com/user-attachments/assets/5c0606e3-69f4-4e06-8caa-f3125d3c4ef8" /></p>
-
-_Notice that the HLT instruction has stopped the simulation in GHDL, allowing for the waveforms to be drawn for the runtime only. This useful feature is supported in ModelSim as well._
-
-You can also press F7 to view the generated `Firmware.vhd` file, without simulation:
-
-<p align="center"><img alt="VHDL output of the assembler" src="https://github.com/user-attachments/assets/2747cd95-53af-4527-8e21-b7f318fc4d0a" /></p>
-
-_Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
-
-If you have installed ModelSim, you can press F8 to automatically open ModelSim and simulate into it. Subsequent simulations on ModelSim will update its existing window:
-
-<p align="center"><img alt="ModelSim simulation and waveform" src="https://github.com/user-attachments/assets/e767a3a9-15e8-443a-9e1f-bd6bef93ae58" /></p>
-
-_The Memory Data tab next to the Wave tab contains the RAM at the end of simulation. The contents can also be displayed by hovering on the RAM in the Wave tab, but there's a catch: if the radix is set to ASCII and the data include a curly bracket, ModelSim will throw an error when trying to show the tooltip._
-
-
-# Hardware Implementation
-
-The design is complemented by an Interface unit which requires a hardware clock of at least 2 MHz and, optionally, an 8-bit DIP switch and four buttons for Reset, Pause, Left and Right functions. A 5-direction button joystick with its COM port connected to a VDD pin provides more than enough buttons for this purpose. All input pins must be active high with a 10kΩ pull-down resistor.
-
-The input pins serve the following functions:
-
+* **8-bit DIP switch:** Provides a static word at address 0xFF.
 * **Left/Right buttons:** Adjust speed level (clock frequency) as follows:
-	* Speed level 0: 0 Hz and clock is constantly high
+	* Speed level 0: 0 Hz, clock is gated high
 	* Speed level 1: 0.24 Hz
 	* Speed level 2: ~1 Hz
 	* Speed level 3: ~2 Hz
 	* Speed level 4: ~4 Hz
 	* Speed level 5: ~15 Hz
 	* Speed level 6: 2 KHz
-* **Pause:** Sets the clock to 0 while pressed. Combined with Speed Level 0, releasing the Pause button will resume clock to high, triggering a rising edge, thereby allowing for step execution.
-* **Reset:** Initializes the RAM to the Firmware, and resets the Program Counter and the Halt flag to 0, and the Stack Pointer to 255.
-
-Output is provided on 4x8x8 LED module driven by four daisy-chained MAX7219 chips. The code assumes that the module is to be read with its connected pins on the left. In the following list, Matrix 1 is leftmost and Row 1 is topmost:
-
+* **Pause button:** Pauses clock to low while pressed. Combined with Speed Level 0, releasing will resume clock to high, triggering a rising edge thereby allowing for step execution.
+* **Reset button:** Initializes the RAM to the Firmware, and resets the Program Counter and the Halt flag to 0, and the Stack Pointer to 255.
 * **Matrix 1:**
 	* Row 1: **Speed level** (one-hot encoded on first seven LEDs), **Clock** (rightmost LED)
 	* Row 2: blank
@@ -257,15 +257,15 @@ Output is provided on 4x8x8 LED module driven by four daisy-chained MAX7219 chip
 	* Rows 1-7: **RAM block 248-254**
 	* Row 8: **DIP switch input**
 
-## Example 1 - Testing on the Olimex GateMateA1-EVB on Windows
+## Testing on the Olimex GateMateA1-EVB on Windows
 
 The following assumes you have installed the latest E80 Toolchain release and the paths mentioned will always be relative to its installation folder.
 
 Open `Boards\Yosys_GateMateA1\E80.ccf` in a text editor, study its pin assignments and connect the components as specified in the previous section. This is an example setup with all components:
 
-<p align="center"><img alt="GateMateA1-EVB full setup" src="https://github.com/user-attachments/assets/ec6f141c-a11d-4d31-b4f9-2ff5ced1fcb7" /></p>
+<p align="center"><img alt="GateMateA1-EVB full setup" src="Images/Hardware/GateMateA1-EVB.png" width="1400" height="875" /></p>
 
-_The LED module requires a 5V VCC input at 330mA. For my testing purposes, I connected it to lower voltage VDD pins in all three boards (GateMate, Gowin, DSD-i1) for several hours without issues; if you are using an expensive FPGA, please avoid my example._
+_The LED module requires a 5V VCC input at 330mA. For my testing purposes, I connected it to lower voltage VDD pins in both the GateMate and the DSD-i1 for several hours without issues; the Tang Primer 25K does provide a 5V pin._
 
 Connect the board to your computer via USB, locate the new DirtyJtag device on the Device Manager on "Other Devices", and update its driver to `Boards\Yosys_GateMateA1\Driver`. The device should now appear under "Universal Serial Bus devices" (not the standard USB adapters).
 
@@ -273,27 +273,15 @@ From the toolchain installation folder, open divmul.e80asm and hit `F5` to assem
 
 Download the latest [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build/releases) build for Windows and run it from the toolchain installation folder. You can now run `Boards\Yosys_GateMateA1\synth.bat`. It will go through all the necessary steps, from checking requirements to flashing:
 
-<p align="center"><img alt="E80 VHDL Synthesis batch" src="https://github.com/user-attachments/assets/bd71546d-410e-47fa-89c8-0e8773392a1f" /></p>
+<p align="center"><img alt="E80 VHDL Synthesis batch" src="Images/Hardware/synth.bat.png" width="685" height="286" /></p>
 
 After step 5, the board will start running the previously assembled program. Use the Left or Right buttons to control the clock speed as shown at the 1st row. When the Halt flag LED turns on (Matrix 1, Row 7, LED #5) the program is finished. You can now compare the simulated results (R0, R1, R2) on GTKWave with the LEDs on Matrix 2, Rows 1-3 as seen here:
 
 <p align="center">
-	<img alt="divmul.e80asm simulation on GHDL+GTKWave" src="https://github.com/user-attachments/assets/c2eab69b-5092-4748-aa62-5375078fabc1" />
-	<img alt="divmul.e80asm verification on the 4x8x8 LED display" src="https://github.com/user-attachments/assets/5480f387-ed66-4a08-98c1-ab87ddc88d15" />
+	<img alt="divmul.e80asm simulation on GHDL+GTKWave" src="Images/Hardware/GTKwave.png" width="915" height="594" />
+	<img alt="divmul.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/4x8x8%20LED%20matrix.png" width="915" height="497" />
 </p>
 
 _Notice that while some tools may initialize undefined spaces to 0, Yosys/Gatemate doesn't, which is desirable for the educational purposes of this project._
 
-## Example 2 - Testing on the Tang Primer 25K
-
-First, install Gowin EDA Student Edition ([Windows](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_x64_win.zip), [Linux](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03_Education_Linux.tar.gz), [MacOS](https://cdn.gowinsemi.com.cn/Gowin_V1.9.11.03Education_macOS.dmg)).
-
-Like the previous example, open `Boards\Gowin_TangPrimer25K\E80.cst` in a text editor and connect the components accordingly. This is a barebones setup without input buttons:
-
-<p align="center"><img alt="Tang Primer 25K barebones setup" src="https://github.com/user-attachments/assets/5685f56a-0cbf-4a71-ae9d-2158c978ed72" /></p>
-
-_Gowin sets all undefined memory to zero; the non-connected 8-bit DIP switch input defaults to high._
-
-Open divmul.e80asm as in the previous example and assemble it to create Firmware.vhd.
-
-Open the `Boards\Gowin_TangPrimer25K\Gowin.gprj` file in the Gowin IDE. Compile the project using Run All and connect your Tang Primer 25K board to your PC/ When the compilation is finished use the Programmer function (click on USB Cable Setting > Save, and then click on Program/Configure) to upload the bitstream. After the Halt flag turns on, the results should be similar to the photo above.
+Step-by-step instructions for the <a href="Boards\Gowin_TangPrimer25K\README.md">Tang Primer 25K</a> and the <a href="Boards\Quartus_DSDi1\README.md">DSD-i1</a> are also available in their respective folders.

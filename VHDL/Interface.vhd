@@ -54,7 +54,6 @@ END;
 -----------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
-
 ENTITY MAX7219x4 IS PORT (
 	MainCLK : IN  STD_LOGIC; -- main process clock
 	Reset	: IN  STD_LOGIC;
@@ -66,7 +65,6 @@ ENTITY MAX7219x4 IS PORT (
 	CS		: OUT STD_LOGIC; -- latches the shift register on its rising edge
 	CLK		: OUT STD_LOGIC	 -- serial clock output to all MAX7219 modules
 ); END;
-
 ARCHITECTURE a1 OF MAX7219x4 IS
 BEGIN
 	PROCESS(MainCLK)

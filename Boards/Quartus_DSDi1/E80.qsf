@@ -1,9 +1,100 @@
-# E80 Computer - Settings and Pin Assignments for the DSD-i1
+# E80 Computer - Pin Assignments and Settings for the DSD-i1
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+
+#########################
+# Board Quick Reference #
+#########################
+
+#   HD2 pins                                           HD1 pins
+#    0     1                                            0     1  
+# +-----+-----+                                      +-----+-----+
+# |  53 |  54 |                                      |  X  |  X  |
+# |  55 |  58 |                                      |  X  |  X  |
+# |  59 |  60 |                                      |  X  |  X  |
+# |  64 |  65 |                                      |  X  |  X  |
+# |  66 |  67 |                                      |  X  |  X  |
+# |  68 |  69 |                                      |  X  |  X  |
+# |  70 |  71 |                                      |  X  |  X  |
+# |  72 |  73 |                                      |  X  |  X  |
+# |  74 |  75 |                                      |  X  |  X  |
+# |  76 |  77 |                                      |  X  |  X  |
+# |  80 |  83 |                                      |  X  |  X  |
+# |  84 |  85 |                                      |  X  |  X  |
+# |  86 |  87 |                                      |  X  |  X  |
+# |  88 |  89 |                                      |  X  |  X  |
+# |  90 |  91 |                                      |  X  |  X  |
+# |  98 |  99 |                                      |  X  |  X  |
+# | 100 | 101 |                                      |  X  |  X  |
+# | 103 | 104 |                                      |  X  |  X  |
+# | 105 | 3V3 |                                      | 3V3 | 3V3 |
+# | GND | GND |                                      | GND | GND |
+# +-----+-----+                                      +-----+-----+
+#   38    39                                           38    39
+#                                   
+# LED pins    0     1      2    3     4     5     6     7    DLED
+#          +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+# Row A    | 110 | 111 | 112 | 113 | 114 | 115 | 119 | 120 | 144 |
+#          +-----+-----+-----+-----+-----+-----+-----+-----+-----+
+# Row B    | 121 | 124 | 125 | 126 | 127 | 128 | 129 | 132 |
+#          +-----+-----+-----+-----+-----+-----+-----+-----+
+# Row C    | 133 | 135 | 136 | 137 | 138 | 141 | 142 | 143 |
+#          +-----+-----+-----+-----+-----+-----+-----+-----+
+
+###################
+# Pin Assignments #
+###################
+
+# Onboard 50 MHz crystal oscillator (frequency specified at Board.vhd)
+set_location_assignment PIN_23 -to BoardCLK
+
+# Control buttons - active high with 10kΩ pull-down resistors
+# If you're using a 5-button joystick, connect its COMmon port to a 3V3 pin
+set_location_assignment PIN_83 -to LeftButton
+set_location_assignment PIN_85 -to RightButton
+set_location_assignment PIN_87 -to PauseButton
+set_location_assignment PIN_89 -to ResetButton
+
+# 8-bit DIP switch - active high with 10kΩ pull-down resistors
+set_location_assignment PIN_54 -to DIPinput[0]
+set_location_assignment PIN_58 -to DIPinput[1]
+set_location_assignment PIN_60 -to DIPinput[2]
+set_location_assignment PIN_65 -to DIPinput[3]
+set_location_assignment PIN_67 -to DIPinput[4]
+set_location_assignment PIN_69 -to DIPinput[5]
+set_location_assignment PIN_71 -to DIPinput[6]
+set_location_assignment PIN_73 -to DIPinput[7]
+
+# Output to 4 in 1 MAX7219 4x8x8 LED module
+# Connect the module's VCC pin to a 5V supply pin
+# For testing purposes you can use the 3.3V #37 HD2 pin.
+set_location_assignment PIN_99 -to MAX7219CLK
+set_location_assignment PIN_101 -to MAX7219CS
+set_location_assignment PIN_104 -to MAX7219DIN
+
+###############################
+# Source files and top entity #
+###############################
+
+set_global_assignment -name SDC_FILE E80.sdc
+set_global_assignment -name VHDL_FILE Board.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/Interface.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/Support.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/Computer.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/RAM.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/Firmware.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/CPU.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/RegisterFile.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/DFF8.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/ALU.vhd
+set_global_assignment -name VHDL_FILE ../../VHDL/FA8.vhd
+set_global_assignment -name TOP_LEVEL_ENTITY Interface
+
+#################
+# FPGA settings #
+#################
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE6E22C8
-set_global_assignment -name TOP_LEVEL_ENTITY Interface
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 20.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "22:18:50  NOVEMBER 26, 2024"
 set_global_assignment -name LAST_QUARTUS_VERSION "20.1.1 Lite Edition"
@@ -51,43 +142,6 @@ set_global_assignment -name FITTER_EFFORT "AUTO FIT"
 set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
 set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
 set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
-set_global_assignment -name SDC_FILE E80.sdc
-set_global_assignment -name VHDL_FILE Board.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/Interface.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/Support.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/Computer.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/RAM.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/Firmware.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/CPU.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/RegisterFile.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/DFF8.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/ALU.vhd
-set_global_assignment -name VHDL_FILE ../../VHDL/FA8.vhd
-
-# Onboard 50 MHz crystal oscillator (frequency is specified at Board.vhd)
-set_location_assignment PIN_23 -to BoardCLK
-
-# MAX7219 4x8x8 LED Matrix
-set_location_assignment PIN_53 -to MAX7219CLK
-set_location_assignment PIN_55 -to MAX7219CS
-set_location_assignment PIN_59 -to MAX7219DIN
-
-# Control buttons
-set_location_assignment PIN_85 -to ResetButton
-set_location_assignment PIN_91 -to LeftButton
-set_location_assignment PIN_99 -to RightButton
-set_location_assignment PIN_104 -to PauseButton
-
-# DIP switches
-set_location_assignment PIN_54 -to DIPinput[0]
-set_location_assignment PIN_58 -to DIPinput[1]
-set_location_assignment PIN_60 -to DIPinput[2]
-set_location_assignment PIN_65 -to DIPinput[3]
-set_location_assignment PIN_67 -to DIPinput[4]
-set_location_assignment PIN_69 -to DIPinput[5]
-set_location_assignment PIN_71 -to DIPinput[6]
-set_location_assignment PIN_73 -to DIPinput[7]
-
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top

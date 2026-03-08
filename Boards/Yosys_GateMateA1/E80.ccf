@@ -1,125 +1,70 @@
 # E80 Computer - Pin Assignments for the Olimex GateMate A1-EVB
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
-# Includes a quick reference for onboard components and GPIO banks.
 
-# Onboard 10MHz crystal oscillator CLK0 (frequency is specified at Board.vhd)
-NET "BoardCLK" Loc = "IO_SB_A8";
+#########################
+# Board Quick Reference #
+#########################
 
-# MAX7219 4x8x8 LED Matrix inputs 
-NET "MAX7219DIN" Loc = "IO_NB_B0";
-NET "MAX7219CS"  Loc = "IO_NB_B1";
-NET "MAX7219CLK" Loc = "IO_NB_B2";
-
-# Control buttons; SCHMITT_TRIGGER is enabled to prevent bouncing
-NET "LeftButton"  Loc = "IO_EB_B4" | SCHMITT_TRIGGER=true; # 10
-NET "RightButton" Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true; # 12
-NET "PauseButton" Loc = "IO_EB_B1" | SCHMITT_TRIGGER=true; # 16
-NET "ResetButton" Loc = "IO_EB_B0" | SCHMITT_TRIGGER=true; # 18
-
-# DIP switches
-NET "DIPinput[0]" Loc = "IO_EB_A7" | SCHMITT_TRIGGER=true; # 5
-NET "DIPinput[1]" Loc = "IO_EB_A6" | SCHMITT_TRIGGER=true; # 7
-NET "DIPinput[2]" Loc = "IO_EB_A5" | SCHMITT_TRIGGER=true; # 9
-NET "DIPinput[3]" Loc = "IO_EB_A4" | SCHMITT_TRIGGER=true; # 11
-NET "DIPinput[4]" Loc = "IO_EB_A3" | SCHMITT_TRIGGER=true; # 13
-NET "DIPinput[5]" Loc = "IO_EB_A2" | SCHMITT_TRIGGER=true; # 15
-NET "DIPinput[6]" Loc = "IO_EB_A1" | SCHMITT_TRIGGER=true; # 17
-NET "DIPinput[7]" Loc = "IO_EB_A0" | SCHMITT_TRIGGER=true; # 19
-
-###################
-# Quick Reference #
-###################
-
-######################
-# Onboard components #
-######################
+# Onboard components
 # NET "signal" Loc = "IO_SB_A8"; # onboard CLK0 10MHz crystal oscillator
 # NET "signal" Loc = "IO_SB_B6"; # onboard FPGA_LED1 active low LED
 # NET "signal" Loc = "IO_SB_B7"; # onboard FPGA_BUT1 active low button
-
-##################
-# Bank NA1 GPIOs #
-##################
+#
+# BANK_NA1
+# eg. NET "signal" Loc = "IO_NA_A0"; # 3
 # +-----+----+----+----+----+----+----+----+----+----+
 # | GND | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | B8 |
 # +-----+----+----+----+----+----+----+----+----+----+
 # | VDD | A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 |
 # +-----+----+----+----+----+----+----+----+----+----+
-#    1                                      BANK_NA1
+#    1                                            19
 #
-# NET "signal" Loc = "IO_NA_A0"; # 3
-# NET "signal" Loc = "IO_NA_B0"; # 4
-# NET "signal" Loc = "IO_NA_A1"; # 5
-# NET "signal" Loc = "IO_NA_B1"; # 6
-# NET "signal" Loc = "IO_NA_A2"; # 7
-# NET "signal" Loc = "IO_NA_B2"; # 8
-# NET "signal" Loc = "IO_NA_A3"; # 9
-# NET "signal" Loc = "IO_NA_B3"; # 10
-# NET "signal" Loc = "IO_NA_A4"; # 11
-# NET "signal" Loc = "IO_NA_B4"; # 12
-# NET "signal" Loc = "IO_NA_A5"; # 13
-# NET "signal" Loc = "IO_NA_B5"; # 14
-# NET "signal" Loc = "IO_NA_A6"; # 15
-# NET "signal" Loc = "IO_NA_B6"; # 16
-# NET "signal" Loc = "IO_NA_A7"; # 17
-# NET "signal" Loc = "IO_NA_B7"; # 18
-# NET "signal" Loc = "IO_NA_A8"; # 19
-# NET "signal" Loc = "IO_NA_B8"; # 20
-
-##################
-# Bank NB1 GPIOs #
-##################
+# BANK_NB1
+# eg. NET "signal" Loc = "IO_NB_A0"; # 3
 # +-----+----+----+----+----+----+----+----+----+----+
 # | GND | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | B8 |
 # +-----+----+----+----+----+----+----+----+----+----+
 # | VDD | A0 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 |
 # +-----+----+----+----+----+----+----+----+----+----+
-#    1                                      BANK_NB1
+#    1                                            19
 #
-# NET "signal" Loc = "IO_NB_A0"; # 3
-# NET "signal" Loc = "IO_NB_B0"; # 4
-# NET "signal" Loc = "IO_NB_A1"; # 5
-# NET "signal" Loc = "IO_NB_B1"; # 6
-# NET "signal" Loc = "IO_NB_A2"; # 7
-# NET "signal" Loc = "IO_NB_B2"; # 8
-# NET "signal" Loc = "IO_NB_A3"; # 9
-# NET "signal" Loc = "IO_NB_B3"; # 10
-# NET "signal" Loc = "IO_NB_A4"; # 11
-# NET "signal" Loc = "IO_NB_B4"; # 12
-# NET "signal" Loc = "IO_NB_A5"; # 13
-# NET "signal" Loc = "IO_NB_B5"; # 14
-# NET "signal" Loc = "IO_NB_A6"; # 15
-# NET "signal" Loc = "IO_NB_B6"; # 16
-# NET "signal" Loc = "IO_NB_A7"; # 17
-# NET "signal" Loc = "IO_NB_B7"; # 18
-# NET "signal" Loc = "IO_NB_A8"; # 19
-# NET "signal" Loc = "IO_NB_B8"; # 20
-
-##################
-# Bank EB1 GPIOs #
-##################
+# BANK_EB1
+# eg. NET "signal" Loc = "IO_EB_A8"; # 3
 # +-----+----+----+----+----+----+----+----+----+----+
 # | GND | B8 | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |
 # +-----+----+----+----+----+----+----+----+----+----+
 # | VDD | A8 | A7 | A6 | A5 | A4 | A3 | A2 | A1 | A0 |
 # +-----+----+----+----+----+----+----+----+----+----+
-#    1                                      BANK_EB1
-#
-# NET "signal" Loc = "IO_EB_A8"; # 3
-# NET "signal" Loc = "IO_EB_B8"; # 4
-# NET "signal" Loc = "IO_EB_A7"; # 5
-# NET "signal" Loc = "IO_EB_B7"; # 6
-# NET "signal" Loc = "IO_EB_A6"; # 7
-# NET "signal" Loc = "IO_EB_B6"; # 8
-# NET "signal" Loc = "IO_EB_A5"; # 9
-# NET "signal" Loc = "IO_EB_B5"; # 10
-# NET "signal" Loc = "IO_EB_A4"; # 11
-# NET "signal" Loc = "IO_EB_B4"; # 12
-# NET "signal" Loc = "IO_EB_A3"; # 13
-# NET "signal" Loc = "IO_EB_B3"; # 14
-# NET "signal" Loc = "IO_EB_A2"; # 15
-# NET "signal" Loc = "IO_EB_B2"; # 16
-# NET "signal" Loc = "IO_EB_A1"; # 17
-# NET "signal" Loc = "IO_EB_B1"; # 18
-# NET "signal" Loc = "IO_EB_A0"; # 19
-# NET "signal" Loc = "IO_EB_B0"; # 20
+#    1                                            19
+
+###################
+# Pin Assignments #
+###################
+
+# Onboard 10MHz crystal oscillator (frequency is specified at Board.vhd)
+NET "BoardCLK" Loc = "IO_SB_A8";
+
+# Control buttons - active high with 10kΩ pull-down resistors
+# If you're using a 5-button joystick, connect its COMmon port to a 3V3 pin
+# SCHMITT_TRIGGER enabled to prevent bouncing.
+NET "LeftButton"  Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true;
+NET "RightButton" Loc = "IO_EB_B2" | SCHMITT_TRIGGER=true;
+NET "PauseButton" Loc = "IO_EB_B1" | SCHMITT_TRIGGER=true;
+NET "ResetButton" Loc = "IO_EB_B0" | SCHMITT_TRIGGER=true;
+
+# 8-bit DIP switch - active high with 10kΩ pull-down resistors
+NET "DIPinput[0]" Loc = "IO_EB_A7" | SCHMITT_TRIGGER=true;
+NET "DIPinput[1]" Loc = "IO_EB_A6" | SCHMITT_TRIGGER=true;
+NET "DIPinput[2]" Loc = "IO_EB_A5" | SCHMITT_TRIGGER=true;
+NET "DIPinput[3]" Loc = "IO_EB_A4" | SCHMITT_TRIGGER=true;
+NET "DIPinput[4]" Loc = "IO_EB_A3" | SCHMITT_TRIGGER=true;
+NET "DIPinput[5]" Loc = "IO_EB_A2" | SCHMITT_TRIGGER=true;
+NET "DIPinput[6]" Loc = "IO_EB_A1" | SCHMITT_TRIGGER=true;
+NET "DIPinput[7]" Loc = "IO_EB_A0" | SCHMITT_TRIGGER=true;
+
+# Output to 4 in 1 MAX7219 4x8x8 LED module
+# Connect the module's VCC pin to a 5V supply pin
+# For testing purposes you can use BANK_NB1 #1 VDD pin.
+NET "MAX7219DIN" Loc = "IO_NB_B0";
+NET "MAX7219CS"  Loc = "IO_NB_B1";
+NET "MAX7219CLK" Loc = "IO_NB_B2";
