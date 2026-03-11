@@ -189,30 +189,6 @@ int main(int argc, char *argv[])
 			bitcopy(RAM, n, 7, 0); // <value>
 			sprintf(COMMENT, "%s %d", instr, n);
 			nextaddr();
-		} else if (instr_op1(TOKEN)) {
-			// <[instruction]>  ::= <instr_op1> <s+> <op>
-			strcpy(instr, TOKEN);
-			nexttoken();
-			n = value(TOKEN);
-			reg = regnum(TOKEN);
-			if (n >= 0) {
-				// op1 = <value>
-				strcpy(&RAM[7], "0");
-				nextaddr();
-				bitcopy(RAM, n, 7, 0); // <number> in Instr2
-				sprintf(COMMENT, "%s %d", instr, n);
-				nextaddr();
-			} else if (reg >= 0) {
-				// op1 = <reg>
-				strcpy(&RAM[7], "1");
-				nextaddr();
-				strcpy(&RAM[0], "00000");
-				bitcopy(RAM, reg, 3, 0); // <reg> in Instr2[2:0]
-				sprintf(COMMENT, "%s R%d", instr, reg);
-				nextaddr();
-			} else {
-				error(OP);
-			}
 		} else if (instr_reg_op2(TOKEN)) {
 			// <instruction> ::= <instr_reg_op2> <s+> <reg> <,> <op2>
 			char bracket_op2 = load_store(TOKEN); // op2 must be bracketed
@@ -249,7 +225,7 @@ int main(int argc, char *argv[])
 				bitcopy(RAM, reg2, 3, 0); // <reg> (op2) in Instr2[3:0]
 				sprintf(COMMENT, "%sR%d", str, reg2);
 			} else {
-				error(OP);
+				error(OP2);
 			}
 			if (bracket_op2) {
 				if (!eq(nexttoken(),"]")) error(RIGHTBRACKET);

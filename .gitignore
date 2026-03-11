@@ -16,7 +16,7 @@ GHDL/*
 !GHDL/*.bat
 !GHDL/*.gtkw
 Assembler/*
-!Assembler/*.txt
+!Assembler/*.md
 !Assembler/*.h
 !Assembler/*.c
 !Assembler/*.dev
