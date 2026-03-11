@@ -36,11 +36,8 @@ char instr_noarg(const char *s);
 /* "RSHIFT" | "LSHIFT" | "PUSH" | "POP" */
 char instr_reg(const char *s);
 
-/* "JC" | "JNC" | "JZ" | "JNZ" | "JS" | "JNS" | "JV" | "JNV" | "CALL" */
+/* "JMP" | "JC" | "JNC" | "JZ" | "JNZ" | "JS" | "JNS" | "JV" | "JNV" | "CALL" */
 char instr_n(const char *s);
-
-/* "JMP" */
-char instr_op1(const char *s);
 
 /* "MOV" | "ADD" | "ROR" | "SUB" | "CMP" | "AND" | "OR" | "XOR" |
 "LOAD" | "STORE" */

@@ -50,7 +50,7 @@ ARCHITECTURE a1 OF CPU IS
 	ALIAS Instr2Reg1 : REG_ADDR IS Instr2(6 DOWNTO 4);
 	ALIAS Instr2Reg2 : REG_ADDR IS Instr2(2 DOWNTO 0);
 	-- Instruction Decoder output
-	SIGNAL isHLT, isNOP, isJMP, isJMPr, isJC, isJNC, isJZ, isJNZ, isJV, isJNV,
+	SIGNAL isHLT, isNOP, isJMP, isJC, isJNC, isJZ, isJNZ, isJV, isJNV,
 		isJS, isJNS, isCALL, isRETURN, isSTORE, isSTOREr, isLOAD, isLOADr,
 		isSHIFT, isPUSH, isPOP, isStack : STD_LOGIC;
 	-- Register signals
@@ -87,13 +87,11 @@ BEGIN
 	-----------------------------------------------------------------------
 	-- Instruction Decoder
 	-----------------------------------------------------------------------
-	-- By default, all instructions are assumed to be types 5 and 6 with
-	-- opcodes matching their required ALUop. The following instructions are
-	-- either exceptions or need custom handling.
+	-- By default, all instructions are treated as types 4 and 5 with opcodes
+	-- matching their required ALUop. The following ones need custom handling:
 	isHLT    <= match(Instr1,"00000000");
 	isNOP    <= match(Instr1,"00000001");
-	isJMP    <= match(Instr1,"0000001-");
-	isJMPr   <= match(Instr1,"00000011");   -- JMP reg
+	isJMP    <= match(Instr1,"00000010");
 	isJC     <= match(Instr1,"00000100");
 	isJNC    <= match(Instr1,"00000101");
 	isJZ     <= match(Instr1,"00000110");
@@ -104,10 +102,10 @@ BEGIN
 	isJNV    <= match(Instr1,"00001101");
 	isCALL   <= match(Instr1,"00001110");
 	isRETURN <= match(Instr1,"00001111");
-	isSTORE  <= match(Instr1,"1000----");
-	isSTOREr <= match(Instr1,"10001000");   -- STORE reg1,reg2
-	isLOAD   <= match(Instr1,"1001----");
-	isLOADr  <= match(Instr1,"10011000");   -- LOAD reg1,reg2
+	isSTORE  <= match(Instr1,"1000----");   -- STORE reg1, [op2]
+	isSTOREr <= match(Instr1,"10001000");   -- STORE reg1, [reg2]
+	isLOAD   <= match(Instr1,"1001----");   -- LOAD reg1, [op2]
+	isLOADr  <= match(Instr1,"10011000");   -- LOAD reg1, [reg2]
 	isSHIFT  <= match(Instr1,"10100---") OR -- LSHIFT
 	            match(Instr1,"11010---");   -- RSHIFT
 	isPUSH   <= match(Instr1,"11100---");
@@ -155,8 +153,8 @@ BEGIN
 	-- stack pointer to be increased or decreased by the ALU.
 	A_reg <=
 		StackPointer WHEN isStack  ELSE
-		Instr2Reg1   WHEN op2isReg ELSE  -- type 4
-		Instr1Reg;                       -- type 2 or 5
+		Instr2Reg1   WHEN op2isReg ELSE -- type 4
+		Instr1Reg;                      -- type 2 or 5
 	-- B_reg's value is used in ALUinB, or as a memory address for LOAD/STORE.
 	-- B_reg is almost exclusively set to Instr2Reg2, except for PUSH where
 	-- A_reg is assigned to the stack pointer and Instr1Reg's value needs to
@@ -219,7 +217,6 @@ BEGIN
 		PC       WHEN isHLT OR Halt ELSE -- HLT works on the current cycle
 		Adjacent WHEN NOT Jumping   ELSE
 		Data     WHEN isRETURN      ELSE
-		B_val    WHEN isJMPr        ELSE
 		Instr2;
 	PC_DFF : ENTITY work.DFF8 PORT MAP(CLK, PCnext, PC);
 END;

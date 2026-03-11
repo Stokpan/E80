@@ -162,7 +162,8 @@ char instr_reg(const char *s)
 
 char instr_n(const char *s)
 {
-	if      (eq(s, "JC"))   strcpy(RAM, "00000100");
+	if      (eq(s, "JMP"))  strcpy(RAM, "00000010");
+	else if (eq(s, "JC"))   strcpy(RAM, "00000100");
 	else if (eq(s, "JNC"))  strcpy(RAM, "00000101");
 	else if (eq(s, "JZ"))   strcpy(RAM, "00000110");
 	else if (eq(s, "JNZ"))  strcpy(RAM, "00000111");
@@ -171,13 +172,6 @@ char instr_n(const char *s)
 	else if (eq(s, "JV"))   strcpy(RAM, "00001100");
 	else if (eq(s, "JNV"))  strcpy(RAM, "00001101");
 	else if (eq(s, "CALL")) strcpy(RAM, "00001110");
-	else return 0;
-	return 2;
-}
-
-char instr_op1(const char *s)
-{
-	if      (eq(s, "JMP"))  strcpy(RAM, "0000001"); // ≠ NOP
 	else return 0;
 	return 2;
 }

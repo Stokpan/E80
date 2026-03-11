@@ -120,7 +120,7 @@ void error(enum ErrorCode errorlevel)
 	case RIGHTBRACKET:
 		fprintf(stderr, "LOAD/STORE requires a right bracket after '%s'.", PREVIOUS);
 		break;
-	case OP:
+	case OP2:
 		if (eq(TOKEN, "")) {
 			fprintf(stderr,"Expected number, label or register after comma.");
 		} else {

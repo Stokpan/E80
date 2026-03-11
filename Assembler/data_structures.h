@@ -39,7 +39,7 @@ includes the final ram/comment arrays where the translated code is printed. */
 struct OutputHeader {
 	unsigned char labels;  // number of stored labels
 	struct LabelElement label[MAX_LABELS];
-	unsigned int addr; // current instruction address
+	unsigned char addr; // current instruction address
 	char ram[255][9];
 	char comment[255][MAX_LINE_LENGTH];
 };
