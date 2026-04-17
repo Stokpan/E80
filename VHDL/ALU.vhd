@@ -54,7 +54,7 @@ BEGIN
 	-- Full Adder / Subtractor
 	-------------------------------------------------------------------
 	B <= x"01" WHEN isDCR OR isINR ELSE ALUinB;
-	ALU_Adder : ENTITY work.FA8 PORT MAP(
+	Adder : ENTITY work.FA8 PORT MAP(
 		A,
 		B,
 		isSUB OR isDCR, -- 1 = subtraction (includes CMP)

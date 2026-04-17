@@ -188,6 +188,7 @@ char instr_reg_op2(const char *s)
 	else if (eq(s, "STORE")) strcpy(RAM, "1000");
 	else if (eq(s, "LOAD"))  strcpy(RAM, "1001");
 	else if (eq(s, "CMP"))   strcpy(RAM, "1011");
+	else if (eq(s, "BIT"))   strcpy(RAM, "1100");
 	else return 0;
 	return 2;
 }
@@ -196,13 +197,6 @@ char load_store(const char *s)
 {
 	if      (eq(s, "STORE")) strcpy(RAM, "1000");
 	else if (eq(s, "LOAD"))  strcpy(RAM, "1001");
-	else return 0;
-	return 2;
-}
-
-char instr_reg_n(const char *s)
-{
-	if (eq(s, "BIT")) strcpy(RAM, "11000");
 	else return 0;
 	return 2;
 }

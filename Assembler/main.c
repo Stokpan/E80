@@ -17,7 +17,8 @@ int main(int argc, char *argv[])
 	char instr[MAX_LINE_LENGTH] = {0}; // current instruction
 	char title[MAX_LINE_LENGTH] = {0}; // .TITLE string (optional)
 	int speed = DEFAULT_SPEED; // .SPEED value
-	char simdip[9] = "00000000"; // .SIMDIP value
+	int monitor = DEFAULT_MONITOR; // .MONITOR value
+	char simdip[9] = DEFAULT_SIMDIP; // .SIMDIP value
 	int reg, reg2; // register address
 	int n; // scratchpad index or value
 	int len, spaces; // formatting helpers
@@ -29,14 +30,13 @@ int main(int argc, char *argv[])
 	/* Starting message (hide if /Q switch is enabled) */
 	if (argc < 2 || (strcmp(argv[1],"/Q") && strcmp(argv[1],"/q"))) {
 		fprintf(stderr,
-			"E80 CPU Assembler v1.9 - February 2026, Panos Stokas\n\n"
-			"Translates an E80-assembly program to firmware VHDL code.\n\n"
+			"E80 CPU Assembler v3.0 - April 2026, Panos Stokas\n\n"
+			"Translates an E80-assembly program to VHDL code via stdin.\n\n"
 			"E80ASM [/Q]\n\n"
-			"  /Q          Silent mode, hides this message.\n\n"
-			"I/O is handled via stdin/stdout. Example:'\n\n"
+			"    /Q      Silent mode, hides this message.\n\n"
+			"Example:\n\n"
 			"e80asm < myprogram.e80asm > ..\\VHDL\\firmware.vhd\n\n"
-			"You can also paste your code here and press Ctrl-D & [Enter].\n"
-			"-------------------------------------------------------------\n");
+			"Type your assembly code and press Ctrl-D & [Enter].\n");
 	}
 
 	/* Read lines from stdin until EOF or end-of-transmit (Ctrl-D). */
@@ -51,8 +51,6 @@ int main(int argc, char *argv[])
 		trim(str); // trim whitespace and comments
 		enqueue(str); // store the line in the global "In" structure
 	}
-
-	fprintf(stderr, "Assembling... ");
 
 	/* Collect labels (symbols).
 	Label/value pairs are added to the "Out" structure. Error checking is
@@ -110,6 +108,9 @@ int main(int argc, char *argv[])
 			nexttoken();
 			if (TOKEN[0] != '"') error(UNQUOTED_TITLE);
 			strncpy(title, TOKEN + 1, strlen(TOKEN) - 2); // unquote
+		} else if (eq(TOKEN, ".MONITOR")) {
+			// <directive> ::= ".MONITOR" <s+> <value>
+			monitor = value(nexttoken());
 		} else if (eq(TOKEN, ".SPEED")) {
 			// <directive> ::= ".SPEED" <s+> <level>
 			speed = number(nexttoken());
@@ -232,25 +233,6 @@ int main(int argc, char *argv[])
 				sprintf(COMMENT+strlen(COMMENT), "]");
 			}
 			nextaddr();
-		} else if (instr_reg_n(TOKEN)) {
-			// <instruction> ::= <instr_reg_n> <s+> <reg> <,> <value>
-			strcpy(instr, TOKEN);
-			reg = regnum(nexttoken());
-			if (reg < 0) error(REGISTER);
-			if (!eq(nexttoken(), ",")) error(COMMA);
-			nexttoken();
-			n = value(TOKEN);
-			if (n < 0) error(VALUE);
-			bitcopy(RAM, reg, 2, 0);
-			nextaddr();
-			bitcopy(RAM, n, 7, 0);
-			if (n < 128) {
-				sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
-			} else {
-				// signed equivalent
-				sprintf(COMMENT, "%s R%d, %d (-%d)", instr, reg, n, 256-n);
-			}
-			nextaddr();
 		} else if (findlabel(TOKEN) != -1) { // includes dupe checking
 			// label syntax was checked during symbol collection
 			nexttoken();
@@ -268,16 +250,17 @@ int main(int argc, char *argv[])
 	instruction in hex and the disassembled mnemonic. */
 	char hex[5] = {0}; // bin to hex conversion string (max 4 digits)
 	while (fgets(str, MAX_LINE_LENGTH, vhdl_template) != NULL) {
-		if (strstr(str, "TITLE_PLACEHOLDER")) {
-			printf("-- ");
+		if (strstr(str, "--")) {
 			if (!eq(title,"")) {
-				printf("%s\n", title);
+				printf(str, title);
 			} else {
-				printf("%s\n", DEFAULT_TITLE);
+				printf(str, DEFAULT_TITLE);
 			}
-		} else if (strstr(str, "InitSpeed")) {
+		} else if (strstr(str, "SPEED_directive")) {
 			printf(str, speed); // template contains %d specifier
-		} else if (strstr(str, "SimDIP")) {
+		} else if (strstr(str, "MONITOR_directive")) {
+			printf(str, monitor); // template contains %d specifier
+		} else if (strstr(str, "SIMDIP_directive")) {
 			printf(str, simdip); // template contains %s specifier
 		} else if (strstr(str, "MACHINE_CODE_PLACEHOLDER")) {
 			str[0] = 0; // clear scratchpad string
@@ -330,6 +313,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	fprintf(stderr, "Done.\n");
+	fprintf(stderr, "\n\nAssembly complete with no errors.\n");
+	
 	return NO_ERROR;
 }

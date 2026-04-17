@@ -5,17 +5,17 @@
 -----------------------------------------------------------------------
 
 -----------------------------------------------------------------------
--- The Clock Generator converts the input clock (BoardCLK) to an array (GenCLK)
--- of eight clocks between 0 Hz and 1 MHz. It requires the BoardCLK's frequency 
--- (BoardCLK_MHz) from the \Boards\*\Board.vhd file.
+-- The Clock Generator converts the input clock (BoardCLK) to an array
+-- (GenCLK) of eight clocks between 0 Hz and 1 MHz. It requires the
+-- BoardCLK's frequency (BoardCLK_MHz) from the \Boards\*\Board.vhd file.
 -----------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, ieee.numeric_std.ALL, work.board.ALL;
-ENTITY ClockGenerator IS PORT (
+ENTITY ClockGen IS PORT (
 	BoardCLK : IN STD_LOGIC;                    -- hardware clock, at least 2Mhz
 	GenCLK   : OUT STD_LOGIC_VECTOR(7 DOWNTO 0) -- generated clocks array
 ); END;
-ARCHITECTURE a1 OF ClockGenerator IS
+ARCHITECTURE a1 OF ClockGen IS
 	SIGNAL Count500ns : UNSIGNED(23 DOWNTO 1) := (OTHERS => '0');
 BEGIN
 	PROCESS (BoardCLK)
@@ -40,7 +40,7 @@ BEGIN
 	GenCLK(3) <= Count500ns(20); -- 2 MHz / 2^20 ~ 2 Hz
 	GenCLK(4) <= Count500ns(19); -- 2 MHz / 2^19 ~ 4 Hz
 	GenCLK(5) <= Count500ns(17); -- 2 MHz / 2^17 ~ 15 Hz
-	GenCLK(6) <= Count500ns(9);  -- 2 MHz / 2^9 ~ 2 KHz
+	GenCLK(6) <= Count500ns(9);  -- 2 MHz / 2^9 ~ 4 KHz
 	GenCLK(7) <= Count500ns(1);  -- 2 MHz / 2 = 1 MHz
 END;
 
@@ -74,7 +74,7 @@ BEGIN
 		-- left, so the the first packet is shifted on matrix 4 (the rightmost).
 		SUBTYPE SRpacket IS STD_LOGIC_VECTOR(63 DOWNTO 0);
 		VARIABLE ShiftRegister : SRpacket;
-		VARIABLE Shifted : NATURAL RANGE 0 TO 63; -- number of shifted bits
+		VARIABLE ShiftedBits : NATURAL RANGE 0 TO SRpacket'LENGTH;
 		-- Initialization packets (see specification tables 2-10) were set
 		-- to ensure a reliable startup in repeated board reflashes.
 		TYPE InitPackets IS ARRAY (NATURAL RANGE <>) OF SRpacket;
@@ -84,7 +84,7 @@ BEGIN
 			2 => x"-F-0-F-0-F-0-F-0",  -- display test: disabled
 			3 => x"-A-F-A-F-A-F-A-F",  -- intensity: max
 			4 => x"-B-7-B-7-B-7-B-7"); -- scan-limit: max, allow all LEDs
-		VARIABLE InitIdx : NATURAL RANGE 0 TO InitPacket'length := 0;
+		VARIABLE InitIdx : NATURAL RANGE 0 TO InitPacket'LENGTH := 0;
 		-- Physical LED rows map to table 2 "digits" in reverse order
 		-- to allow the module to be read with its input pins on the left.
 		-- Eg. the first row corresponds to digit 7 with hex code 0xX8.
@@ -100,14 +100,13 @@ BEGIN
 			-------------------------------------------------------------------
 			ELSIF CS = '1' OR InitIdx = 0 THEN
 				-- CS='1' ⇒ Previous packet was latched
-				IF InitIdx < InitPacket'length THEN
+				IF InitIdx < InitPacket'LENGTH THEN
 					-- Prepare initialization data
 					IF InitIdx = 0 THEN
 						-- Initialize serial clock to high to allow for
 						-- a full first period at the Shifting state.
 						CLK <= '1';
 						Row := 0;
-						Shifted := 0;
 					END IF;
 					ShiftRegister := InitPacket(InitIdx);
 					InitIdx := InitIdx + 1;
@@ -127,7 +126,9 @@ BEGIN
 						Row := 0;
 					END IF;
 				END IF;
-				CS <= '0'; -- proceed to the Shifting state
+				-- Proceed to the Shifting state
+				ShiftedBits := 0;
+				CS <= '0';
 			-------------------------------------------------------------------
 			-- Shifting state
 			-------------------------------------------------------------------
@@ -135,18 +136,17 @@ BEGIN
 				IF CLK = '1' THEN
 					CLK <= '0';
 					-- shift the new bit before the next rising edge
-					DIN <= ShiftRegister(63);
-					ShiftRegister(63 DOWNTO 1) := ShiftRegister(62 DOWNTO 0);
+					DIN <= ShiftRegister(ShiftRegister'HIGH);
+					ShiftRegister(ShiftRegister'HIGH DOWNTO 1) :=
+						ShiftRegister(ShiftRegister'HIGH - 1 DOWNTO 0);
 				ELSE
 					CLK <= '1'; -- rising edge, send DIN to register
-					IF Shifted < 63 THEN
-						Shifted := Shifted + 1;
-					ELSE
+					ShiftedBits := ShiftedBits + 1;
+					IF ShiftedBits = SRpacket'LENGTH THEN
 						-- All bits have been shifted, latch them and return
 						-- to the preparation state. Also, tCSHmin = 0, so
 						-- both CLK & CS can be raised at the same time.
 						CS <= '1';
-						Shifted := 0;
 					END IF;
 				END IF;
 			END IF;
@@ -177,39 +177,29 @@ ENTITY Interface IS PORT (
 ARCHITECTURE a1 OF Interface IS
 	SIGNAL Reset  : STD_LOGIC := '0'; -- debounced ResetButton
 	SIGNAL Pause    : STD_LOGIC := '0'; -- debounced PauseButton
-	SIGNAL GenCLK : STD_LOGIC_VECTOR(7 DOWNTO 0); -- see ClockGenerator
-	SIGNAL Speed  : NATURAL RANGE 0 TO 6 := InitSpeed; -- GenCLK index
+	SIGNAL GenCLK : STD_LOGIC_VECTOR(7 DOWNTO 0); -- see ClockGen
+	SIGNAL Speed  : NATURAL RANGE 0 TO 6 := SPEED_directive; -- GenCLK index
 	ALIAS CLK1MHz : STD_LOGIC IS GenCLK(7); -- for board interface only
 	SIGNAL CLK    : STD_LOGIC; -- CPU clock speeds range from 0 to 2 KHz
 	-- Display signals
-	SIGNAL PC       : WORD;
-	SIGNAL Instr1   : WORD;
-	SIGNAL Instr2   : WORD;
-	SIGNAL R        : WORDx8;
-	SIGNAL RAMdisp1 : WORDx8;
-	SIGNAL RAMdisp2 : WORDx8;
-	SIGNAL Matrix1  : WORDx8;
-	SIGNAL Matrix2  : WORDx8;
-	SIGNAL Matrix3  : WORDx8;
-	SIGNAL Matrix4  : WORDx8;
+	SIGNAL PC      : WORD;
+	SIGNAL Instr1  : WORD;
+	SIGNAL Instr2  : WORD;
+	SIGNAL R       : WORDx8;
+	SIGNAL RAM     : WORDx256;
+	SIGNAL Matrix1 : WORDx8;
+	SIGNAL Matrix2 : WORDx8;
+	SIGNAL Matrix3 : WORDx8;
+	SIGNAL Matrix4 : WORDx8;
 BEGIN
-	-------------------------------------------------------------------
-	-- Variable frequency clock generator
-	-------------------------------------------------------------------
-	ClockGenerator: ENTITY work.ClockGenerator PORT MAP (BoardCLK, GenCLK);
-	-- Set the slow CPU clock to the fastest speed during reset, to ensure
-	-- a CLK rising edge within the ResetDone-DebounceDone duration.
-	-- Gate clock to low while pause is pressed. Combined with GenCLK(0) = '1'
-	-- (see ClockGenerator), this causes a clock rising edge when releasing
-	-- the pause button, allowing for stepped execution when Speed=0.
-	CLK <= GenCLK(6) WHEN Reset ELSE GenCLK(Speed) AND NOT Pause;
+	ClockGen_inst: ENTITY work.ClockGen PORT MAP (BoardCLK, GenCLK);
 	-----------------------------------------------------------------------
 	-- Control buttons process
 	-----------------------------------------------------------------------
 	PROCESS (CLK1MHz)
-		-- Debouncing and repeat rate settings
+		-- Debouncing and repeat rate settings in μs
 		CONSTANT DebounceDone : NATURAL := 100;
-		CONSTANT ResetDone : NATURAL := DebounceDone + 10000;
+		CONSTANT ResetDone : NATURAL := DebounceDone + 1000;
 		CONSTANT ResetCooldown : NATURAL := ResetDone + 200000; -- +0.2s
 		VARIABLE ResetTimer : NATURAL RANGE 0 TO ResetCooldown := DebounceDone;
 		CONSTANT MinPause : NATURAL := DebounceDone + 50000; -- +0.05s
@@ -227,8 +217,22 @@ BEGIN
 				ELSE
 					ResetTimer := 0;
 				END IF;
-			ELSIF ResetTimer < ResetDone THEN
+				-- When pause is pressed, the CPU clock is gated low; this is
+				-- useful when Speed is set to 0, in which CLK is gated high,
+				-- because releasing pause will cause a rising CLK edge,
+				-- allowing for stepped execution.
+				CLK <= GenCLK(Speed) AND NOT Pause;
+			ELSIF ResetTimer = DebounceDone THEN
+				-- Ensure a fresh rising edge with a synchronous reset
+				CLK <= '0';
 				Reset <= '1';
+				ResetTimer := ResetTimer + 1;
+			ELSIF ResetTimer < ResetDone THEN
+				-- Keep CLK to 1 to ensure a full first cycle after reset.
+				-- Otherwise the first cycle might run too fast (and in the
+				-- case of Speed=0, the first cycle will run immediately so
+				-- the user would go to the 2nd execution cycle).
+				CLK <= '1';
 				ResetTimer := ResetTimer + 1;
 				PauseTimer := 0;
 				SpeedTimer := 0;
@@ -284,20 +288,19 @@ BEGIN
 	-------------------------------------------------------------------
 	-- E80 Computer instantiation
 	-------------------------------------------------------------------
-	Computer: ENTITY work.Computer PORT MAP(
-		CLK,       -- Provided by the Clock, Reset and Pause process
+	Computer_inst: ENTITY work.Computer PORT MAP(
+		CLK,      -- GenCLK(6) WHEN Reset ELSE GenCLK(Speed) AND NOT Pause
 		Reset,
-		DIPinput,  -- 8-pin DIP switch user input, shown on Matrix4
-		PC,        -- Program Counter, shown on Matrix1
-		R,         -- Register file, shown on Matrix2
-		Instr1,    -- Instruction word Part 1, shown on Matrix1
-		Instr2,    -- Instruction word Part 2, shown on Matrix1
-		RAMdisp1,  -- RAM words on address 200-207, shown on Matrix3
-		RAMdisp2); -- RAM words on address 248-254, shown on Matrix4
+		DIPinput, -- 8-pin DIP switch user input, shown on Matrix4
+		PC,       -- Program Counter, shown on Matrix1
+		Instr1,   -- Instruction word Part 1, shown on Matrix1
+		Instr2,   -- Instruction word Part 2, shown on Matrix1
+		R,        -- Register file, shown on Matrix2
+		RAM);     -- RAM words on address 248-254, shown on Matrix3
 	-------------------------------------------------------------------
 	-- LED display
 	-------------------------------------------------------------------
-	MatrixDriver: ENTITY work.MAX7219x4 PORT MAP (
+	LED_Driver: ENTITY work.MAX7219x4 PORT MAP (
 		CLK1MHz,     -- main process clock input
 		Reset,
 		Matrix1,     -- leftmost 8x8 LEDs input, assigned below
@@ -337,13 +340,17 @@ BEGIN
 	Matrix2(6) <= x"00";
 	Matrix2(7) <= R(7);
 	-------------------------------------------------------------------
-	-- Matrix3  Rows 1-8: RAM block 200-207
-	-------------------------------------------------------------------
-	Matrix3 <= RAMdisp1;
-	-------------------------------------------------------------------
-	-- Matrix4  Rows 1-7: RAM block 248-254
+	-- Matrix3  Rows 1-7: RAM block 248-254 (stack space)
 	--          Row 8: DIP switch input
 	-------------------------------------------------------------------
-	Matrix4(0 TO 6) <= RAMdisp2(0 TO 6);
-	Matrix4(7) <= DIPinput;
+	StackSpace: FOR i IN 0 TO 6 GENERATE
+		Matrix3(i) <= RAM(248 + i);
+	END GENERATE;
+	Matrix3(7) <= DIPinput;
+	-------------------------------------------------------------------
+	-- Matrix4  Rows 1-8: 00000000 (to be used in the future)
+	-------------------------------------------------------------------
+	DisplayWord: FOR i IN 0 TO 7 GENERATE
+		Matrix4(i) <= RAM(MONITOR_directive + i);
+	END GENERATE;
 END;

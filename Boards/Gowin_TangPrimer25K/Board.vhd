@@ -1,4 +1,7 @@
-LIBRARY ieee; USE ieee.std_logic_1164.ALL;
+-----------------------------------------------------------------------
+-- Sipeed Tang Primer 25K Board Settings for the E80 Computer
+-- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+-----------------------------------------------------------------------
 PACKAGE Board IS
 CONSTANT BoardCLK_MHz : NATURAL := 50;
 END;

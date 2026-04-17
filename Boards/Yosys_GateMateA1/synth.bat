@@ -1,8 +1,8 @@
 @echo off
-title E80 VHDL Synthesis batch
+title E80 GateMate Synthesis Batch
 echo -----------------------------------------------------------------------
-echo                        E80 VHDL Synthesis batch
-echo This will synthesize the VHDL code (including your program's firmware),
+echo                       E80 GateMate Synthesis Batch
+echo This will synthesize E80's VHDL code (including your assembled program)
 echo and then flash the output bitstream to the Olimex GateMateA1-EVB board.
 echo -----------------------------------------------------------------------
 REM Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
@@ -41,10 +41,8 @@ REM Use nextpnr-himbaechel to check for the OSS CAD Suite presence. If nextpnr
 REM works, then everything else should because it has the most dependencies.
 nextpnr-himbaechel -V > NUL 2>&1
 if %errorlevel% NEQ 0 (
-	echo    OSS CAD Suite Not found. Download the Windows package from 
-	echo    github.com/YosysHQ/oss-cad-suite-build and run it on the
-	echo    E80 Toolchain installation folder, so that it extracts an
-	echo    "oss-cad-suite" subfolder with bin, lib, etc.
+	echo    The OSS CAD Suite is not found on the Toolchain folder.
+	echo    To install it, see Boards\Yosys_GateMateA1\README.md
 	echo ** Press any key to exit **
 	pause > nul
 	exit /b
@@ -54,10 +52,9 @@ REM Use openFPGALoader to check for the Olimex GateMate board; if not found
 REM continue, assuming the user will connect it during compilation.
 openfpgaloader -b olimex_gatemateevb --detect > NUL 2>&1
 if %errorlevel% NEQ 0 (
-	echo    Board not found. If it's connected and PWR_LED1 is on, check for
-	echo    a dirtyJtag device under "Universal Serial Bus devices". If it's
-	echo    on "Other devices", update its driver from the "Driver" folder.
-	echo    If you just forgot to connect it, you can do it now.
+	echo    Board not found. If it's connected and PWR_LED1 is on, please
+	echo    install its driver according to Boards\Yosys_GateMateA1\README.md
+	echo    If you just forgot to connect it, you can do so now.
 	echo.
 )
 
@@ -97,7 +94,7 @@ if %errorlevel% NEQ 0 goto :error
 
 echo 2. Synthesis (yosys) -- slow
 set log=yosys.log
-set command=yosys -p "read_verilog %TopUnit%.v; synth_gatemate -top %TopUnit% -luttree -nomx8 -nomult; write_json %TopUnit%.json"
+set command=yosys -p "read_verilog %TopUnit%.v; synth_gatemate -top %TopUnit% -luttree -nomx8; write_json %TopUnit%.json"
 copy NUL %log% > NUL
 echo -------------------------------------------------------------------------- >> %log%
 echo %time% -- %command% >> %log%

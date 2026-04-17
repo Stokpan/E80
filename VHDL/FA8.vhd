@@ -42,8 +42,8 @@ BEGIN
     -- Sum = A+(B XOR Sub)+C(0) = A + B + 0     = A+B (if Sub=0)
     --                            A + NOT B + 1 = A-B (if Sub=1)
 	C(0) <= Sub;
-	FA_Array : FOR i IN 0 TO 7 GENERATE
-		FA: ENTITY work.FA PORT MAP(
+	FA_Series : FOR i IN 0 TO 7 GENERATE
+		FA_inst: ENTITY work.FA PORT MAP(
 			A(i),
 			B(i) XOR Sub,
 			C(i),    -- Cin

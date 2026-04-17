@@ -8,7 +8,13 @@ local write_error = 'Error: Cannot write file '
 local refreshlogfile = false
 local welcome_msg_shown = false
 
- function OnOpen(file)
+-- Print string without leading/trailing new lines
+function log(string)
+	string = string:gsub("^[\n\r]+", ""):gsub("[\n\r]+$", "")
+	print(string)
+end
+
+function OnOpen(file)
 	-- Check if a logfile is (re)opened and rely on OnUpdateUI() to refresh it;
 	-- this requires check.if.already.open=1 and load.on.activate=1
 	if string.match(file, "%.log$") then
@@ -17,11 +23,11 @@ local welcome_msg_shown = false
 	end
 	-- show a help message on editor startup
 	if welcome_msg_shown then return end
-	print ("************ E80 Toolchain Hotkeys ***********")
-	print (" F5: Assemble and simulate (GHDL/GTKWave)     ")
-	print (" F7: Assemble and inspect VHDL output         ")
-	print (" F8: Assemble and simulate (ModelSim)         ")
-	print ("**********************************************")
+	log("************ E80 Toolchain Hotkeys ***********")
+	log(" F5: Assemble and simulate (GHDL/GTKWave)     ")
+	log(" F7: Assemble and inspect VHDL output         ")
+	log(" F8: Assemble and simulate (ModelSim)         ")
+	log("**********************************************")
 	welcome_msg_shown = true
 end
 
@@ -42,7 +48,7 @@ function Assemble()
 	local vhdl_end = '\nOTHERS => "UUUUUUUU");END;'
 	local e80_error = 'Error in line (%d+)'
 	local f = io.open(temp_src, "w")
-	if not f then print(write_error .. temp_src) return end
+	if not f then log(write_error .. temp_src) return end
 	f:write((editor:GetText())) -- double parentheses to keep text without size
 	f:close()
 
@@ -63,7 +69,7 @@ function Assemble()
 	local discard, end_idx = string.find(assembler_out, vhdl_end, 1, true)
 	if not end_idx then
 		-- no VHDL code was generated, output contains an error message
-		print(assembler_out)
+		log(assembler_out)
 		-- find the error line number
 		local error_line = string.match(assembler_out, e80_error)
 		-- a few messages (eg. template not found) have no error lines
@@ -78,11 +84,11 @@ function Assemble()
 	-- No error, split VHDL output and informal logs
 	local vhdl = string.sub(assembler_out, 1, end_idx)
 	local logs = string.sub(assembler_out, end_idx+1)
-	print(logs)
+	log(logs)
 
 	-- Write VHDL output to Firmware.vhd
 	f = io.open(firmware_vhd, "w")
-	if not f then print(write_error .. firmware_vhd) return end
+	if not f then log(write_error .. firmware_vhd) return end
 	f:write(vhdl)
 	f:close()
 	return 1
@@ -96,7 +102,7 @@ function Assembler_GHDL_GTKWave()
 	local handle = io.popen('cmd /c GHDL\\g 2>&1')
 	local g_bat_output = handle:read("*a")
 	handle:close()
-	print(g_bat_output)
+	log(g_bat_output)
 end
 
 -- Simulate with GHDL\GTKWave (F5 on Firmware.vhd)
@@ -106,7 +112,7 @@ function GHDL_GTKWave()
 	local handle = io.popen('cmd /c GHDL\\g 2>&1')
 	local g_bat_output = handle:read("*a")
 	handle:close()
-	print(g_bat_output)
+	log(g_bat_output)
 end
 
 -- Assemble and inspect VHDL output (F7 on .e80asm)
@@ -124,7 +130,7 @@ function Assembler_ModelSim()
 	local handle = io.popen('cmd /c ModelSim\\m 2>&1')
 	local m_bat_output = handle:read("*a")
 	handle:close()
-	print(m_bat_output)
+	log(m_bat_output)
 end
 
 -- Simulate with ModelSim (F8 on Firmware.vhd)
@@ -134,5 +140,5 @@ function ModelSim()
 	local handle = io.popen('cmd /c ModelSim\\m 2>&1')
 	local m_bat_output = handle:read("*a")
 	handle:close()
-	print(m_bat_output)
+	log(m_bat_output)
 end

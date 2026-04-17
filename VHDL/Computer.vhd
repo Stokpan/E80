@@ -12,37 +12,35 @@ ENTITY Computer IS PORT (
 	CLK      : IN STD_LOGIC;
 	Reset    : IN STD_LOGIC;
 	DIPinput : IN WORD;      -- 8-pin DIP switch user input
-	PC       : BUFFER WORD;  -- display
-	R        : OUT WORDx8;   -- display
-	Instr1   : BUFFER WORD;  -- display
-	Instr2   : BUFFER WORD;  -- display
-	RAMdisp1 : OUT WORDx8;   -- display RAM(200-207)
-	RAMdisp2 : OUT WORDx8    -- display RAM(248-255)
+	PC       : BUFFER WORD;  -- program counter
+	Instr1   : BUFFER WORD;  -- instruction part 1 / [PC]
+	Instr2   : BUFFER WORD;  -- instruction part 2 / [PC+1]
+	R        : OUT WORDx8;   -- register file (output only)
+	RAM      : OUT WORDx256  -- RAM contents (output only)
 ); END;
 ARCHITECTURE a1 OF Computer IS
-	SIGNAL MemAddr : WORD;
-	SIGNAL MemWriteEn : STD_LOGIC;
-	SIGNAL MemNext : WORD;
-	SIGNAL Mem : WORD;
-	SIGNAL Data : WORD; -- [MemAddr] if MemAddr<0xFF, else DIP input
+	SIGNAL MemAddr : WORD;         -- memory address to be read or written
+	SIGNAL Mem : WORD;             -- current value at MemAddr
+	SIGNAL MemNext : WORD;         -- next cycle value at MemAddr
+	SIGNAL MemWriteEn : STD_LOGIC; -- write enable for MemAddr
+	SIGNAL Data : WORD;            -- Mem if MemAddr<0xFF, else DIP input
 BEGIN
-	RAM : ENTITY work.RAM PORT MAP(
+	RAM_inst : ENTITY work.RAM PORT MAP(
 		CLK,
 		Reset,
-		PC,         -- current instruction address
-		MemAddr,    -- memory address to be read or written
-		MemWriteEn, -- write enable for MemAddr
-		MemNext,    -- next cycle value of [MemAddr]
-		Instr1,     -- [PC] first part of current instruction
-		Instr2,     -- [PC+1] 2nd part (ignored for 1-word instructions)
-		Mem,        -- [MemAddr] (RAM output)
-		RAMdisp1,   -- Passthrough for display
-		RAMdisp2    -- Passthrough for display
+		PC,
+		MemAddr,    
+		MemWriteEn,
+		MemNext,
+		Instr1,
+		Instr2,
+		Mem,        
+		RAM
 	);
 
 	Data <= DIPinput WHEN match(MemAddr,x"FF") ELSE Mem;
 
-	CPU : ENTITY work.CPU PORT MAP(
+	CPU_inst : ENTITY work.CPU PORT MAP(
 		CLK,
 		Reset,
 		Instr1,

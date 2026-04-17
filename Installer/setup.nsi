@@ -92,12 +92,13 @@ Section "Portable requirements" SecCore
 	WriteRegStr HKCU "${REG_UNINSTALL}" "InstallLocation" "$\"$INSTDIR$\""
 	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayIcon" "$\"$INSTDIR\e80icon.ico$\""
 	WriteRegStr HKCU "${REG_UNINSTALL}" "Publisher" "Panos Stokas"
-	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayVersion" "1.1"
+	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayVersion" "2.9"
 	WriteRegDWORD HKCU "${REG_UNINSTALL}" "NoModify" 1
 	WriteRegDWORD HKCU "${REG_UNINSTALL}" "NoRepair" 1
 	; Start Menu Shortcuts
 	CreateDirectory "$SMPROGRAMS\E80 Toolchain"
-	CreateShortcut "$SMPROGRAMS\E80 Toolchain\E80 Editor.lnk" "$INSTDIR\Sc1.exe" "" "$INSTDIR\e80icon.ico" 0
+	CreateShortcut "$SMPROGRAMS\E80 Toolchain\E80 Editor.lnk" "$INSTDIR\Sc1.exe" "" "$INSTDIR\e80icon.ico"
+	CreateShortcut "$SMPROGRAMS\E80 Toolchain\E80 GateMate Synthesis Batch.lnk" "$INSTDIR\Boards\Yosys_GateMateA1\synth.bat" "" "$INSTDIR\e80icon.ico"
 	CreateShortcut "$SMPROGRAMS\E80 Toolchain\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 SectionEnd
 

@@ -39,15 +39,12 @@ char instr_reg(const char *s);
 /* "JMP" | "JC" | "JNC" | "JZ" | "JNZ" | "JS" | "JNS" | "JV" | "JNV" | "CALL" */
 char instr_n(const char *s);
 
-/* "MOV" | "ADD" | "ROR" | "SUB" | "CMP" | "AND" | "OR" | "XOR" |
+/* "MOV" | "ADD" | "ROR" | "SUB" | "CMP" | "AND" | "BIT" | "OR" | "XOR" |
 "LOAD" | "STORE" */
 char instr_reg_op2(const char *s);
 
 /* "LOAD" | "STORE" */
 char load_store(const char *s);
-
-/* "BIT" */
-char instr_reg_n(const char *s);
 
 /* Returns the address of the register string parameter according to:
 <reg> ::= "R0"|"R1"|"R2"|"R3"|"R4"|"R5"|"R6"|"SP"|"R7"|"FLAGS" */

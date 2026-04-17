@@ -1,10 +1,9 @@
------------------------------------------------------------------------
-TITLE_PLACEHOLDER
------------------------------------------------------------------------
+-- %s
 LIBRARY ieee; USE ieee.std_logic_1164.ALL, work.support.ALL;
 PACKAGE firmware IS
-CONSTANT SimDIP : WORD := "%s"; -- Simulated DIP input at 0xFF
-CONSTANT InitSpeed : NATURAL := %d; -- Initial speed in hardware interface
+CONSTANT SIMDIP_directive  : WORD    := "%s";
+CONSTANT SPEED_directive   : NATURAL := %d;
+CONSTANT MONITOR_directive : NATURAL := %d;
 CONSTANT Firmware : WORDx256  := (
 MACHINE_CODE_PLACEHOLDER
 OTHERS => "UUUUUUUU");END;

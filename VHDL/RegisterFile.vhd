@@ -22,7 +22,7 @@ ENTITY RegisterFile IS PORT (
 	A_val  : OUT WORD;       -- current value of A_reg
 	B_val  : OUT WORD;       -- current value of B_reg
 	Flags  : OUT WORD;       -- current value of Flags Register
-	R      : OUT WORDx8      -- all current register values for FPGA LED output
+	R      : OUT WORDx8      -- register file (also routed to FPGA LEDs)
 ); END;
 ARCHITECTURE a1 OF RegisterFile IS
 	SIGNAL Rnext : WORDx8; -- stored values
@@ -36,7 +36,7 @@ BEGIN
 	b <= int(B_reg);
 	w <= int(W_reg);
 	DFF_Array: FOR i IN 0 TO 7 GENERATE
-		DFF8 : ENTITY work.DFF8 PORT MAP(CLK, Rnext(i), R(i));
+		DFF8_inst : ENTITY work.DFF8 PORT MAP(CLK, Rnext(i), R(i));
 		Rnext(i) <=
 			 Init(i) WHEN Reset ELSE
 			 -- Typically, a=w when trying to modify the FLAGS register,

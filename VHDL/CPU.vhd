@@ -14,14 +14,14 @@ USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY CPU IS PORT (
 	CLK        : IN STD_LOGIC;
 	Reset      : IN STD_LOGIC;
-	Instr1     : IN WORD;       -- [PC] first part of current instruction
-	Instr2     : IN WORD;       -- [PC+1] 2nd part (ignored for 1-word instr.)
+	Instr1     : IN WORD;       -- instruction part 1 / [PC]
+	Instr2     : IN WORD;       -- instruction part 2 / [PC+1]
 	Data       : IN WORD;       -- [MemAddr] if MemAddr<0xFF, else DIP input
-	PC         : BUFFER WORD;   -- current instruction address
+	PC         : BUFFER WORD;   -- program counter
 	MemAddr    : OUT WORD;      -- memory address to be read or written
-	MemWriteEn : OUT STD_LOGIC; -- write enable for [MemAddr]
-	MemNext    : OUT WORD;      -- next cycle value of [MemAddr]
-	R          : OUT WORDx8     -- FPGA LED output
+	MemWriteEn : OUT STD_LOGIC; -- write enable for MemAddr
+	MemNext    : OUT WORD;      -- next cycle value at MemAddr
+	R          : OUT WORDx8     -- register file (output only)
 ); END;
 ARCHITECTURE a1 OF CPU IS
 	-- Instruction format signal aliases
@@ -118,7 +118,7 @@ BEGIN
 	-- ALUinA/ALUout are assigned to A_reg's current A_val and A_next values.
 	-- ALUinB is assigned to either an immediate value (Instr2), a register
 	-- value (B_val), or data from the RAM or DIP input (Data).
-	ALU : ENTITY work.ALU PORT MAP(
+	ALU_inst : ENTITY work.ALU PORT MAP(
 		ALUop,
 		A_val,   -- ALUinA
 		ALUinB,
@@ -136,7 +136,7 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Registers
 	-------------------------------------------------------------------
-	RegisterFile : ENTITY work.RegisterFile PORT MAP(
+	RegisterFile_inst : ENTITY work.RegisterFile PORT MAP(
 		CLK,
 		Reset,
 		A_reg,  -- accumulator (usually 1st operand) address
@@ -197,7 +197,7 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Instructions have a variable Size of 1 or 2 words.
 	-- Adjacent, the address of the following instruction, is set to PC+Size
-	-- by using an 8-bit full adder (PC_Adder).
+	-- by using an 8-bit full adder (PC_Incrementor).
 	-- If a jump is occurring, Adjacent is ignored and the PC is set to the
 	-- target address which is either the Instr2 argument of the jump/call
 	-- instruction, or memory data from the stack (in case of RETURN).
@@ -205,7 +205,7 @@ BEGIN
 	Size <=
 		x"01" WHEN isHLT OR isNOP OR isRETURN OR isSHIFT OR isPUSH OR isPOP ELSE
 		x"02";
-	PC_Adder : ENTITY work.FA8 PORT MAP(PC, Size, '0', Adjacent);
+	PC_Incrementor : ENTITY work.FA8 PORT MAP(PC, Size, '0', Adjacent);
 	Jumping <=
 		isJMP OR isCALL OR isRETURN OR
 		(isJC AND Carry) OR (isJNC AND NOT Carry) OR
@@ -218,5 +218,5 @@ BEGIN
 		Adjacent WHEN NOT Jumping   ELSE
 		Data     WHEN isRETURN      ELSE
 		Instr2;
-	PC_DFF : ENTITY work.DFF8 PORT MAP(CLK, PCnext, PC);
+	ProgramCounter : ENTITY work.DFF8 PORT MAP(CLK, PCnext, PC);
 END;
