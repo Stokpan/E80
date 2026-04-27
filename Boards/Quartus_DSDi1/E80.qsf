@@ -70,6 +70,9 @@ set_location_assignment PIN_73 -to DIPinput[7]
 set_location_assignment PIN_99 -to MAX7219CLK
 set_location_assignment PIN_101 -to MAX7219CS
 set_location_assignment PIN_104 -to MAX7219DIN
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to MAX7219CLK
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to MAX7219CS
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to MAX7219DIN
 
 ###############################
 # Source files and top entity #

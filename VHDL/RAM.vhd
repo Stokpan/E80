@@ -1,11 +1,11 @@
 -----------------------------------------------------------------------
--- E80 256x8 RAM
+-- E80 256x8bit multiport RAM
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
--- Stores 256 words in 8-bit flip flops.
--- Reads a two-word instruction at PC and PC+1 addresses, and the Mem
--- word at MemAddr; updates the Mem word to MemNext if MemWriteEn=1.
--- Uploads the firmware to the RAM upon a synchronous reset.
--- Outputs the RAM content for LED display on Interface.vhd
+-- Declares the storage array as a buffer port which is passed to the
+-- Interface unit for display per the .MONITOR directive.
+-- Loads the machine code from Firmware.vhd to the RAM on synchronous reset.
+-- Concurrently reads instruction parts Instr1 and Instr2, and also
+-- reads or writes (if MemWriteEn=1) data at MemAddr.
 -----------------------------------------------------------------------
 
 LIBRARY ieee;
@@ -20,23 +20,24 @@ ENTITY RAM IS PORT (
 	Instr1     : OUT WORD;        -- [PC]
 	Instr2     : OUT WORD;        -- [PC+1]
 	Mem        : OUT WORD;        -- [MemAddr]
-	RAM        : BUFFER WORDx256  -- DFF storage, also routed to output LEDs
+	RAM        : BUFFER WORDx256  -- RAM storage, also routed to Interface.vhd
 ); END;
 ARCHITECTURE a1 OF RAM IS
-	SIGNAL i1, i2, a : NATURAL RANGE 0 TO 255;
 BEGIN
-	i1 <= int(PC);
-	i2 <= i1+1;
-	a <= int(MemAddr);
-	DFF_Array: FOR i IN 0 TO 255 GENERATE
-		SIGNAL RAMnext : WORD;
+	PROCESS(ALL)
+		VARIABLE intPC, intMemAddr : NATURAL RANGE 0 TO 255;
 	BEGIN
-		RAMnext <= Firmware(i) WHEN Reset = '1'                ELSE
-			       MemNext     WHEN MemWriteEn = '1' AND i = a ELSE
-			       RAM(i);
-		Cell : ENTITY work.DFF8 PORT MAP(CLK, RAMnext, RAM(i));
-	END GENERATE;
-	Instr1 <= RAM(i1);
-	Instr2 <= RAM(i2);
-	Mem <= RAM(a);
+		intPC := int(PC);
+		intMemAddr := int(MemAddr);
+		Instr1 <= RAM(intPC);
+		Instr2 <= RAM(intPC+1);
+		Mem <= RAM(intMemAddr);
+		IF RISING_EDGE(CLK) THEN
+			IF Reset = '1' THEN
+				RAM <= Firmware;
+			ELSIF MemWriteEn = '1' THEN
+				RAM(intMemAddr) <= MemNext;
+			END IF;
+		END IF;
+	END PROCESS;
 END;

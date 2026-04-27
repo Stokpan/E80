@@ -1,6 +1,4 @@
-<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="92" height="83"></a> is a simple CPU in structural VHDL, originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld to exercise the idea of program execution on primitive components.
-
-A design exclusively based on the standard logic library and a toolchain that enables one-click simulation of assembly programs provides the low floor. Annotated and extensible code with a textbook-complete instruction set and a pre-configured hardware interface for three low-cost FPGA boards provides the high ceiling. <br clear="left">
+<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="80" height="70"></a> is a simple von Neumann computer running on a soft-core CPU originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld for assembly execution on primitive components without behavioral abstractions: a toolchain for one-click simulation of assembly programs provides the low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards provides the wide walls. <br clear="left">
 
 ## Table of Contents
 
@@ -9,26 +7,24 @@ A design exclusively based on the standard logic library and a toolchain that en
 3. [Assembly Language](#assembly-language)
 4. [Simulation Example](#simulation-example)
 5. [Hardware Implementation](#hardware-implementation)
-6. [Workflow Example with the Olimex GateMateA1-EVB](#workflow-example-with-the-olimex-gatematea1-evb)
+6. [Workflow Example](#workflow-example)
 
 ## Features
 
-| Feature               | Description                                        |
-|-----------------------|----------------------------------------------------|
-| **Architecture**      | 8-bit, single-cycle, Load/Store                    |
-| **Dependencies**      | ieee.std_logic_1164 (no arithmetic libraries)      |
-| **Registers**         | 6 General-purpose, Flags, Stack Pointer            |
-| **Instruction format**| Variable size (8 or 16-bit), up to 2 operands      |
-| **Memory**            | 1R/W and 2R ports, addressable at 0x00-0xFE        |
-| **Addressing**        | Immediate, direct, register, register-indirect     |
-| **Stack**             | Full descending, SP initialized at 0xFF            |
-| **Input**             | 8-bit static user input memory-mapped at 0xFF      |
-| **Output**            | Serial 4x8x8 LED Matrix (4x daisy-chained MAX7219) |
-| **Assembly syntax**   | Hybrid of ARM, x86, and textbook pseudocode        |
-| **Assembler**         | ISO C99 stdin I/O                                  |
-| **Simulated on**      | GHDL+GTKWave and ModelSim                          |
-| **Synthesized on**    | GHDL+Yosys, Gowin, Quartus, Vivado                 |
-| **Tested on**         | GateMateA1-EVB, Tang Primer 25K, DSD-i1 Cyclone IV |
+* **Architecture**: 8-bit, single-cycle, Load/Store
+* **CPU constraints**: Structural VHDL relying on `ieee.std_logic_1164` without arithmetic libraries
+* **Instruction format**: Variable size (1 or 2 words), up to 2 operands
+* **Addressing**: Immediate, direct, register, register-indirect
+* **Registers**: 6 general-purpose (R0-R5), flags (R6), stack pointer (R7)
+* **Flags**: Carry, Zero, Sign, Overflow, Halt
+* **Memory**: Multiport to support single cycle access, addressable at 0x00-0xFE
+* **Stack**: Full-descending, stack pointer initialized at 0xFF
+* **Input**: 8‑bit DIP switches, memory‑mapped at 0xFF
+* **Output**: Serial 4x8x8 LED Matrix (4 daisy-chained MAX7219)
+* **Assembly syntax**: Hybrid of ARM, x86, and textbook pseudocode
+* **Assembler**: Written in ISO C99, using stdin/stdout/stderr only
+* **Simulated on**: GHDL+GTKWave and ModelSim
+* **Tested on**: GateMateA1-EVB (OSS CAD Suite), Tang Primer 25K (Gowin), DSD-i1 Cyclone IV (Quartus)
 
 ## Instruction Set Architecture
 
@@ -205,7 +201,7 @@ subroutine:
 
 To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
 
-<p align="center"><img alt="Sc1 editor window with assembly code" src="Images/Simulation/Sc1Assembly.png" /></p>
+<p align="center"><img alt="Sc1 Editor window with assembly code" src="Images/Simulation/Sc1Assembly.png" /></p>
 
 _Notice that syntax highlighting for the E80 assembly language has been enabled by default._
 
@@ -271,18 +267,18 @@ Step-by-step instructions for all three boards are provided in their respective 
 * **<a href="Boards/Yosys_GateMateA1/README.md">GateMateA1-EVB (OSS CAD Suite) <br> <img alt="GateMateA1-EVB full setup" src="Boards/Yosys_GateMateA1/GateMateA1-EVB.jpg" width="300" height="200" /></a>**
 * **<a href="Boards/Quartus_DSDi1/README.md">Hellenic Open University DSD-i1 (Quartus Lite) <br> <img src="Boards/Quartus_DSDi1/DSD-i1.jpg" width="300" height="200" /></a>**
 
-## Workflow Example with the Olimex GateMateA1-EVB
+## Workflow Example
 
-The following assumes that you have set up the GateMateA1-EVB board according to the instructions in the previous section, and that you are on the toolchain installation folder.
+The following assumes that you have set an FPGA board according to the instructions in the previous section.
 
-Start E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it. On the GTKWave window, expand RAM on the left and delete all addresses except 14-19 (mapped to LED Matrix 4 by the .MONITOR directive). Select all signals (Ctrl-A) and set them to Binary as seen here:
+Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it. On the GTKWave window, expand RAM on the left and delete all addresses except 14-19 (mapped to LED Matrix 4 by the .MONITOR directive). Select all signals (Ctrl-A) and set them to Binary as seen here:
 
 <p align="center"><img alt="hello.asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png" /></p>
 
-Run `Boards\Yosys_GateMateA1\synth.bat`. After step 5, the board will run the `hello` program. To test fast execution, hold the right button to speed it up, until the Halt flag turns on (leftmost row #7, LED #5).
+Use the EDA of your board to run the project as specified in the previous section. To test fast execution, hold the right button to speed it up, until the Halt flag turns on (leftmost row #7, LED #5).
 
-To restart for step execution, use the Left button to set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
+To restart with step execution, use the Left button to set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
 
 <p align="center"><img alt="hello.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/LEDmatrix.png" /></p>
 
-_In the photo above, undefined spaces were set by EDA synthesis to zero. This is usually the case with Quartus and Gowin, but not with Yosys; the GateMateA1-EVB will often initialize such spaces to the same non-zero value._
+_In the photo above, undefined spaces were set by EDA synthesis to zero. This is usually the case with Quartus and Gowin, but not with Yosys; the GateMateA1-EVB will often initialize such spaces to a non-zero value._
