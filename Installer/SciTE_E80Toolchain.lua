@@ -3,7 +3,7 @@
 
 local homedir = props['SciteDefaultHome']
 local asmdir = homedir .. '\\Assembler'
-local firmware_vhd = homedir .. '\\VHDL\\Firmware.vhd'
+local program_vhd = homedir .. '\\VHDL\\Program.vhd'
 local write_error = 'Error: Cannot write file '
 local refreshlogfile = false
 local welcome_msg_shown = false
@@ -41,7 +41,7 @@ function OnUpdateUI()
 	end
 end
 
--- Assemble with E80asm and save VHDL output to Firmware.vhd
+-- Assemble with E80asm and save VHDL output to Program.vhd
 function Assemble()
 	-- Copy the source from the editor to a temp_src file
 	local temp_src = asmdir .. '\\e80asm.' .. os.time() .. '.tmp'
@@ -86,9 +86,9 @@ function Assemble()
 	local logs = string.sub(assembler_out, end_idx+1)
 	log(logs)
 
-	-- Write VHDL output to Firmware.vhd
-	f = io.open(firmware_vhd, "w")
-	if not f then log(write_error .. firmware_vhd) return end
+	-- Write VHDL output to Program.vhd
+	f = io.open(program_vhd, "w")
+	if not f then log(write_error .. program_vhd) return end
 	f:write(vhdl)
 	f:close()
 	return 1
@@ -105,10 +105,10 @@ function Assembler_GHDL_GTKWave()
 	log(g_bat_output)
 end
 
--- Simulate with GHDL\GTKWave (F5 on Firmware.vhd)
+-- Simulate with GHDL\GTKWave (F5 on Program.vhd)
 function GHDL_GTKWave()
 	scite.MenuCommand(IDM_CLEAROUTPUT) -- clear log pane
-	scite.MenuCommand(106) -- save first, Firmware.vhd could have been modified
+	scite.MenuCommand(106) -- save first, Program.vhd could have been modified
 	local handle = io.popen('cmd /c GHDL\\g 2>&1')
 	local g_bat_output = handle:read("*a")
 	handle:close()
@@ -119,7 +119,7 @@ end
 function Show_VHDL()
 	scite.MenuCommand(IDM_CLEAROUTPUT) -- clear log pane
 	if not Assemble() then return end
-	scite.Open(firmware_vhd)
+	scite.Open(program_vhd)
 	scite.MenuCommand(IDM_REVERT) -- reload in case it was already opened
 end
 
@@ -133,10 +133,10 @@ function Assembler_ModelSim()
 	log(m_bat_output)
 end
 
--- Simulate with ModelSim (F8 on Firmware.vhd)
+-- Simulate with ModelSim (F8 on Program.vhd)
 function ModelSim()
 	scite.MenuCommand(IDM_CLEAROUTPUT) -- clear log pane
-	scite.MenuCommand(106) -- save first, Firmware.vhd could have been modified
+	scite.MenuCommand(106) -- save first, Program.vhd could have been modified
 	local handle = io.popen('cmd /c ModelSim\\m 2>&1')
 	local m_bat_output = handle:read("*a")
 	handle:close()

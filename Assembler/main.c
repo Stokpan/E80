@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 			"E80ASM [/Q]\n\n"
 			"    /Q      Silent mode, hides this message.\n\n"
 			"Example:\n\n"
-			"e80asm < myprogram.e80asm > ..\\VHDL\\firmware.vhd\n\n"
+			"e80asm < myprogram.e80asm > ..\\VHDL\\program.vhd\n\n"
 			"Type your assembly code and press Ctrl-D & [Enter].\n");
 	}
 

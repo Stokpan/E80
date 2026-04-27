@@ -33,7 +33,7 @@ BEGIN
 	-----------------------------------+------------------------------+------+
 	-- ALUop Decoder                   | ALUout                       | CZSV |
 	-----------------------------------+------------------------------+------+
-	isBypass <= match(ALUop,"-000"); --| A (J*, STORE, CALL, etc)     |      |
+	isBypass <= match(ALUop,"-000"); --| A (HLT, J*, STORE, etc)      |      |
 	isAssign <= match(ALUop,"-001"); --| B (MOV, LOAD)                |  **  |
 	isADD    <= match(ALUop,"0010"); --| A + B                        | **** | 
 	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** | 

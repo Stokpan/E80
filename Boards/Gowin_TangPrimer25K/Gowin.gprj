@@ -10,7 +10,7 @@
         <File path="../../VHDL/Support.vhd" type="file.vhdl" enable="1"/>
         <File path="../../VHDL/Computer.vhd" type="file.vhdl" enable="1"/>
         <File path="../../VHDL/RAM.vhd" type="file.vhdl" enable="1"/>
-        <File path="../../VHDL/Firmware.vhd" type="file.vhdl" enable="1"/>
+        <File path="../../VHDL/Program.vhd" type="file.vhdl" enable="1"/>
         <File path="../../VHDL/CPU.vhd" type="file.vhdl" enable="1"/>
         <File path="../../VHDL/RegisterFile.vhd" type="file.vhdl" enable="1"/>
         <File path="../../VHDL/DFF8.vhd" type="file.vhdl" enable="1"/>

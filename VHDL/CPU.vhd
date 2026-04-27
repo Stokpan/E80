@@ -13,15 +13,15 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY CPU IS PORT (
 	CLK        : IN STD_LOGIC;
-	Reset      : IN STD_LOGIC;
+	Reset      : IN STD_LOGIC;  -- resets the PC
 	Instr1     : IN WORD;       -- instruction part 1 / [PC]
 	Instr2     : IN WORD;       -- instruction part 2 / [PC+1]
 	Data       : IN WORD;       -- [MemAddr] if MemAddr<0xFF, else DIP input
-	PC         : BUFFER WORD;   -- program counter
+	PC         : BUFFER WORD;   -- program counter (+ LED display)
 	MemAddr    : OUT WORD;      -- memory address to be read or written
 	MemWriteEn : OUT STD_LOGIC; -- write enable for MemAddr
 	MemNext    : OUT WORD;      -- next cycle value at MemAddr
-	R          : OUT WORDx8     -- register file (output only)
+	R          : OUT WORDx8     -- register file (LED display)
 ); END;
 ARCHITECTURE a1 OF CPU IS
 	-- Instruction format signal aliases
