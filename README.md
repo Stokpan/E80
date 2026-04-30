@@ -1,4 +1,4 @@
-<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="80" height="70"></a> is a simple von Neumann computer running on a soft-core CPU originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld for assembly execution on primitive components without behavioral abstractions: a toolchain for one-click simulation of assembly programs provides the low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards provides the wide walls. <br clear="left">
+<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. A toolchain for one-click assembly and simulation serves as a low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards sets the wide walls. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.<br clear="left">
 
 ## Table of Contents
 
@@ -12,7 +12,6 @@
 ## Features
 
 * **Architecture**: 8-bit, single-cycle, Load/Store
-* **CPU constraints**: Structural VHDL relying on `ieee.std_logic_1164` without arithmetic libraries
 * **Instruction format**: Variable size (1 or 2 words), up to 2 operands
 * **Addressing**: Immediate, direct, register, register-indirect
 * **Registers**: 6 general-purpose (R0-R5), flags (R6), stack pointer (R7)
@@ -82,7 +81,7 @@ Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
 | 33 | 10110rrr nnnnnnnn | Br nn | CMP r,n       | SUB, discard result   | CZSV  |
 | 34 | 10111000 0rrr0rrr | B8 rr | CMP r1,r2     | SUB, discard result   | CZSV  |
 | 35 | 11000rrr nnnnnnnn | Cr nn | BIT r,n       | AND, discard result   |  ZS   |
-| 36 | 11001000 0rrr0rrr | C8 nn | BIT r1,r2     | AND, discard result   |  ZS   |
+| 36 | 11001000 0rrr0rrr | C8 rr | BIT r1,r2     | AND, discard result   |  ZS   |
 | 37 | 11010rrr          | Dr    | RSHIFT r      | (r,C)>>1; V ← S flip  | CZSV  |
 | 38 | 11100rrr          | Er    | PUSH r        | r → [--SP]            |       |
 | 39 | 11110rrr          | Fr    | POP r         | r ← [SP++]            |       |
@@ -225,7 +224,7 @@ _The final RAM content is logged at the end of execution. The content can also b
 
 ## Hardware Implementation
 
-The design is complemented by an Interface unit which requires a clock input with its frequency (2 MHz minimum) specified in `Boards\*\Board.vhd`. This generates an array of seven clocks from 0 to 4 kHz, one of which is selected by the user to drive the CPU.
+The design is complemented by an Interface unit which requires a clock input with its frequency (2 MHz minimum) specified in `Boards\*\Board.vhd`. This generates an array of clocks from 0 to 4 kHz, one of which is selected by the user to drive the CPU.
 
 User input is provided via an 8-bit DIP switch. Reset, pause, and speed throttling are provided by four buttons; a 5-way joystick provides more than enough buttons. All input pins must be active-high with 10kΩ pull-down resistors.
 

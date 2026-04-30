@@ -4,8 +4,8 @@
 -- Reads A_reg, B_reg, and Flags; writes to A_reg and W_reg. Reset is
 -- synchronous (to ensure a full first cycle) and clears only the SP and
 -- the Halt flag, leaving the rest to undefined.
--- The R-array (FPGA LED output) is passed to the final FPGA component for
--- display and should *not* be accessible by the CPU.
+-- The Register File (R WORDx8 array) is passed to Interface.vhd for display
+-- and should *not* be accessible by the CPU.
 -- R0-R5: General-purpose registers, R6: Flags register, R7: Stack pointer
 -----------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY RegisterFile IS PORT (
 	CLK    : IN STD_LOGIC;
-	Reset  : IN STD_LOGIC;
+	Reset  : IN STD_LOGIC;   -- resets the SP and clears the Halt flag
 	A_reg  : IN REG_ADDR;    -- read/write register
 	A_next : IN WORD;        -- next cycle value of A_reg
 	B_reg  : IN REG_ADDR;    -- read only register
@@ -22,7 +22,7 @@ ENTITY RegisterFile IS PORT (
 	A_val  : OUT WORD;       -- current value of A_reg
 	B_val  : OUT WORD;       -- current value of B_reg
 	Flags  : OUT WORD;       -- current value of Flags Register
-	R      : OUT WORDx8      -- register file (also routed to FPGA LEDs)
+	R      : BUFFER WORDx8   -- register file (+ LED display)
 ); END;
 ARCHITECTURE a1 OF RegisterFile IS
 	SIGNAL Rnext : WORDx8; -- stored values
