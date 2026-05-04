@@ -26,22 +26,24 @@ add wave -noupdate -label Sign /sim/R(6)(5)
 add wave -noupdate -label Overflow /sim/R(6)(4)
 add wave -noupdate /sim/Halt
 
-add wave -noupdate -divider {Registers}
-add wave -noupdate -radix unsigned /sim/R(0)
-add wave -noupdate -radix unsigned /sim/R(1)
-add wave -noupdate -radix unsigned /sim/R(2)
-add wave -noupdate -radix unsigned /sim/R(3)
-add wave -noupdate -radix unsigned /sim/R(4)
-add wave -noupdate -radix unsigned /sim/R(5)
+add wave -noupdate -label R0 -radix unsigned /sim/R(0)
+add wave -noupdate -label R1 -radix unsigned /sim/R(1)
+add wave -noupdate -label R2 -radix unsigned /sim/R(2)
+add wave -noupdate -label R3 -radix unsigned /sim/R(3)
+add wave -noupdate -label R4 -radix unsigned /sim/R(4)
+add wave -noupdate -label R5 -radix unsigned /sim/R(5)
 add wave -noupdate -label SP -radix unsigned /sim/R(7)
 
-add wave -noupdate -divider {Stack region}
 add wave -noupdate -radix unsigned /sim/RAM(251)
 add wave -noupdate -radix unsigned /sim/RAM(252)
 add wave -noupdate -radix unsigned /sim/RAM(253)
 add wave -noupdate -radix unsigned /sim/RAM(254)
+add wave -noupdate -radix binary /sim/DIPinput
+
+add wave -noupdate -label Monitor -radix ascii /sim/MonitorVector
+add wave -noupdate -label Monitor -radix binary /sim/MonitorArray
+
 add wave -noupdate -radix hexadecimal /sim/RAM
-add wave -noupdate /sim/DIPinput
 
 # Format waves
 configure wave -namecolwidth 104
@@ -67,7 +69,6 @@ quietly wave zoom range 0 4400
 quietly view wave
 
 # Output the RAM content (32 columns) to the transcript window
-echo "#      Final RAM Content"
-echo "#      0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31"
+echo "# RAM   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31"
 echo "#      -----------------------------------------------------------------------------------------------"
 mem display -dataradix hexadecimal -wo 32 /sim/RAM

@@ -12,9 +12,6 @@ Boards/Quartus_DSDi1/*
 !Boards/Quartus_DSDi1/*.qsf
 !Boards/Quartus_DSDi1/*.sdc
 !Boards/Quartus_DSDi1/*.srf
-GHDL/*
-!GHDL/*.bat
-!GHDL/*.gtkw
 Assembler/*
 !Assembler/*.md
 !Assembler/*.h

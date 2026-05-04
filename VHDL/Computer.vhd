@@ -13,12 +13,12 @@ ENTITY Computer IS PORT (
 	Reset    : IN STD_LOGIC; -- resets the PC, SP, Halt, and Program data
 	DIPinput : IN WORD;      -- 8-bit DIP switch user input
 	PC       : BUFFER WORD;  -- program counter (+ LED display)
-	Instr1   : BUFFER WORD;  -- instruction part 1 / [PC] (+ LED display)
-	Instr2   : BUFFER WORD;  -- instruction part 2 / [PC+1] (+ LED display)
 	R        : OUT WORDx8;   -- register file (LED display)
 	RAM      : OUT WORDx256  -- RAM contents (LED display)
 ); END;
 ARCHITECTURE a1 OF Computer IS
+	SIGNAL Instr1 : WORD;          -- instruction part 1 / [PC]
+	SIGNAL Instr2 : WORD;          -- instruction part 2 / [PC+1]
 	SIGNAL MemAddr : WORD;         -- memory address to be read or written
 	SIGNAL Mem : WORD;             -- current value at MemAddr
 	SIGNAL MemNext : WORD;         -- next cycle value at MemAddr

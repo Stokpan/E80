@@ -1,4 +1,6 @@
-<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. A toolchain for one-click assembly and simulation serves as a low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards sets the wide walls. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.<br clear="left">
+<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. A toolchain for one-click assembly and simulation serves as a low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards sets the wide walls. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.
+
+The implementation was [presented at PACET 2026](https://doi.org/10.13140/RG.2.2.27849.71521) and the paper is [available on IEEE Xplore](https://doi.org/10.1109/PACET68758.2026.11498245).<br clear="left">
 
 ## Table of Contents
 
@@ -173,13 +175,13 @@ op2    : Reg or val (flexible 2nd operand)
 * Comments start with a semicolon.
 * The `.SPEED` directive sets the initial CPU clock frequency in the FPGA according to the [Hardware Implementation section](#hardware-implementation). Default value is 2 (~1 Hz).
 * The `.MONITOR` directive defaults to 0.
-* The `.SIMDIP` directive sets a constant value (default 0x00) for address 0xFF in simulation only. It's ignored on hardware execution, where 0xFF is maps to the 8-bit DIP switches.
+* The `.SIMDIP` directive sets a constant value (default 0x00) for address 0xFF in simulation only. It's ignored on hardware execution, where 0xFF maps to the 8-bit DIP switches.
 
 ## Simulation Example
 
 The following program writes the null-terminated string *jello* to memory after the last instruction, changes *j* to *h*, pushes the ASCII code of *h* to the stack, loads R0 with the simulated DIP input (0b10000010 = 130), calls a subroutine to add -100 (156 unsigned) to it, and then pops the value from the stack into R1. The program will then run HLT and execution will stop. 
 
-Ignore the .MONITOR directive for now.
+The .MONITOR directive passes the address of an 8-word block to the simulator (as seen below) or to the hardware interface (as seen in the next section). In this case, we'll be monitoring the _jello/hello_ string.
 
 ```
 .TITLE "A simple program to showcase the features of E80 assembly"
@@ -204,11 +206,13 @@ To simulate it, first install the latest E80 Toolchain release, and then open th
 
 _Notice that syntax highlighting for the E80 assembly language has been enabled by default._
 
-Hit F5. The editor will automatically assemble the code into a VHDL-based format, run the entire design with GHDL, and launch GTKWave to view the waveforms. Subsequent simulations will close the previous GTKWave window to open a new one. In the following screenshot, the RAM has been expanded to the `string` area and its radix is changed to ASCII:
+Hit F5. The editor will automatically assemble the code into a VHDL-based format, run the entire design with GHDL, and launch GTKWave to view the waveforms. The MONITOR signal is configured to show the .MONITOR directive's 8-word block in ASCII format.
 
 <p align="center"><img alt="GHDL waveform output in GTKWave; RAM addresses 14-19 have been initialized by the .DATA directive" src="Images/Simulation/GTKWave.png" /></p>
 
 _Notice that the HLT instruction has stopped the simulation in GHDL, allowing for the waveforms to be drawn for the runtime only. This useful feature is supported in ModelSim as well._
+
+Subsequent simulations will close the previous GTKWave window to open a new one.
 
 You can also hit F7 to view the generated Program.vhd file, without simulation:
 
@@ -220,17 +224,15 @@ If you have installed ModelSim, you can hit F8 to automatically open ModelSim an
 
 <p align="center"><img alt="ModelSim simulation and waveform" src="Images/Simulation/ModelSim.png" /></p>
 
-_The final RAM content is logged at the end of execution. The content can also be displayed by hovering on the RAM in the Wave tab, but there's a catch: if the radix is set to ASCII and the data include a curly bracket, ModelSim will throw an error when trying to show the tooltip._
-
 ## Hardware Implementation
 
 The design is complemented by an Interface unit which requires a clock input with its frequency (2 MHz minimum) specified in `Boards\*\Board.vhd`. This generates an array of clocks from 0 to 4 kHz, one of which is selected by the user to drive the CPU.
 
-User input is provided via an 8-bit DIP switch. Reset, pause, and speed throttling are provided by four buttons; a 5-way joystick provides more than enough buttons. All input pins must be active-high with 10kΩ pull-down resistors.
+User input is provided by an 8-bit DIP switch. Reset, pause, and speed throttling are provided by four buttons; a 5-way joystick provides more than enough buttons. All input pins must be active-high with 10kΩ pull-down resistors.
 
-Output is provided via a 4x8x8 LED module driven by four daisy-chained MAX7219 chips, requiring three input lines. The logic assumes the module is oriented with its pins on the left, where Matrix 1 is the leftmost and Row 1 is the topmost.
+Output is provided by a 4x8x8 LED module driven by four daisy-chained MAX7219 chips, requiring three input lines. The logic assumes the module is oriented with its pins on the left, where Matrix 1 is the leftmost and Row 1 is the topmost.
 
-* **8-bit DIP switch:** Provides a static word at address 0xFF.
+* **8-bit DIP switch:** Provides a static input word at address 0xFF.
 * **Left/Right buttons:** Adjust speed level (clock frequency) as follows:
 	* Speed level 0: 0 Hz, clock is gated high
 	* Speed level 1: 0.24 Hz
@@ -260,24 +262,24 @@ Output is provided via a 4x8x8 LED module driven by four daisy-chained MAX7219 c
 * **Matrix 4:**
 	* Rows 1-8: **.MONITOR Block** (8-word RAM block starting from the .MONITOR's address)
 
-Step-by-step instructions for all three boards are provided in their respective folders. The photos showcase the completion of hello.e80asm.
+Step-by-step instructions for all three boards are provided in their respective folders. The photos showcase the completed execution of hello.e80asm.
 
 * **<a href="Boards/Gowin_TangPrimer25K/README.md">Tang Primer 25K (Gowin FPGA Designer) <br> <img src="Boards/Gowin_TangPrimer25K/TangPrimer25K.jpg" width="300" height="200" /></a>**
 * **<a href="Boards/Yosys_GateMateA1/README.md">GateMateA1-EVB (OSS CAD Suite) <br> <img alt="GateMateA1-EVB full setup" src="Boards/Yosys_GateMateA1/GateMateA1-EVB.jpg" width="300" height="200" /></a>**
 * **<a href="Boards/Quartus_DSDi1/README.md">Hellenic Open University DSD-i1 (Quartus Lite) <br> <img src="Boards/Quartus_DSDi1/DSD-i1.jpg" width="300" height="200" /></a>**
 
+_As seen in the photos above, Quartus and Gowin initialize undefined spaces to zero but Yosys does not. This is a desirable trait for the educational purposes of this project._
+
 ## Workflow Example
 
 The following assumes that you have set an FPGA board according to the instructions in the previous section.
 
-Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it. On the GTKWave window, expand RAM on the left and delete all addresses except 14-19 (mapped to LED Matrix 4 by the .MONITOR directive). Select all signals (Ctrl-A) and set them to Binary as seen here:
+Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it. Expand the height of the GTKWave window to reveal the Monitor Rows. Select all signals except the Monitor string set them to Binary as seen here:
 
 <p align="center"><img alt="hello.asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png" /></p>
 
-Use the EDA of your board to run the project as specified in the previous section. To test fast execution, hold the right button to speed it up, until the Halt flag turns on (leftmost row #7, LED #5).
+Follow the board-specific instructions from the previous section to compile the project (with the assembled program) and run it on your hardware. To test fast execution, hold the right button to speed it up, until the Halt flag turns on (leftmost row #7, LED #5).
 
 To restart with step execution, use the Left button to set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
 
 <p align="center"><img alt="hello.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/LEDmatrix.png" /></p>
-
-_In the photo above, undefined spaces were set by EDA synthesis to zero. This is usually the case with Quartus and Gowin, but not with Yosys; the GateMateA1-EVB will often initialize such spaces to a non-zero value._
