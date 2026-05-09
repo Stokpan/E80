@@ -1,4 +1,4 @@
-# E80 ModelSim simulation and layout automation script
+# E80 ModelSim simulation and layout TCL script
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
 # Stop previous simulation

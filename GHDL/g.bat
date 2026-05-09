@@ -1,5 +1,5 @@
 @echo off
-REM GHDL/GTKWave batch
+REM E80 GHDL/GTKWave automation batch
 REM Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 REM Example usage: g sim 100ns
 
@@ -39,7 +39,7 @@ if %errorlevel% NEQ 0 goto :end
 REM Close the previous GTKWave window
 taskkill /im gtkwave.exe >nul 2>&1
 echo Opening waveforms in GTKWave.
-REM Open GTKWave through powershell, otherwise it will lock the caller process (Sc1) until closed
-powershell -Command "Start-Process gtkwave.exe -ArgumentList '%top%.gtkw'"
+REM Open GTKWave through vbscript, otherwise it will lock the caller process (Sc1) until closed
+gtkwave.vbs %top%.gtkw
 
 :end

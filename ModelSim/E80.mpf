@@ -26,11 +26,6 @@ UnbufferedOutput = 0
 ConcurrentFileLimit = 40
 
 [Project]
-** Warning: ; Warning -- Do not edit the project properties directly.
-;            Property names are dynamic in nature and property
-;            values have special syntax.  Changing property data directly
-;            can result in a corrupt MPF file.  All project properties
-;            can be modified through project window dialogs.
 Project_Version = 6
 Project_DefaultLib = work
 Project_SortMethod = unused

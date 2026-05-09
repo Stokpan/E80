@@ -1,5 +1,5 @@
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
-# ModelSim listener script
+# ModelSim listener TCL script
 # If the E80sim file exists, it deletes it and runs the c.do script
 
 proc checkE80sim {} {

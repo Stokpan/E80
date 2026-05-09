@@ -1,6 +1,6 @@
 <a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. A toolchain for one-click assembly and simulation serves as a low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards sets the wide walls. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.
 
-The implementation was [presented at PACET 2026](https://doi.org/10.13140/RG.2.2.27849.71521) and the paper is [available on IEEE Xplore](https://doi.org/10.1109/PACET68758.2026.11498245).<br clear="left">
+The implementation's engineering and methodology was [presented](https://doi.org/10.13140/RG.2.2.27849.71521) at [PACET 2026](https://sites.google.com/g.upatras.gr/pacet2026) and the paper is [available on IEEE Xplore](https://doi.org/10.1109/PACET68758.2026.11498245).<br clear="left">
 
 ## Table of Contents
 
@@ -94,8 +94,8 @@ Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
 * Carry and Overflow flags are updated by arithmetic and shift instructions, except `ROR`.
 * Shift instructions are logical; Carry flag = shifted bit and the Overflow flag is set if the sign bit is changed.
 * Sign and Zero flags are updated by `CMP`, `BIT`, and any instruction that modifies a register, except for stack-related instructions.
-* Explicit modifications of the FLAGS register take precedence over normal flag changes, eg. `OR FLAGS, 0b01000000` sets Z=1 although the result is non-zero.
-* The `HLT` instruction sets the Halt flag and freezes the PC, thereby stopping execution in the current cycle. Setting the Halt flag by modifying the Flags (R6) register will stop execution on the next cycle.
+* The `HLT` instruction sets the Halt flag and freezes the PC, thereby stopping execution in the current cycle.
+* Explicit modification of the FLAGS register takes precedence over normal flag changes, eg. `OR FLAGS, 0b01000000` sets Z=1 although the result is non-zero.
 * Addition & subtraction is performed with a textbook adder; flags are set according to this cheatsheet:
 ```
 	               +------+-----------------------------+----------------------+
@@ -137,7 +137,7 @@ op2    : Reg or val (flexible 2nd operand)
 | .DATA label csv      | Append csv at label address after program space    |
 | .SIMDIP value        | Set the DIP switch input (simulation only)         |
 | .SPEED level         | Initialize clock speed to level 0-6 on the FPGA    |
-| .MONITOR value       | Address of 8-word RAM block shown on LED Matrix 4  |
+| .MONITOR value       | Address of 8-word RAM block to be displayed        |
 +----------------------+----------------------------------------------------+
 
 +----------------------+----------------------------------------------------+
@@ -174,14 +174,12 @@ op2    : Reg or val (flexible 2nd operand)
 * `.DATA` sets a label after the last instruction and writes the csv data to it; consecutive `.DATA` directives append after each other.
 * Comments start with a semicolon.
 * The `.SPEED` directive sets the initial CPU clock frequency in the FPGA according to the [Hardware Implementation section](#hardware-implementation). Default value is 2 (~1 Hz).
-* The `.MONITOR` directive defaults to 0.
+* The `.MONITOR` directive points to an 8-word block to display on the LED matrix, or as separate signals in ASCII and binary format in simulation; it defaults to 0.
 * The `.SIMDIP` directive sets a constant value (default 0x00) for address 0xFF in simulation only. It's ignored on hardware execution, where 0xFF maps to the 8-bit DIP switches.
 
 ## Simulation Example
 
-The following program writes the null-terminated string *jello* to memory after the last instruction, changes *j* to *h*, pushes the ASCII code of *h* to the stack, loads R0 with the simulated DIP input (0b10000010 = 130), calls a subroutine to add -100 (156 unsigned) to it, and then pops the value from the stack into R1. The program will then run HLT and execution will stop. 
-
-The .MONITOR directive passes the address of an 8-word block to the simulator (as seen below) or to the hardware interface (as seen in the next section). In this case, we'll be monitoring the _jello/hello_ string.
+The following program sets a simulated input to address 0xFF through the SIMDIP directive, writes the null-terminated string _jello_ after the last instruction through the DATA directive, and marks the address of the string for display through the MONITOR directive. It then runs a few textbook assembly instructions.
 
 ```
 .TITLE "A simple program to showcase the features of E80 assembly"
@@ -191,7 +189,7 @@ The .MONITOR directive passes the address of an 8-word block to the simulator (a
     MOV R0, 104         ; ASCII code of h
     STORE R0, [string]  ; replace j with h
     PUSH R0
-    LOAD R0, [0xFF]     ; DIP input address
+    LOAD R0, [0xFF]     ; read DIP input address
     CALL subroutine
     POP R1
     HLT
@@ -202,29 +200,38 @@ subroutine:
 
 To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
 
-<p align="center"><img alt="Sc1 Editor window with assembly code" src="Images/Simulation/Sc1Assembly.png" /></p>
+<p align="center"><img alt="Sc1 Editor window with assembly code" src="Images/Simulation/Sc1Assembly.png"></p>
 
 _Notice that syntax highlighting for the E80 assembly language has been enabled by default._
 
-Hit F5. The editor will automatically assemble the code into a VHDL-based format, run the entire design with GHDL, and launch GTKWave to view the waveforms. The MONITOR signal is configured to show the .MONITOR directive's 8-word block in ASCII format.
+Hit F5. The editor will automatically assemble the code into a VHDL-based format, run the entire design with GHDL, and launch GTKWave to view the waveforms. The Monitor signal on the bottom shows the .MONITOR directive's 8-word block as an ASCII string.
 
-<p align="center"><img alt="GHDL waveform output in GTKWave; RAM addresses 14-19 have been initialized by the .DATA directive" src="Images/Simulation/GTKWave.png" /></p>
+<p align="center"><img alt="GHDL waveform output in GTKWave; RAM addresses 14-19 have been initialized by the .DATA directive" src="Images/Simulation/GTKWave.png"></p>
 
 _Notice that the HLT instruction has stopped the simulation in GHDL, allowing for the waveforms to be drawn for the runtime only. This useful feature is supported in ModelSim as well._
 
-Subsequent simulations will close the previous GTKWave window to open a new one.
+You can make changes in the assembly source, and press F5 again; the previous GTKWave window will be automatically closed and replaced by the new one.
 
 You can also hit F7 to view the generated Program.vhd file, without simulation:
 
-<p align="center"><img alt="VHDL output of the assembler" src="Images/Simulation/Sc1VHDL.png" /></p>
+<p align="center"><img alt="VHDL output of the assembler" src="Images/Simulation/Sc1VHDL.png"></p>
 
 _Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
 
-If you have installed ModelSim, you can hit F8 to automatically open ModelSim and simulate into it. Subsequent simulations on ModelSim will update its existing window:
+Finally, you can press F8 to simulate in ModelSim. Unlike GHDL, ModelSim cannot be included in the toolchain, but it's currently free to [download](https://www.altera.com/downloads/simulation-tools/modelsim-fpgas-standard-edition-software-version-20-1-1). If you have enabled the E80 Layout for ModelSim on the toolchain installation, enable it from the corresponding Layout menu to get the following view:
 
-<p align="center"><img alt="ModelSim simulation and waveform" src="Images/Simulation/ModelSim.png" /></p>
+<p align="center"><img alt="ModelSim simulation and waveform" src="Images/Simulation/ModelSim.png"></p>
+
+_Pressing F8 again will update the simulation on the current ModelSim window._
 
 ## Hardware Implementation
+
+Step-by-step instructions and settings are provided for the following boards (and EDAs):
+
+| <a href="Boards/Gowin_TangPrimer25K/README.md">Tang Primer 25K (Gowin) <br> <img src="Boards/Gowin_TangPrimer25K/TangPrimer25K.jpg" width="250"></a> | <a href="Boards/Yosys_GateMateA1/README.md">GateMateA1 (OSS CAD Suite) <br> <img src="Boards/Yosys_GateMateA1/GateMateA1-EVB.jpg" width="250"></a> | <a href="Boards/Quartus_DSDi1/README.md">HOU DSD-i1 (Quartus) <br> <img src="Boards/Quartus_DSDi1/DSD-i1.jpg" width="250"></a> |
+|---|---|---|
+
+_The photos showcase the completed execution of hello.e80asm; Quartus and Gowin initialize undefined spaces to zero but Yosys does not. This is a desirable trait for the educational purposes of this project._
 
 The design is complemented by an Interface unit which requires a clock input with its frequency (2 MHz minimum) specified in `Boards\*\Board.vhd`. This generates an array of clocks from 0 to 4 kHz, one of which is selected by the user to drive the CPU.
 
@@ -262,24 +269,16 @@ Output is provided by a 4x8x8 LED module driven by four daisy-chained MAX7219 ch
 * **Matrix 4:**
 	* Rows 1-8: **.MONITOR Block** (8-word RAM block starting from the .MONITOR's address)
 
-Step-by-step instructions for all three boards are provided in their respective folders. The photos showcase the completed execution of hello.e80asm.
-
-* **<a href="Boards/Gowin_TangPrimer25K/README.md">Tang Primer 25K (Gowin FPGA Designer) <br> <img src="Boards/Gowin_TangPrimer25K/TangPrimer25K.jpg" width="300" height="200" /></a>**
-* **<a href="Boards/Yosys_GateMateA1/README.md">GateMateA1-EVB (OSS CAD Suite) <br> <img alt="GateMateA1-EVB full setup" src="Boards/Yosys_GateMateA1/GateMateA1-EVB.jpg" width="300" height="200" /></a>**
-* **<a href="Boards/Quartus_DSDi1/README.md">Hellenic Open University DSD-i1 (Quartus Lite) <br> <img src="Boards/Quartus_DSDi1/DSD-i1.jpg" width="300" height="200" /></a>**
-
-_As seen in the photos above, Quartus and Gowin initialize undefined spaces to zero but Yosys does not. This is a desirable trait for the educational purposes of this project._
-
 ## Workflow Example
 
 The following assumes that you have set an FPGA board according to the instructions in the previous section.
 
-Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it. Expand the height of the GTKWave window to reveal the Monitor Rows. Select all signals except the Monitor string set them to Binary as seen here:
+Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it. Resize the GTKWave window to reveal the Monitor Rows at the bottom. Select all signals except the Monitor string, and set them to Binary as seen here:
 
-<p align="center"><img alt="hello.asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png" /></p>
+<p align="center"><img alt="hello.asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png"></p>
 
-Follow the board-specific instructions from the previous section to compile the project (with the assembled program) and run it on your hardware. To test fast execution, hold the right button to speed it up, until the Halt flag turns on (leftmost row #7, LED #5).
+Follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware. Your assembled program will run with the default speed util the Halt flag turns on (leftmost row #7, LED #5).
 
-To restart with step execution, use the Left button to set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
+To restart with step execution, set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
 
-<p align="center"><img alt="hello.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/LEDmatrix.png" /></p>
+<p align="center"><img alt="hello.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/LEDmatrix.png"></p>
