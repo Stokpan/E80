@@ -114,7 +114,8 @@ char eq(const char *s1, const char *s2)
 	return !*s1 && !*s2;
 }
 
-char instr_size1(const char *s) {
+char instr_size1(const char *s)
+{
 	// search string: space + str + space
 	char search_str[strlen(s)+3];
 	sprintf(search_str, " %s ", s);
@@ -122,7 +123,8 @@ char instr_size1(const char *s) {
 	return (strstr(" HLT NOP RETURN RSHIFT LSHIFT PUSH POP ",search_str) != 0);
 }
 
-char instr_size2(const char *s) {
+char instr_size2(const char *s)
+{
 	// search string: space + str + space
 	char search_str[strlen(s)+3];
 	sprintf(search_str, " %s ", s);
@@ -131,7 +133,8 @@ char instr_size2(const char *s) {
 		" OR XOR STORE LOAD CMP BIT ", search_str) != 0);
 }
 
-char reserved(const char *s) {
+char reserved(const char *s)
+{
 	if (instr_size1(s)) return 1;
 	if (instr_size2(s)) return 1;
 	// search string: space + s + space
@@ -167,10 +170,10 @@ char instr_n(const char *s)
 	else if (eq(s, "JNC"))  strcpy(RAM, "00000101");
 	else if (eq(s, "JZ"))   strcpy(RAM, "00000110");
 	else if (eq(s, "JNZ"))  strcpy(RAM, "00000111");
-	else if (eq(s, "JS"))   strcpy(RAM, "00001010");
-	else if (eq(s, "JNS"))  strcpy(RAM, "00001011");
-	else if (eq(s, "JV"))   strcpy(RAM, "00001100");
-	else if (eq(s, "JNV"))  strcpy(RAM, "00001101");
+	else if (eq(s, "JS"))   strcpy(RAM, "00001000");
+	else if (eq(s, "JNS"))  strcpy(RAM, "00001001");
+	else if (eq(s, "JV"))   strcpy(RAM, "00001010");
+	else if (eq(s, "JNV"))  strcpy(RAM, "00001011");
 	else if (eq(s, "CALL")) strcpy(RAM, "00001110");
 	else return 0;
 	return 2;

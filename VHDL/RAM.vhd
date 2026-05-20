@@ -1,11 +1,11 @@
 -----------------------------------------------------------------------
 -- E80 256x8bit multiport RAM
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
--- Declares the storage array as a buffer port to be passed to Interface.vhd
--- for LED display per the .MONITOR directive.
+-- Declares a 256-word array for storage, and also as a buffer port to be
+-- passed to Interface.vhd for LED display per the .MONITOR directive.
+-- Reads two adjacent instruction words at PC and PC+1.
+-- Reads or writes a data word at MemAddr.
 -- Loads the machine code from Program.vhd to the RAM on synchronous reset.
--- Asynchronously reads two instruction words and a data word
--- Synchronously writes a data word if MemWriteEn=1.
 -----------------------------------------------------------------------
 
 LIBRARY ieee;

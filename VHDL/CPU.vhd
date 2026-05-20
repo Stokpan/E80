@@ -96,10 +96,10 @@ BEGIN
 	isJNC    <= match(Instr1,"00000101");
 	isJZ     <= match(Instr1,"00000110");
 	isJNZ    <= match(Instr1,"00000111");
-	isJS     <= match(Instr1,"00001010");
-	isJNS    <= match(Instr1,"00001011");
-	isJV     <= match(Instr1,"00001100");
-	isJNV    <= match(Instr1,"00001101");
+	isJS     <= match(Instr1,"00001000");
+	isJNS    <= match(Instr1,"00001001");
+	isJV     <= match(Instr1,"00001010");
+	isJNV    <= match(Instr1,"00001011");
 	isCALL   <= match(Instr1,"00001110");
 	isRETURN <= match(Instr1,"00001111");
 	isSTORE  <= match(Instr1,"1000----");   -- STORE reg1, [op2]

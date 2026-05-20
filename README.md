@@ -55,10 +55,10 @@ Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
 | 5  | 00000101 nnnnnnnn | 05 nn | JNC n         | if C=0, PC ← n        |       |
 | 6  | 00000110 nnnnnnnn | 06 nn | JZ n          | if Z=1, PC ← n        |       |
 | 7  | 00000111 nnnnnnnn | 07 nn | JNZ n         | if Z=0, PC ← n        |       |
-| 8  | 00001010 nnnnnnnn | 0A nn | JS n          | if S=1, PC ← n        |       |
-| 9  | 00001011 nnnnnnnn | 0B nn | JNS n         | if S=0, PC ← n        |       |
-| 10 | 00001100 nnnnnnnn | 0C nn | JV n          | if V=1, PC ← n        |       |
-| 11 | 00001101 nnnnnnnn | 0D nn | JNV n         | if V=0, PC ← n        |       |
+| 8  | 00001000 nnnnnnnn | 08 nn | JS n          | if S=1, PC ← n        |       |
+| 9  | 00001001 nnnnnnnn | 09 nn | JNS n         | if S=0, PC ← n        |       |
+| 10 | 00001010 nnnnnnnn | 0A nn | JV n          | if V=1, PC ← n        |       |
+| 11 | 00001011 nnnnnnnn | 0B nn | JNV n         | if V=0, PC ← n        |       |
 | 12 | 00001110 nnnnnnnn | 0E nn | CALL n        | PC+2 → [--SP]; PC ← n |       |
 | 13 | 00001111          | 0F    | RETURN        | PC ← [SP++]           |       |
 | 14 | 00010rrr nnnnnnnn | 1r nn | MOV r,n       | r ← n                 |  ZS   |
