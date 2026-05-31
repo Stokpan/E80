@@ -313,7 +313,7 @@ BEGIN
 	--          Row 4: Instr1 (Instruction Word part 1)
 	--          Row 5: Instr2 (Instruction Word part 2)
 	--          Row 6: 00000000
-	--          Row 7: Carry, Zero, Sign, Overflow, Halt, 0, 0, 0
+	--          Row 7: Carry, Zero, Sign, Overflow, 000, Halt
 	--          Row 8: 00000000
 	-------------------------------------------------------------------
 	WITH Speed SELECT Matrix1(0)(7 DOWNTO 1) <=
@@ -325,7 +325,7 @@ BEGIN
 	Matrix1(3) <= RAM(int(PC));   -- Instr1
 	Matrix1(4) <= RAM(int(PC)+1); -- Instr2
 	Matrix1(5) <= x"00";
-	Matrix1(6) <= R(6)(7 DOWNTO 3) & "000";
+	Matrix1(6) <= R(6)(7 DOWNTO 4) & "000" & R(6)(0);
 	Matrix1(7) <= x"00";
 	-------------------------------------------------------------------
 	-- Matrix2  Rows 1-6: General Purpose Registers R0-R5

@@ -22,7 +22,7 @@ ARCHITECTURE a1 OF sim IS
 	SIGNAL MonitorVector  : STD_LOGIC_VECTOR(0 TO 63);
 	SIGNAL MonitorArray : WORDx8;
 BEGIN
-	Halt <= R(6)(3);
+	Halt <= R(6)(0);
 	CLK <= '0' AFTER 50 ps WHEN CLK OR Halt ELSE '1' AFTER 50 ps;
 	Reset <= '0' AFTER 120 ps;
 	Instr1 <= RAM(int(PC));

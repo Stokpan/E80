@@ -10,7 +10,7 @@ ENTITY ALU IS PORT (
 	ALUop    : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
 	ALUinA   : IN WORD;
 	ALUinB   : IN WORD;
-	FlagsIn  : IN WORD; -- Carry, Zero, Sign, Overflow, Halt
+	FlagsIn  : IN WORD; -- Carry, Zero, Sign, Overflow, ---, Halt
 	ALUout   : OUT WORD;
 	FlagsOut : OUT WORD
 ); END;

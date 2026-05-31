@@ -30,7 +30,7 @@ ARCHITECTURE a1 OF RegisterFile IS
 	-- Clear the Halt flag and reset the Stack Pointer to 255 to reserve this
 	-- address for DIP input. Everything else is set to undefined for easier
 	-- inspection in ModelSim/GHDL and to enforce good programming practices.
-	CONSTANT Init : WORDx8 := (6 => "UUUU0UUU", 7 => x"FF", OTHERS => x"UU");
+	CONSTANT Init : WORDx8 := (6 => "UUUUUUU0", 7 => x"FF", OTHERS => x"UU");
 BEGIN
 	a <= int(A_reg);
 	b <= int(B_reg);

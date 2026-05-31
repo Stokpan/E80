@@ -38,7 +38,7 @@ PC       : Program counter, initialized to 0 on reset
 SP       : Register R7, initialized to 255 on reset
            --SP Decrease SP by 1, and then read it
            SP++ Read SP, and then increase it by 1
-Flags    : Register R6 = [CZSVH---] (see ALU.vhd)
+Flags    : Register R6 = [CZSV---H] (see ALU.vhd)
            C = Carry out (unsigned arithmetic) or shifted-out bit
            Z = Zero, set to 1 when result is 0
            S = Sign, set to the most significant bit of the result
@@ -147,8 +147,8 @@ op2    : Reg or val (flexible 2nd operand)
 | HLT                  | Set the H flag and halt execution                  |
 | NOP                  | No operation                                       |
 | JMP n                | Jump to address n                                  |
-| Jflag n              | Jump if flag=1 (flags: C,Z,S,V)                    |
-| JNflag n             | Jump if flag=0                                     |
+| J<flag> n            | Jump if flag=1 (flags: C,Z,S,V)                    |
+| JN<flag> n           | Jump if flag=0                                     |
 | CALL n               | Call subroutine at n                               |
 | RETURN               | Return from subroutine                             |
 | MOV reg, op2         | Move op2 to reg                                    |
@@ -175,7 +175,7 @@ op2    : Reg or val (flexible 2nd operand)
 * Comments start with a semicolon.
 * The `.SPEED` directive sets the initial CPU clock frequency in the FPGA according to the [Hardware Implementation section](#hardware-implementation). Default value is 2 (~1 Hz).
 * The `.MONITOR` directive points to an 8-word block to display on the LED matrix, or as separate signals in ASCII and binary format in simulation; it defaults to 0.
-* The `.SIMDIP` directive sets a constant value (default 0x00) for address 0xFF in simulation only. It's ignored on hardware execution, where 0xFF maps to the 8-bit DIP switches.
+* The `.SIMDIP` directive sets a constant value (default 0x00) for address 0xFF in simulation. It's ignored on hardware execution, where 0xFF maps to the 8-bit DIP switches.
 
 ## Simulation Example
 
@@ -252,16 +252,16 @@ Output is provided by a 4x8x8 LED module driven by four daisy-chained MAX7219 ch
 * **Reset button:** Re-uploads Program.vhd to the RAM, resets the Program Counter to 0 and the Stack Pointer to 255, and clears the Halt flag.
 * **Matrix 1:**
 	* Row 1: **Speed level** (one-hot encoded on first seven LEDs), **Clock** (rightmost LED)
-	* Row 2: blank
+	* Row 2: 00000000
 	* Row 3: **Program Counter**
 	* Row 4: **Instr1** (Instruction Word part 1)
 	* Row 5: **Instr2** (Instruction Word part 2)
-	* Row 6: blank
-	* Row 7: **Carry**, **Zero**, **Sign**, **Overflow**, **Halt**
-	* Row 8: blank
+	* Row 6: 00000000
+	* Row 7: **Carry**, **Zero**, **Sign**, **Overflow**, 000, **Halt**
+	* Row 8: 00000000
 * **Matrix 2:**
 	* Rows 1-6: **General Purpose Registers R0-R5**
-	* Row 7: blank
+	* Row 7: 00000000
 	* Row 8: **Stack Pointer (R7)**
 * **Matrix 3:**
 	* Rows 1-7: **Stack Space** (RAM block 248-254)

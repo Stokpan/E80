@@ -69,7 +69,7 @@ ARCHITECTURE a1 OF CPU IS
 	ALIAS Zero     : STD_LOGIC IS Flags(6);
 	ALIAS Sign     : STD_LOGIC IS Flags(5);
 	ALIAS Overflow : STD_LOGIC IS Flags(4);
-	ALIAS Halt     : STD_LOGIC IS Flags(3);
+	ALIAS Halt     : STD_LOGIC IS Flags(0);
 	-- ALU signals
 	SIGNAL ALUop : STD_LOGIC_VECTOR(3 DOWNTO 0);
 	SIGNAL ALUinB : WORD;
@@ -164,9 +164,9 @@ BEGIN
 	-- flags register, except for POP which writes on its Instr1Reg.
 	W_reg <= Instr1Reg WHEN isPOP ELSE FlagsRegister;
 	W_next <=
-		Data                WHEN isPOP ELSE
-		Flags OR "00001000" WHEN isHLT ELSE -- HLT sets the Halt flag
-		FlagsOut;                           -- ALU flags output
+		Data           WHEN isPOP ELSE
+		Flags OR x"01" WHEN isHLT ELSE -- HLT sets the Halt flag
+		FlagsOut;                      -- ALU flags output
 	-------------------------------------------------------------------
 	-- Memory access
 	-------------------------------------------------------------------

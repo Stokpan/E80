@@ -24,7 +24,7 @@
 +{Zero} top.sim.r[6][6]
 +{Sign} top.sim.r[6][5]
 +{Overflow} top.sim.r[6][4]
-+{Halt} top.sim.r[6][3]
++{Halt} top.sim.halt
 @24
 [color] 6
 +{R0} top.sim.r[0][7:0]

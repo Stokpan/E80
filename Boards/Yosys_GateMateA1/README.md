@@ -11,4 +11,4 @@
    _The LED module requires a 5V VCC input at 330mA. For my testing purposes, I connected it to the 2.5V VDD pin #1 in BANK_NB1, but it's best to use a dedicated supply instead._
 5. Run the _GateMate Synthesis Batch_ from the E80 Toolchain folder on the Start Menu and wait until all steps, from elaboration to flashing, are finished:
    <br><img alt="E80 VHDL Synthesis batch" src="synth.png" />
-6. The precompiled `hello` program will start running until the Halt flag is set (matrix 1, row 7, LED 5 from the left).
+6. The precompiled `hello` program will start running until the Halt flag is set (matrix 1, row 7, rightmost LED).
