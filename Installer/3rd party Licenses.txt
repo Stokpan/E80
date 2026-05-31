@@ -1,11 +1,11 @@
 This package includes software released under the following licenses:
 
 1. GHDL
-   License: GHDL\LICENSE (GPL-2.0)
+   License: GPL-2.0 (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
    Source Code: https://github.com/ghdl/ghdl
 
 2. GTKWave
-   License: GHDL\GTKWave\LICENSE (GPL-2.0)
+   License: GPL-2.0 (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
    Source Code: https://sourceforge.net/projects/gtkwave/
 
 3. Sc1 (Scintilla compact text editor)

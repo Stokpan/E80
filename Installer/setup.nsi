@@ -18,10 +18,10 @@ InstallDirRegKey HKCU "Software\E80Toolchain" ""
 ; Request user privileges (No UAC prompt)
 RequestExecutionLevel user
 ; Interface Settings
-!define MUI_ABORTWARNING
 !define MUI_ICON "e80icon.ico" 
 !define MUI_UNICON "e80icon.ico"
-!define MUI_HEADERIMAGE
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the E80 Toolchain.$\r$\n$\r$\nThis is a portable installation that includes all requirements for simulation and settings for FPGA boards.$\r$\n$\r$\nNote: ModelSim and FPGA suites such as Gowin or the OSS CAD Suite are not included and must be installed separately.$\r$\n$\r$\nClick Next to continue."
+!define MUI_DIRECTORYPAGE_TEXT_TOP "You can install in any path or USB drive but if you intend to synthesize with Quartus or Vivado, avoid spaces or non-ASCII characters in the installation path."
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
@@ -126,7 +126,7 @@ SectionEnd
 
 ; Descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Sc1 editor, E80 Assembler, GHDL, GTKWave, and board-specific settings and scripts."
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Sc1 editor$\r$\nE80 Assembler$\r$\nGHDL$\r$\nGTKWave$\r$\nFPGA settings$\r$\nIntegration scripts"
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssoc} "Associate .e80asm files with Sc1 for the current user."
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecModelSim} "Create and enable a custom E80 layout on ModelSim. You can use ModelSim's Layout menu to reset and delete the custom layout."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
