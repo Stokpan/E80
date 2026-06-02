@@ -70,9 +70,13 @@ Section "Portable requirements" SecCore
 	SetOutPath "$INSTDIR\Boards"
 	File /r "..\Boards\*.*"
 
+	SetOutPath "$INSTDIR\Images"
+	File /r "..\Images\*.*"
+
 	SetOutPath "$INSTDIR"
 	File "..\Assembler\*.e80asm"
 	File "..\LICENSE"
+	File "..\README.md"
 	File "*.txt"
 	File "*.properties"
 	File "*.lua"

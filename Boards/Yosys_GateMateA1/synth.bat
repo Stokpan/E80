@@ -104,7 +104,7 @@ if %errorlevel% NEQ 0 goto :error
 
 echo 3. Place and Route (nextpnr) -- SLOW!
 set log=nextpnr.log
-set command=nextpnr-himbaechel --device CCGM1A1 --json %TopUnit%.json -o ccf=..\E80.ccf -o out=%TopUnit%.impl --ignore-loops --freq 2 --timing-allow-fail --placer-heap-beta 0.3
+set command=nextpnr-himbaechel --device CCGM1A1 --json %TopUnit%.json -o ccf=..\E80.ccf -o out=%TopUnit%.impl --freq 2 --placer-heap-beta 0.3
 copy NUL %log% > NUL
 echo -------------------------------------------------------------------------- >> %log%
 echo %time% -- %command% >> %log%
@@ -142,7 +142,6 @@ choice /C 15 /N > nul
 if %errorlevel%==1 goto :start
 if %errorlevel%==2 goto :openfpgaloader
 goto :flashprompt
-
 
 :error
 echo    Failed! Opening %log%

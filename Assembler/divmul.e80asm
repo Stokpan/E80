@@ -13,8 +13,8 @@
 	POP R2
 	HLT
 
-; R0 = dividend div divisor = 179 div 13 = 14
-; R1 = dividend mod divisor = 179 mod 13 = 11
+; R0 = dividend div divisor = 179 div 12 = 14
+; R1 = dividend mod divisor = 179 mod 12 = 11
 ; R2 = multiplicand × multiplier = 7 × 29 = 203
 
 division:					; "Ascend-descend" variation of long division
@@ -22,6 +22,7 @@ division:					; "Ascend-descend" variation of long division
     MOV R3, 1				; multiplier bit, R2 = R3×divisor
     MOV R1, dividend		; remainder (starts as dividend)
     MOV R2, divisor			; scaled divisor, goes up to dividend and back down
+	BIT R2, 0xFF            ; update flags
 ascend:						; double divisor until R1/R2 ≤ 1
     JS descend				; R2 ≥ 128 ⇒ R1/R2 ≤ 1 ⇒ stop descending
     CMP R2, R1
@@ -46,6 +47,7 @@ multiply:	    			; Russian Peasant multiplication algorithm
 	MOV R0, 0				; accumulated product
 	MOV R1, multiplicand
 	MOV R2, multiplier
+	BIT R2, 0xFF            ; update flags
 multiply_loop:
 	JZ multiply_done		; stop when multiplier = 0
 	BIT R2, 1

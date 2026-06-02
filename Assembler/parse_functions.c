@@ -148,7 +148,7 @@ char instr_noarg(const char *s)
 {
 	if      (eq(s, "HLT"))    strcpy(RAM, "00000000");
 	else if (eq(s, "NOP"))    strcpy(RAM, "00000001");
-	else if (eq(s, "RETURN")) strcpy(RAM, "00001111");
+	else if (eq(s, "RETURN")) strcpy(RAM, "11111000");
 	else return 0;
 	return 1;
 }
@@ -174,7 +174,7 @@ char instr_n(const char *s)
 	else if (eq(s, "JNS"))  strcpy(RAM, "00001001");
 	else if (eq(s, "JV"))   strcpy(RAM, "00001010");
 	else if (eq(s, "JNV"))  strcpy(RAM, "00001011");
-	else if (eq(s, "CALL")) strcpy(RAM, "00001110");
+	else if (eq(s, "CALL")) strcpy(RAM, "11101000");
 	else return 0;
 	return 2;
 }
