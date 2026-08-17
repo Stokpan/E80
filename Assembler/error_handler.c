@@ -28,6 +28,8 @@ void printf_number_error(const char *s) {
 		fprintf(stderr, "Signed minimum is -128.");
 	} else if (number(s) == RANGE_ERROR) {
 		fprintf(stderr, "Unsigned numbers are limited to 0-255,");
+	} else {
+		printf_number_format_help();
 	}
 }
 
@@ -35,7 +37,10 @@ void printf_number_error(const char *s) {
 void error(enum ErrorCode errorlevel)
 {
 	fprintf(stderr,	"\n******************************************************\n");
-	if (In.line_number) {
+	if (errorlevel == MAX_LENGTH_EXCEEDED) {
+		fprintf(stderr, "Line %d exceeds maximum %d characters.", In.line_number, MAX_LINE_LENGTH);
+		if (In.line_number == 1) fprintf(stderr, "\n(is this an E80 Assembly program?)");
+	} else if (In.line_number) {
 		fprintf(stderr,
 			"Error in line %d : %s\n", In.line_number, In.current->line);
 	}
@@ -44,11 +49,25 @@ void error(enum ErrorCode errorlevel)
 	case OPEN_TEMPLATE:
 		fprintf(stderr, "Error! Can't open the template file '%s'", TEMPLATE);
 		break;
-	case MAX_LENGTH_EXCEEDED:
-		fprintf(stderr, "Line exceeds maximum %d characters.", MAX_LINE_LENGTH);
+	case INSTRUCTION:
+		if (eq(nexttoken(), ":")) {
+			fprintf(stderr, "'%s' is not a valid label.", PREVIOUS);
+		} else {
+			fprintf(stderr, "'%s' is not a valid statement.", PREVIOUS);
+			if (Out.addr == 0) {
+				fprintf(stderr, "(\nis this an E80 Assembly program?)");
+			}
+		}
 		break;
 	case LABEL:
-		fprintf(stderr, "'%s' is not a valid label.", TOKEN);
+		if (eq(TOKEN,"")) {
+			fprintf(stderr, "A label is expected.");
+		} else {
+			fprintf(stderr, "'%s' is not a valid label.", TOKEN);
+		}
+		break;
+	case DEFINED_LABEL:
+		fprintf(stderr, "'%s' is not a defined label or a valid address.", TOKEN);
 		break;
 	case EMPTY_STRING:
 		fprintf(stderr, "Empty strings are not permitted.");
@@ -59,7 +78,7 @@ void error(enum ErrorCode errorlevel)
 	case ARRAY_ELEMENT:
 		if (eq(TOKEN,"")) {
 			fprintf(stderr, "Expected an array element.");
-		} else if (number(TOKEN) != NUMBER_ERROR) {
+		} else if (number(TOKEN) < NUMBER_ERROR) {
 			printf_number_error(TOKEN);
 		} else {
 			fprintf(stderr, "'%s' is not a literal.\n", TOKEN);
@@ -71,7 +90,7 @@ void error(enum ErrorCode errorlevel)
 		break;
 	case NUMBER:
 		fprintf(stderr, "'%s' is not a valid number.\n", TOKEN);
-		printf_number_format_help();
+		printf_number_error(TOKEN);
 		break;
 	case MANY_LABELS:
 		puts("Maximum number of labels reached");
@@ -88,15 +107,6 @@ void error(enum ErrorCode errorlevel)
 	case DIRECTIVE:
 		fprintf(stderr, "'%s' is not a directive.", TOKEN);
 		break;
-	case INSTRUCTION_LABEL:
-		fprintf(stderr, "'%s' is no instruction or label.", TOKEN);
-		break;
-	case INSTRUCTION_COLON:
-		fprintf(stderr, "'%s' is no instruction, or missing a colon.", PREVIOUS);
-		break;
-	case INSTRUCTION:
-		fprintf(stderr, "'%s' is no instruction.", TOKEN);
-		break;
 	case RESERVED:
 		fprintf(stderr, "'%s' is reserved and cannot be used here.", TOKEN);
 		break;
@@ -108,7 +118,7 @@ void error(enum ErrorCode errorlevel)
 		}
 		break;
 	case VALUE:
-		fprintf(stderr, "'%s' is not a number or label\n", TOKEN);
+		fprintf(stderr, "'%s' is not a number or a defined label\n", TOKEN);
 		printf_number_error(TOKEN);
 		break;
 	case COMMA:
@@ -123,9 +133,10 @@ void error(enum ErrorCode errorlevel)
 	case OP2:
 		if (eq(TOKEN, "")) {
 			fprintf(stderr,"Expected number, label or register after comma.");
-		} else {
-			fprintf(stderr, "'%s' is not a number, label or register.\n", TOKEN);
+		} else if (number(TOKEN) < NUMBER_ERROR) {
 			printf_number_error(TOKEN);
+		} else {
+			fprintf(stderr, "'%s' is not a number, label or register.", TOKEN);
 		}
 		break;
 	case RAM_LIMIT:

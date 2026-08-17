@@ -1,4 +1,4 @@
-# E80 Computer - Timing constraints for the Sipeed Tang Primer 25K - 2026.4.27
+# E80 Computer - Timing constraints for the Sipeed Tang Primer 25K - 2026.7.4
 # EDA: Gowin V1.9.11.03 Education
 # FPGA: GW5A-25 Version A (GW5A-LV25MG121NC1/I0)
 
@@ -8,7 +8,10 @@ create_clock -name BoardCLK [get_ports {BoardCLK}] -period 20
 # All generated clocks are ≤ 2 Mhz
 
 # CPU clock
-create_generated_clock -name CPU_CLK -source [get_ports {BoardCLK}] [get_nets {CLK}] -divide_by 25
+create_generated_clock -name CLK -source [get_ports {BoardCLK}] [get_nets {CLK}] -divide_by 25
 
 # Control buttons and LED display process clock
 create_generated_clock -name Interface_CLK1MHz -source [get_ports {BoardCLK}] [get_nets {GenCLK[7]}] -divide_by 25
+
+# Reduce timing analysis to the worst-case path (added in 2026.7.4 for the MDPI paper Reproducibility Guide)
+report_timing -setup -from_clock [get_clocks {CLK}] -to_clock [get_clocks {CLK}] -max_paths 1

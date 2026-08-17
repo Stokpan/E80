@@ -20,7 +20,7 @@ RequestExecutionLevel user
 ; Interface Settings
 !define MUI_ICON "e80icon.ico" 
 !define MUI_UNICON "e80icon.ico"
-!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the E80 Toolchain.$\r$\n$\r$\nThis is a portable installation that includes all requirements for simulation and settings for FPGA boards.$\r$\n$\r$\nNote: ModelSim and FPGA suites such as Gowin or the OSS CAD Suite are not included and must be installed separately.$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the E80 Toolchain.$\r$\n$\r$\nThis is a portable installation that includes all requirements for simulation, and settings for FPGA boards.$\r$\n$\r$\nNote: ModelSim and FPGA suites such as Gowin or the OSS CAD Suite are not included and must be installed separately.$\r$\n$\r$\nClick Next to continue."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "You can install in any path or USB drive but if you intend to synthesize with Quartus or Vivado, avoid spaces or non-ASCII characters in the installation path."
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
@@ -70,9 +70,14 @@ Section "Portable requirements" SecCore
 	SetOutPath "$INSTDIR\Boards"
 	File /r "..\Boards\*.*"
 
+	SetOutPath "$INSTDIR\Images"
+	File /r "..\Images\*.*"
+
 	SetOutPath "$INSTDIR"
 	File "..\Assembler\*.e80asm"
+	File "..\Assembler\ISAtest.*"
 	File "..\LICENSE"
+	File "..\README.md"
 	File "*.txt"
 	File "*.properties"
 	File "*.lua"

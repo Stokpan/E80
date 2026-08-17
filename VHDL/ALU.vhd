@@ -18,7 +18,7 @@ ARCHITECTURE a1 OF ALU IS
 	ALIAS A : WORD IS ALUinA;
 	SIGNAL B : WORD; -- ALUinB or 1 for INR/DCR
 	-- ALU Decoder output
-	SIGNAL isBypass, isAssign, isADD, isSUB, isROR, isAND, isOR, isXOR,
+	SIGNAL isADD, isSUB, isROR, isAND, isOR, isXOR,
 		isRSHIFT, isCMP, isLSHIFT, isBIT, isDCR, isINR,
 		FullFlags, DiscardFlags, DiscardResult : STD_LOGIC;
 	-- Barrel shifter result
@@ -33,8 +33,6 @@ BEGIN
 	-----------------------------------+------------------------------+------+
 	-- ALUop Decoder                   | ALUout                       | CZSV |
 	-----------------------------------+------------------------------+------+
-	isBypass <= match(ALUop,"-000"); --| A (HLT, J*, STORE, etc)      |      |
-	isAssign <= match(ALUop,"-001"); --| B (MOV, LOAD)                |  **  |
 	isADD    <= match(ALUop,"0010"); --| A + B                        | **** | 
 	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** | 
 	isAND    <= match(ALUop,"-100"); --| A AND B (includes BIT)       |  **  |
@@ -48,8 +46,8 @@ BEGIN
 	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      | 
 	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      | 
 	FullFlags     <= isADD OR isSUB OR isRSHIFT OR isLSHIFT;
-	DiscardFlags  <= isBypass OR isINR OR isDCR;
-	DiscardResult <= isBypass OR isCMP OR isBIT;
+	DiscardFlags  <= isINR OR isDCR;
+	DiscardResult <= isCMP OR isBIT;
 	-------------------------------------------------------------------
 	-- Full Adder / Subtractor
 	-------------------------------------------------------------------
@@ -83,13 +81,12 @@ BEGIN
 	-- operations. For shift operations, the carry bit holds the shifted
 	-- bit while the overflow bit is set if the sign bit was flipped.
 	Result <=
-		B                   WHEN isAssign       ELSE
-		Rotated             WHEN isROR          ELSE
-		A AND B             WHEN isAND          ELSE
-		A OR B              WHEN isOR           ELSE
-		A XOR B             WHEN isXOR          ELSE
-		"0" & A(7 DOWNTO 1) WHEN isRSHIFT       ELSE
-		A(6 DOWNTO 0) & "0" WHEN isLSHIFT       ELSE
+		Rotated             WHEN isROR    ELSE
+		A AND B             WHEN isAND    ELSE
+		A OR B              WHEN isOR     ELSE
+		A XOR B             WHEN isXOR    ELSE
+		"0" & A(7 DOWNTO 1) WHEN isRSHIFT ELSE
+		A(6 DOWNTO 0) & "0" WHEN isLSHIFT ELSE
 		Sum;
 	C <= A(0) WHEN isRSHIFT ELSE A(7) WHEN isLSHIFT ELSE Sum_C;
 	Z <= match(Result,"00000000");

@@ -1,14 +1,17 @@
 .TITLE "A simple program to showcase the features of E80 assembly"
-.SIMDIP 0b10000010      ; simulated DIP switch
-.DATA string "jello",0  ; null-terminated
-.MONITOR string         ; display 8-word block at string address
-	MOV R0, 104         ; ASCII code of h
-	STORE R0, [string]  ; replace j with h
-    PUSH R0
-    LOAD R0, [0xFF]     ; DIP input address
-    CALL subroutine
-    POP R1
-    HLT
+.SPEED 0                ; requires step execution on hardware
+.LABEL h 104            ; ASCII code of h
+.SIMDIP 0b10000010		; simulated DIP switch
+.DATA string "jello",0	; null-terminated
+.MONITOR string			; display 8-word block at string address
+
+	MOV R0, h
+	STORE R0, [string]	; replace j with h
+	PUSH R0
+	LOAD R0, [0xFF]		; DIP input address
+	CALL subroutine
+	POP R1
+	HLT
 subroutine:
-    ADD R0, -100
-    RETURN
+	ADD R0, -100
+	RETURN

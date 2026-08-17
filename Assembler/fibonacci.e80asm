@@ -1,0 +1,60 @@
+.TITLE "Fibonacci series with a recursive stack-framed subroutine"
+
+; The program will calculate the nth Fibonacci number to R0, where n is
+; set by the input DIP switches or the .SIMDIP directive. It runs recursively
+; over a single run-time stack, where one routine has several simultaneous
+; activations ("incarnations") and in descending parts of the stack, each
+; with its own parameter and return link. The nomenclature follows Dijkstra's
+; "Recursive Programming" (Numerische Mathematik 2, 1960). Keep in mind that
+; .SIMDIP 13 (n=13) will require 13,179 cycles to complete which exceeds the
+; default simulation max of 1000 cycles. You can either modify g.bat to
+; increase the default max duration to 1350ns, or simply set SIMDIP to a
+; lesser value (.SIMPDIP 7 will run in 719 cycles)
+
+.MONITOR 240 ; map Matrix4 to stack space 240-247 (Matrix3 maps 248-254)
+.SIMDIP 13 ; nth Fibonacci number to output on R0 -- fib(13) = 233
+.SPEED 6 ; max speed ~4 KHz
+
+; Each activation owns the input parameters, the return link, and the out
+; parameters. In this example the in and out parameter use the same space.
+
+	LOAD R0, [0xFF] ; load user input
+	PUSH R0			; push the in parameter to the stack
+	CALL fib		; push the return link and enter the first activation
+	POP  R0		 	; pop the out parameter, R0 = fib(DIP switch)
+	HLT
+
+fib:
+	PUSH R0			; preserve local variables (R0, R1) from being disturbed
+	PUSH R1		 	; by a recursive activation of the subroutine
+					; following E80's full-descending stack:
+					; [SP]   = R1
+					; [SP+1] = R0
+					; [SP+2] = return link (pushed by CALL)
+					; [SP+3] = the in-out parameter n
+	ADD  SP, 3		; calculate the parameter's pointer
+	LOAD R0, [SP]	; and load it to local variable R0
+	SUB  SP, 3	 	; restore the stack pointer; the record is unchanged
+
+	CMP  R0, 2
+	JNC  fib_ret	; if n<2, result = n
+					; otherwise
+	SUB  R0, 1
+	PUSH R0
+	CALL fib
+	POP  R1			; R1 = fib(n-1)
+
+	SUB  R0, 1
+	PUSH R0
+	CALL fib
+	POP  R0			; R0 = fib(n-2)
+
+	ADD  R0, R1		; result = fib(n-1) + fib(n-2)
+
+fib_ret:
+	ADD  SP, 3		; point to the out parameter
+	STORE R0, [SP]	; write the result to it
+	SUB  SP, 3		; restore the stack pointer
+	POP  R1			; restore the caller's local variables
+	POP  R0
+	RETURN			; and follow the return link back to the caller

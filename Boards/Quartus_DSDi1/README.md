@@ -4,9 +4,8 @@
 2. Install the [latest version of the toolchain](https://github.com/Stokpan/E80/releases) and navigate to its folder.
 3. Open `Boards\Quartus_DSDi1\E80.qsf` in a text editor and connect the components according to the Pin Assignments section.
    <br><img alt="Execution of hello.e80asm program" src="DSD-i1.jpg" />
-   <br><img alt="Board connections close-up" src="DSD-i1close.jpg" />
    _The LED module requires a 5V VCC input at 330mA. For my testing purposes, I connected it to the 3.3V VDD pin #37 in the HD2 bank, but it's best to use a dedicated supply instead._
 4. Open the `Boards\Quartus_DSDi1\E80.qpf` project file in Quartus.
 5. Hit Ctrl-L to start compilation.
 6. When the compilation is finished start X2Loader and check out its COM ports. Connect the board, then close and reopen X2Loader. Notice there's a new COM port. Select this one, click Connect, and then Upload Bitstream. Select the RBF file from the `Boards\Quartus_DSDi1\output_files` folder.
-7. The precompiled `hello` program will start running until the Halt flag is set (matrix 1, row 7, rightmost LED).
+7. The precompiled `hello` program will be loaded; use the Right button to increase speed, or Set for step execution, until the Halt flag is set (matrix 1, row 7, rightmost LED).

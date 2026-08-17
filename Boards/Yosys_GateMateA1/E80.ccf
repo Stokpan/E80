@@ -9,8 +9,9 @@
 # NET "signal" Loc = "IO_SB_A8"; # onboard CLK0 10MHz crystal oscillator
 # NET "signal" Loc = "IO_SB_B6"; # onboard FPGA_LED1 active low LED
 # NET "signal" Loc = "IO_SB_B7"; # onboard FPGA_BUT1 active low button
+# UEXT1 socket next to Pmod1 provides 3.3V output at pin #1
 #
-# BANK_NA1
+# BANK_NA1 (1st GPIO north bank, prefixed by IO_NA_)
 # eg. NET "signal" Loc = "IO_NA_A0"; # 3
 # +-----+----+----+----+----+----+----+----+----+----+
 # | GND | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | B8 |
@@ -19,7 +20,7 @@
 # +-----+----+----+----+----+----+----+----+----+----+
 #    1                                            19
 #
-# BANK_NB1
+# BANK_NB1 (2nd GPIO north bank, prefixed by IO_NB_)
 # eg. NET "signal" Loc = "IO_NB_A0"; # 3
 # +-----+----+----+----+----+----+----+----+----+----+
 # | GND | B0 | B1 | B2 | B3 | B4 | B5 | B6 | B7 | B8 |
@@ -28,7 +29,7 @@
 # +-----+----+----+----+----+----+----+----+----+----+
 #    1                                            19
 #
-# BANK_EB1
+# BANK_EB1 (2nd GPIO east bank, prefixed by IO_EB_)
 # eg. NET "signal" Loc = "IO_EB_A8"; # 3
 # +-----+----+----+----+----+----+----+----+----+----+
 # | GND | B8 | B7 | B6 | B5 | B4 | B3 | B2 | B1 | B0 |
@@ -45,7 +46,7 @@
 NET "BoardCLK" Loc = "IO_SB_A8";
 
 # Control buttons - active high with 10kΩ pull-down resistors
-# If you're using a 5-button joystick, connect its COMmon port to a 3V3 pin
+# If you're using a 5-button joystick, connect its COMmon port to a VDD pin
 # SCHMITT_TRIGGER enabled to prevent bouncing.
 NET "LeftButton"  Loc = "IO_EB_B3" | SCHMITT_TRIGGER=true;
 NET "RightButton" Loc = "IO_EB_B2" | SCHMITT_TRIGGER=true;
@@ -64,7 +65,7 @@ NET "DIPinput[7]" Loc = "IO_EB_A0" | SCHMITT_TRIGGER=true;
 
 # Output to 4 in 1 MAX7219 4x8x8 LED module
 # Connect the module's VCC pin to a 5V supply pin
-# For testing purposes you can use BANK_NB1 #1 VDD pin.
+# For testing purposes you can use UEXT1 #1 3V3 pin.
 NET "MAX7219DIN" Loc = "IO_NB_B0";
 NET "MAX7219CS"  Loc = "IO_NB_B1";
 NET "MAX7219CLK" Loc = "IO_NB_B2";

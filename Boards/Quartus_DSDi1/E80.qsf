@@ -26,7 +26,7 @@
 # |  98 |  99 |                                      |  X  |  X  |
 # | 100 | 101 |                                      |  X  |  X  |
 # | 103 | 104 |                                      |  X  |  X  |
-# | 105 | 3V3 |                                      | 3V3 | 3V3 |
+# | 105 | VDD |                                      | VDD | VDD |
 # | GND | GND |                                      | GND | GND |
 # +-----+-----+                                      +-----+-----+
 #   38    39                                           38    39
@@ -48,7 +48,7 @@
 set_location_assignment PIN_23 -to BoardCLK
 
 # Control buttons - active high with 10kΩ pull-down resistors
-# If you're using a 5-button joystick, connect its COMmon port to a 3V3 pin
+# If you're using a 5-button joystick, connect its COMmon port to a VDD pin
 set_location_assignment PIN_83 -to LeftButton
 set_location_assignment PIN_85 -to RightButton
 set_location_assignment PIN_87 -to PauseButton
@@ -66,7 +66,7 @@ set_location_assignment PIN_73 -to DIPinput[7]
 
 # Output to 4 in 1 MAX7219 4x8x8 LED module
 # Connect the module's VCC pin to a 5V supply pin
-# For testing purposes you can use the 3.3V #37 HD2 pin.
+# For testing purposes you can use a VDD (3.3V) pin such as #37 HD2.
 set_location_assignment PIN_99 -to MAX7219CLK
 set_location_assignment PIN_101 -to MAX7219CS
 set_location_assignment PIN_104 -to MAX7219DIN

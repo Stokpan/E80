@@ -63,7 +63,7 @@ char* nexttoken(void)
 	// *In.chr == '\\' && In.chr[1] == '"' ⇒ escaped quoted \" found
 	// In.token[i++] = *In.chr++ ⇒ copies current character, and then advances
 
-	strcpy(In.previous, In.token); // useful for error message context
+	scopy(In.previous, In.token); // useful for error message context
 	/* Token character index; declared as unsigned char because of its
 	practical 255 limit. */
 	unsigned char i = 0; // token character index
@@ -71,7 +71,7 @@ char* nexttoken(void)
 	// all lines/tokens were processed or line is empty
 	if (In.chr == NULL) return NULL;
 	if (*In.chr == '\0') return NULL;
-	while (isspace(*In.chr)) In.chr++; // skip leading whitespace
+	while (isspace((unsigned char)*In.chr)) In.chr++; // skip leading whitespace
 	if (*In.chr == '"') {
 		// copy all quoted text, including the quotes
 		In.token[i++] = *In.chr++; // opening quote
@@ -97,7 +97,7 @@ int addlabel(const char* name, int value)
 	if (Out.labels >= MAX_LABELS) error(MANY_LABELS);
 	Out.label[Out.labels].name = malloc(strlen(name) +1); // +1 = terminator
 	if (!Out.label[Out.labels].name) error(MEMORY_ALLOCATION_ERROR);
-	strcpy(Out.label[Out.labels].name, name);
+	scopy(Out.label[Out.labels].name, name);
 	Out.label[Out.labels].val = (unsigned char)value;
 	Out.labels++;
 	return Out.labels;
@@ -120,6 +120,8 @@ void sortlabels(void)
 
 int findlabel(const char* name)
 {
+	if (!name) return -1;
+	
 	struct LabelElement key = {.name = (char*)name};
 	struct LabelElement* found = (struct LabelElement*) bsearch(
 		&key, Out.label, Out.labels, sizeof(Out.label[0]), comparelabels);

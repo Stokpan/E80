@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 	char title[MAX_LINE_LENGTH] = {0}; // .TITLE string (optional)
 	int speed = DEFAULT_SPEED; // .SPEED value
 	int monitor = DEFAULT_MONITOR; // .MONITOR value
+	char monitor_value[MAX_LINE_LENGTH] = "0";  // for deferred resolution
 	char simdip[9] = DEFAULT_SIMDIP; // .SIMDIP value
 	int reg, reg2; // register address
 	int n; // scratchpad index or value
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
 	/* Starting message (hide if /Q switch is enabled) */
 	if (argc < 2 || (strcmp(argv[1],"/Q") && strcmp(argv[1],"/q"))) {
 		fprintf(stderr,
-			"E80 CPU Assembler v3.0 - April 2026, Panos Stokas\n\n"
+			"E80 CPU Assembler v4.0 - July 2026, Panos Stokas\n\n"
 			"Translates an E80-assembly program to VHDL code via stdin.\n\n"
 			"E80ASM [/Q]\n\n"
 			"    /Q      Silent mode, hides this message.\n\n"
@@ -40,8 +41,10 @@ int main(int argc, char *argv[])
 	}
 
 	/* Read lines from stdin until EOF or end-of-transmit (Ctrl-D). */
+	In.line_number = 0;
 	while (!CtrlD && fgets(str, MAX_LINE_LENGTH, asm_input)) {
-		 if ((CtrlD = strchr(str, 4))) { // end of transmit found
+		In.line_number++;
+		if ((CtrlD = strchr(str, 4))) { // end of transmit found
 			*CtrlD = 0; // replace end of transmit with terminal
 		} else if (!strchr(str, '\n') && !feof(asm_input)) {
 			// a line without a newline character, is either the last line or
@@ -51,6 +54,7 @@ int main(int argc, char *argv[])
 		trim(str); // trim whitespace and comments
 		enqueue(str); // store the line in the global "In" structure
 	}
+	In.line_number = 0;
 
 	/* Collect labels (symbols).
 	Label/value pairs are added to the "Out" structure. Error checking is
@@ -60,14 +64,14 @@ int main(int argc, char *argv[])
 	while (In.current) { // read until the last line
 		if (eq(TOKEN, ".LABEL")) {
 			// <directive> ::= ".LABEL" <s+> <label> <s+> <number>
-			strcpy(str, nexttoken()); // <label>
+			scopy(str, nexttoken()); // <label>
 			if (!label(str)) error(LABEL);
 			n = number(nexttoken()); // <number>
 			if (n < 0) error(NUMBER); // error codes = negative values
 			addlabel(str, n);
 		} else if (eq(TOKEN, ".DATA")) {
 			// <directive> ::= ".DATA" <s+> <label> <s+> <array>
-			strcpy(str, nexttoken()); // <label>
+			scopy(str, nexttoken()); // <label>
 			if (!label(str)) error(LABEL);
 			addlabel(str, 0); // data labels are calculated in the next stage
 		} else if (instr_size1(TOKEN)) {
@@ -76,30 +80,22 @@ int main(int argc, char *argv[])
 			nextaddr();
 			nextaddr(); // two-word instructions
 		} else if (label(TOKEN)) {
-			// consequtive labels are not allowed
-			if (Out.labels > 0 && Out.label[Out.labels-1].val == Out.addr) {
-				error(INSTRUCTION);
+			scopy(str, TOKEN);
+			if (eq(nexttoken(), ":")) {
+				addlabel(str, Out.addr);
+				// check the next token instead of the next line to process
+				// <label:> <instruction> cases
+				nexttoken();
+				continue;
 			}
-			strcpy(str, TOKEN);
-			// catch missing colons now, otherwise most instruction typos
-			// will be regarded as labels, causing syntactically correct
-			// but misleading errors at use sites during the second pass
-			if (!eq(nexttoken(), ":")) error(INSTRUCTION_COLON);
-			addlabel(str, Out.addr);
-			// check the next token instead of the next line to process
-			// <label:> <instruction> cases
-			nexttoken();
-			continue;
 		}
 		nextline();
 	}
 	
 	sortlabels(); // to allow bsearch in findlabel
 
-	/* Parse directives.
-	E80 is designed according to the Neumann model where machine code and data
-	are stored in the same area. However, .DATA arrays are checked against
-	overwriting program code. */
+	/* Parse directives. .MONITOR's resolution is deferred after finishing
+	.DATA size calculations. */
 	firstline();
 	while (In.current) {
 		if (eq(TOKEN, ".TITLE")) {
@@ -110,14 +106,21 @@ int main(int argc, char *argv[])
 			strncpy(title, TOKEN + 1, strlen(TOKEN) - 2); // unquote
 		} else if (eq(TOKEN, ".MONITOR")) {
 			// <directive> ::= ".MONITOR" <s+> <value>
-			monitor = value(nexttoken());
+			nexttoken();
+			if (number(TOKEN) < NUMBER_ERROR) {
+				error(NUMBER);
+			} else if (number(TOKEN) == NUMBER_ERROR && findlabel(TOKEN) == -1) {
+				error(DEFINED_LABEL);
+			}
+			scopy(monitor_value, TOKEN);
 		} else if (eq(TOKEN, ".SPEED")) {
 			// <directive> ::= ".SPEED" <s+> <level>
 			speed = number(nexttoken());
 			if (speed < MIN_SPEED || speed > MAX_SPEED) error(SPEED);
 		} else if (eq(TOKEN, ".SIMDIP")) {
-			// <directive> ::= ".SIMDIP" <s+> <value>
-			bitcopy(simdip, value(nexttoken()), 7, 0);
+			// <directive> ::= ".SIMDIP" <s+> <number>
+			if (number(nexttoken()) < 0) error(NUMBER);
+			bitcopy(simdip, value(TOKEN), 7, 0);
 		} else if (eq(TOKEN, ".LABEL")) {
 			findlabel(nexttoken()); // includes dupe checking
 			nexttoken(); // number was checked during symbol collection
@@ -125,9 +128,8 @@ int main(int argc, char *argv[])
 			// <directive> ::= ".DATA" <s+> <label> <s+> <array>
 			Out.label[findlabel(nexttoken())].val = Out.addr;
 			do {
-				nexttoken();
-				if (!array_element(TOKEN)) error(ARRAY_ELEMENT);
 				// <array_element> ::= <number> | <quoted_string>
+				array_element(nexttoken()); // includes checks
 				if (TOKEN[0] != '"') {
 					// <number>, write on the RAM as 8 bits
 					bitcopy(RAM, value(TOKEN), 7, 0);
@@ -157,6 +159,8 @@ int main(int argc, char *argv[])
 		if (nexttoken()) error(EXTRANEOUS);
 		nextline();
 	}
+	/* Assign .MONITOR now since all .DATA blocks have been appended. */
+	monitor = value(monitor_value);
 	
 	/* Parse instructions according to the BNF syntax rules.
 	The parser functions (instr_argumentless, instr_n, etc) handle syntax
@@ -175,7 +179,7 @@ int main(int argc, char *argv[])
 			nextaddr();
 		} else if (instr_reg(TOKEN)) {
 			// <[instruction]> ::= <instr_reg> <s+> <reg>
-			strcpy(instr, TOKEN);
+			scopy(instr, TOKEN);
 			reg = regnum(nexttoken());
 			if (reg < 0) error(REGISTER);
 			bitcopy(RAM, reg, 2, 0); // <reg> in Instr1[2:0]
@@ -183,7 +187,7 @@ int main(int argc, char *argv[])
 			nextaddr();
 		} else if (instr_n(TOKEN)) {
 			// <[instruction]>  ::= <instr_n> <s+> <value>
-			strcpy(instr, TOKEN);
+			scopy(instr, TOKEN);
 			n = value(nexttoken());
 			if (n < 0) error(VALUE);
 			nextaddr();
@@ -192,46 +196,57 @@ int main(int argc, char *argv[])
 			nextaddr();
 		} else if (instr_reg_op2(TOKEN)) {
 			// <instruction> ::= <instr_reg_op2> <s+> <reg> <,> <op2>
-			char bracket_op2 = load_store(TOKEN); // op2 must be bracketed
-			strcpy(instr, TOKEN);
+			scopy(instr, TOKEN);
 			reg = regnum(nexttoken());
 			if (reg < 0) error(REGISTER);
 			if (!eq(nexttoken(), ",")) error(COMMA);
-			str[0] = 0; // clear scratchpad string
-			sprintf(str, "%s R%d, ", instr, reg);
-			nexttoken();
-			if (bracket_op2) {
-				if (!eq(TOKEN,"[")) error(LEFTBRACKET);
-				sprintf(str+strlen(str),"[");
-				nexttoken();
-			}
+			nexttoken(); // target op2
 			n = value(TOKEN);
 			reg2 = regnum(TOKEN);
 			if (n >= 0) {
-				// op2 = <value>
 				bitcopy(RAM, reg, 3, 0); // <reg> in Instr1[3:0]
 				nextaddr();
 				bitcopy(RAM, n, 7, 0); // <number> in Instr2
-				if (n < 128 || bracket_op2) {
-					sprintf(COMMENT, "%s%d", str, n);
-				} else {
-					// signed equivalent for non-address
-					sprintf(COMMENT, "%s%d (-%d)", str, n, 256-n);
+				sprintf(COMMENT, "%s R%d, %d", instr, reg, n);
+				if (n >= 128) {
+					// signed equivalent
+					sprintf(COMMENT + strlen(COMMENT), " (-%d)", 256 - n);
 				}
 			} else if (reg2 >= 0) {
-				// op2 = <reg>
-				strcpy(&RAM[4], "1000");
+				scopy(&RAM[4], "1000");
 				nextaddr();
 				bitcopy(RAM, reg, 7, 4); // <reg> in Instr2[7:4]
-				bitcopy(RAM, reg2, 3, 0); // <reg> (op2) in Instr2[3:0]
-				sprintf(COMMENT, "%sR%d", str, reg2);
+				bitcopy(RAM, reg2, 3, 0); // <op2> in Instr2[3:0]
+				sprintf(COMMENT, "%s R%d, R%d", instr, reg, reg2);
 			} else {
 				error(OP2);
 			}
-			if (bracket_op2) {
-				if (!eq(nexttoken(),"]")) error(RIGHTBRACKET);
-				sprintf(COMMENT+strlen(COMMENT), "]");
+			nextaddr();
+		} else if (load_store(TOKEN)) {
+			// <instr_ldst> <s+> <reg> <,> "[" <op2> "]"
+			scopy(instr, TOKEN);
+			reg = regnum(nexttoken());
+			if (reg < 0) error(REGISTER);
+			if (!eq(nexttoken(), ",")) error(COMMA);
+			if (!eq(nexttoken(), "[")) error(LEFTBRACKET);
+			nexttoken(); // target inner op2
+			n = value(TOKEN);
+			reg2 = regnum(TOKEN);
+			if (n >= 0) {
+				bitcopy(RAM, reg, 3, 0); // <reg> in Instr1[3:0]
+				nextaddr();
+				bitcopy(RAM, n, 7, 0); // <number> in Instr2
+				sprintf(COMMENT, "%s R%d, [%d]", instr, reg, n);
+			} else if (reg2 >= 0) {
+				scopy(&RAM[4], "1000");
+				nextaddr();
+				bitcopy(RAM, reg, 7, 4); // <reg> in Instr2[7:4]
+				bitcopy(RAM, reg2, 3, 0); // <op2> in Instr2[3:0]
+				sprintf(COMMENT, "%s R%d, [R%d]", instr, reg, reg2);
+			} else {
+				error(OP2);
 			}
+			if (!eq(nexttoken(), "]")) error(RIGHTBRACKET);
 			nextaddr();
 		} else if (findlabel(TOKEN) != -1) { // includes dupe checking
 			// label syntax was checked during symbol collection
@@ -239,7 +254,7 @@ int main(int argc, char *argv[])
 			nexttoken();
 			continue;
 		} else if (!eq(TOKEN, "")) {
-			error(INSTRUCTION_LABEL);
+			error(INSTRUCTION);
 		}
 		if (nexttoken()) error(EXTRANEOUS);
 		nextline();
@@ -249,19 +264,19 @@ int main(int argc, char *argv[])
 	Each instruction reserves one line, followed by a comment specifying the
 	instruction in hex and the disassembled mnemonic. */
 	char hex[5] = {0}; // bin to hex conversion string (max 4 digits)
+	char *p; // Pointer for splitting the template string
 	while (fgets(str, MAX_LINE_LENGTH, vhdl_template) != NULL) {
-		if (strstr(str, "--")) {
-			if (!eq(title,"")) {
-				printf(str, title);
-			} else {
-				printf(str, DEFAULT_TITLE);
-			}
-		} else if (strstr(str, "SPEED_directive")) {
-			printf(str, speed); // template contains %d specifier
-		} else if (strstr(str, "MONITOR_directive")) {
-			printf(str, monitor); // template contains %d specifier
-		} else if (strstr(str, "SIMDIP_directive")) {
-			printf(str, simdip); // template contains %s specifier
+		if (strstr(str, "-- Generated") && !eq(title,"")) {
+			printf("-- %s\n", title);
+		} else if (strstr(str, "SPEED_directive") && (p = strstr(str, ":="))) {
+			*p = '\0'; // Terminate exactly at the assignment operator
+			printf("%s:= %d;\n", str, speed);
+		} else if (strstr(str, "MONITOR_directive") && (p = strstr(str, ":="))) {
+			*p = '\0';
+			printf("%s:= %d;\n", str, monitor);
+		} else if (strstr(str, "SIMDIP_directive") && (p = strstr(str, ":="))) {
+			*p = '\0';
+			printf("%s:= \"%s\";\n", str, simdip);
 		} else if (strstr(str, "MACHINE_CODE_PLACEHOLDER")) {
 			str[0] = 0; // clear scratchpad string
 			for (Out.addr = 0; Out.addr < RAM_SIZE; Out.addr++) {
@@ -284,7 +299,7 @@ int main(int argc, char *argv[])
 					// or "data" if the word is from .DATA
 					if (COMMENT[0] && COMMENT[0] < 57) {
 						// comment is data (starts from quote or number)
-						strcpy(hex,"data");
+						scopy(hex,"data");
 					} else {
 						sprintf(hex, "%02X", n); // instr1 to hex part of comment
 					}
@@ -309,7 +324,7 @@ int main(int argc, char *argv[])
 				}
 			}
 		} else {
-			printf(str); // unmodified template lines
+			fputs(str, stdout); // unmodified template lines
 		}
 	}
 

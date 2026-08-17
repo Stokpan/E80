@@ -68,15 +68,15 @@ ENTITY MAX7219x4 IS PORT (
 ARCHITECTURE a1 OF MAX7219x4 IS
 BEGIN
 	PROCESS(MainCLK)
-		-- ShiftRegister contains a packet of 16 bits for each matrix. As seen
+		-- ShiftRegister stores a packet of 16 bits for each matrix. As seen
 		-- on tables 2-10, bits D15-D12 are don't cares, D11-D8 define control
 		-- and D7-D0 are data. The module is assumed with its input pins on the
 		-- left, so the the first packet is shifted on matrix 4 (the rightmost).
 		SUBTYPE SRpacket IS STD_LOGIC_VECTOR(63 DOWNTO 0);
 		VARIABLE ShiftRegister : SRpacket;
 		VARIABLE ShiftedBits : NATURAL RANGE 0 TO SRpacket'LENGTH;
-		-- Initialization packets (see specification tables 2-10) were set
-		-- to ensure a reliable startup in repeated board reflashes.
+		-- The initialization packet sequence (see specification tables 2-10)
+		-- was set by trial & error to ensure a reliable startup.
 		TYPE InitPackets IS ARRAY (NATURAL RANGE <>) OF SRpacket;
 		CONSTANT InitPacket : InitPackets := (
 			0 => x"-F-1-F-1-F-1-F-1",  -- display test: enabled
@@ -120,11 +120,7 @@ BEGIN
 						RowAddress(Row) & reverse_vector(Matrix3(Row)) &
 						RowAddress(Row) & reverse_vector(Matrix2(Row)) &
 						RowAddress(Row) & reverse_vector(Matrix1(Row));
-					IF Row < 7 THEN
-						Row := Row + 1;
-					ELSE
-						Row := 0;
-					END IF;
+					Row := (Row + 1) MOD 8;
 				END IF;
 				-- Proceed to the Shifting state
 				ShiftedBits := 0;

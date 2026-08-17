@@ -16,13 +16,13 @@ taking into account escaped quotes. */
 void uppercase(char *s)
 {
 	if (!s || !*s) return; // ignore NULL or empty strings
-	*s = (char)toupper(*s); // first character
+	*s = (char)toupper((unsigned char)*s); // first character
 	char quoted = 0; // flag
 	for (s++; *s; s++) {
 		if (s[-1] != '\\' && s[0] == '"') { // \" = escaped quote
 			 quoted = !quoted;
 		}
-		if (!quoted) *s = (char)toupper(*s);
+		if (!quoted) *s = (char)toupper((unsigned char)*s);
 	}
 }
 
@@ -34,7 +34,7 @@ int number(const char *s)
 	char invalid[MAX_LINE_LENGTH]; // for sscanf masking -- invalid characters
 	char S[MAX_LINE_LENGTH]; // uppercase version of the parameter
 	char negative = 0; // is the input negative ?
-	strcpy(S,s);
+	scopy(S,s);
 	uppercase(S);
 	// check if input is negative
 	if (S[0] == '-') {
@@ -89,10 +89,16 @@ void trim(char *s)
 		// move to the next character
 		end++;
 	}
-	end--; // terminal = [end+1]
-	while (isspace(*start)) start++; // first non-trimmable up to terminal
-	if (start < end) {
-		while (isspace(*end)) end--; // last non-trimmable
+	
+	if (end == start) {
+		end[0] = '\0';
+		return;
+	}
+	
+	end--; // point before the semicolon or the terminal
+	while (isspace((unsigned char)*start)) start++; // first non-trimmable up to terminal
+	if (end > start) {
+		while (isspace((unsigned char)*end)) end--; // last non-trimmable
 	}
 	end[1] = '\0'; // terminate after the last non-trimmable
 	// shift the trimmed content to the begin of the string,
@@ -106,7 +112,7 @@ char eq(const char *s1, const char *s2)
 	if (!s1 || !s2) return 0; // only one is NULL
 	// compare each character case-insensitively until a terminator is reached
 	// in either string
-	while (*s1 && *s2 && toupper(*s1) == toupper(*s2)) {
+	while (*s1 && *s2 && toupper((unsigned char)*s1) == toupper((unsigned char)*s2)) {
 		s1++;
 		s2++;
 	}
@@ -146,60 +152,58 @@ char reserved(const char *s)
 
 char instr_noarg(const char *s)
 {
-	if      (eq(s, "HLT"))    strcpy(RAM, "00000000");
-	else if (eq(s, "NOP"))    strcpy(RAM, "00000001");
-	else if (eq(s, "RETURN")) strcpy(RAM, "00001111");
+	if      (eq(s, "HLT"))    scopy(RAM, "00000000");
+	else if (eq(s, "NOP"))    scopy(RAM, "00000001");
+	else if (eq(s, "RETURN")) scopy(RAM, "11111000");
 	else return 0;
 	return 1;
 }
 
 char instr_reg(const char *s)
 {
-	if      (eq(s, "LSHIFT")) strcpy(RAM, "10100");
-	else if (eq(s, "RSHIFT")) strcpy(RAM, "11010");
-	else if (eq(s, "PUSH"))   strcpy(RAM, "11100");
-	else if (eq(s, "POP"))    strcpy(RAM, "11110");
+	if      (eq(s, "LSHIFT")) scopy(RAM, "10100");
+	else if (eq(s, "RSHIFT")) scopy(RAM, "11010");
+	else if (eq(s, "PUSH"))   scopy(RAM, "11100");
+	else if (eq(s, "POP"))    scopy(RAM, "11110");
 	else return 0;
 	return 1;
 }
 
 char instr_n(const char *s)
 {
-	if      (eq(s, "JMP"))  strcpy(RAM, "00000010");
-	else if (eq(s, "JC"))   strcpy(RAM, "00000100");
-	else if (eq(s, "JNC"))  strcpy(RAM, "00000101");
-	else if (eq(s, "JZ"))   strcpy(RAM, "00000110");
-	else if (eq(s, "JNZ"))  strcpy(RAM, "00000111");
-	else if (eq(s, "JS"))   strcpy(RAM, "00001000");
-	else if (eq(s, "JNS"))  strcpy(RAM, "00001001");
-	else if (eq(s, "JV"))   strcpy(RAM, "00001010");
-	else if (eq(s, "JNV"))  strcpy(RAM, "00001011");
-	else if (eq(s, "CALL")) strcpy(RAM, "00001110");
+	if      (eq(s, "JMP"))  scopy(RAM, "00000010");
+	else if (eq(s, "JC"))   scopy(RAM, "00000100");
+	else if (eq(s, "JNC"))  scopy(RAM, "00000101");
+	else if (eq(s, "JZ"))   scopy(RAM, "00000110");
+	else if (eq(s, "JNZ"))  scopy(RAM, "00000111");
+	else if (eq(s, "JS"))   scopy(RAM, "00001000");
+	else if (eq(s, "JNS"))  scopy(RAM, "00001001");
+	else if (eq(s, "JV"))   scopy(RAM, "00001010");
+	else if (eq(s, "JNV"))  scopy(RAM, "00001011");
+	else if (eq(s, "CALL")) scopy(RAM, "11101000");
 	else return 0;
 	return 2;
 }
 
 char instr_reg_op2(const char *s)
 {
-	if      (eq(s, "MOV"))   strcpy(RAM, "0001");
-	else if (eq(s, "ADD"))   strcpy(RAM, "0010");
-	else if (eq(s, "SUB"))   strcpy(RAM, "0011");
-	else if (eq(s, "AND"))   strcpy(RAM, "0100");
-	else if (eq(s, "OR"))    strcpy(RAM, "0101");
-	else if (eq(s, "XOR"))   strcpy(RAM, "0110");
-	else if (eq(s, "ROR"))   strcpy(RAM, "0111");
-	else if (eq(s, "STORE")) strcpy(RAM, "1000");
-	else if (eq(s, "LOAD"))  strcpy(RAM, "1001");
-	else if (eq(s, "CMP"))   strcpy(RAM, "1011");
-	else if (eq(s, "BIT"))   strcpy(RAM, "1100");
+	if      (eq(s, "MOV"))   scopy(RAM, "0001");
+	else if (eq(s, "ADD"))   scopy(RAM, "0010");
+	else if (eq(s, "SUB"))   scopy(RAM, "0011");
+	else if (eq(s, "AND"))   scopy(RAM, "0100");
+	else if (eq(s, "OR"))    scopy(RAM, "0101");
+	else if (eq(s, "XOR"))   scopy(RAM, "0110");
+	else if (eq(s, "ROR"))   scopy(RAM, "0111");
+	else if (eq(s, "CMP"))   scopy(RAM, "1011");
+	else if (eq(s, "BIT"))   scopy(RAM, "1100");
 	else return 0;
 	return 2;
 }
 
 char load_store(const char *s)
 {
-	if      (eq(s, "STORE")) strcpy(RAM, "1000");
-	else if (eq(s, "LOAD"))  strcpy(RAM, "1001");
+	if      (eq(s, "STORE")) scopy(RAM, "1000");
+	else if (eq(s, "LOAD"))  scopy(RAM, "1001");
 	else return 0;
 	return 2;
 }
@@ -207,13 +211,13 @@ char load_store(const char *s)
 /* <label_char> ::= <letter> | <dec> | "_" */
 char label_char(const char c)
 {
-	return isalpha(c) || isdigit(c) || c == '_';
+	return isalpha((unsigned char)c) || isdigit((unsigned char)c) || c == '_';
 }
 
 /* <label> ::= <letter> <label_char*> */
 char label(const char *s)
 {
-	if (!isalpha(s[0])) return 0;
+	if (!isalpha((unsigned char)s[0])) return 0;
 	for (int i = 1; s[i] != '\0'; i++) {
 		if (!label_char(s[i])) return 0;
 	}
@@ -225,12 +229,12 @@ char label(const char *s)
 /* <array_element> ::= <number> | <quoted_string> */
 char array_element(const char *s)
 {
-	int len = strlen(s);
+	if (!s) error(ARRAY_ELEMENT);
 	if (s[0] == '"') {
 		// <quoted_string> ::= "\"" <char+> "\""
-		if (len < 3) error(EMPTY_STRING);
+		if (strlen(s) < 3) error(EMPTY_STRING);
 		// the closing quote is handled at nexttoken in data_structures.c
-	} else if (number(s) < 0) {
+	} else if (number(s) <= NUMBER_ERROR) {
 		error(ARRAY_ELEMENT);
 	}
 	return 1;
@@ -255,7 +259,7 @@ int value(const char *s)
 	if (n >= 0) return n;
 	// if it's not a number, it must be a label
 	int i = findlabel(s);
-	if (i > -1) {
+	if (i > NUMBER_ERROR) {
 		return Out.label[i].val;
 	} else {
 		return -1;
@@ -273,4 +277,13 @@ void bitcopy(char *dest, int num, int high, int low)
 		num >>= 1;
 	}
 	if (LSB == 7) dest[8] = '\0';
+}
+
+char* scopy(char *dest, const char *src) {
+	if (src) {
+		strcpy(dest, src);
+	} else {
+		dest[0] = '\0';
+	}
+	return dest;
 }

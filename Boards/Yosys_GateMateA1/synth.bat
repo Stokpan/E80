@@ -32,7 +32,7 @@ set GDK_PIXBUF_MODULE_FILE=%YOSYSHQ_ROOT%lib\gdk-pixbuf-2.0\2.10.0\loaders.cache
 gdk-pixbuf-query-loaders.exe --update-cache > nul 2>&1
 set OPENFPGALOADER_SOJ_DIR=%YOSYSHQ_ROOT%share\openFPGALoader
 
-REM move to work folder (TempOutput) to prevent cluttering the main folder.
+REM move to work folder (TempOutput) to prevent cluttering the main folder
 set TempOutput=%~dp0TempOutput
 md %TempOutput% > nul 2>&1
 cd %TempOutput%
@@ -52,10 +52,15 @@ REM Use openFPGALoader to check for the Olimex GateMate board; if not found
 REM continue, assuming the user will connect it during compilation.
 openfpgaloader -b olimex_gatemateevb --detect > NUL 2>&1
 if %errorlevel% NEQ 0 (
-	echo    Board not found. If it's connected and PWR_LED1 is on, please
-	echo    install its driver according to Boards\Yosys_GateMateA1\README.md
-	echo    If you just forgot to connect it, you can do so now.
-	echo.
+    REM Check if the board is found on the device manager, using the errorlevel
+    REM environment variable (not %errorlevel%) to avoid delayed expansion.
+	pnputil /enum-devices /connected | findstr /i "VID_1209&PID_C0CA" > NUL
+	if errorlevel 1 (
+		echo    Board not found! Please connect it with a data cable.
+	) else (
+		echo    The board is connected but the driver is missing! Please install
+		echo    it according to Boards\Yosys_GateMateA1\README.md.
+	)
 )
 
 REM check if bitstream exists and size > 0, otherwise start compilation
@@ -104,7 +109,7 @@ if %errorlevel% NEQ 0 goto :error
 
 echo 3. Place and Route (nextpnr) -- SLOW!
 set log=nextpnr.log
-set command=nextpnr-himbaechel --device CCGM1A1 --json %TopUnit%.json -o ccf=..\E80.ccf -o out=%TopUnit%.impl --ignore-loops --freq 2 --timing-allow-fail --placer-heap-beta 0.3
+set command=nextpnr-himbaechel --device CCGM1A1 --json %TopUnit%.json -o ccf=..\E80.ccf -o out=%TopUnit%.impl --freq 2 --placer-heap-beta 0.3
 copy NUL %log% > NUL
 echo -------------------------------------------------------------------------- >> %log%
 echo %time% -- %command% >> %log%
@@ -134,7 +139,7 @@ echo -------------------------------------------------------------------------- 
 if %errorlevel%==0 (
 	echo    Done.
 ) else (
-	echo    Failed! Is the board connected? Try pressing the FPGA_RST1 button.
+	echo    Failed! Is the board connected?
 )
 :flashprompt
 echo ** Hit [1] to recompile or [5] to reflash **
@@ -142,7 +147,6 @@ choice /C 15 /N > nul
 if %errorlevel%==1 goto :start
 if %errorlevel%==2 goto :openfpgaloader
 goto :flashprompt
-
 
 :error
 echo    Failed! Opening %log%

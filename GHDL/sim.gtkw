@@ -3,10 +3,9 @@
 
 [dumpfile] "sim.ghw"
 [savefile] "sim.gtkw"
-[timestart] 0
 [size] 900 553
 [pos] -1 -1
-*-19.3
+*-19.5
 [signals_width] 163
 @24
 [color] 1 

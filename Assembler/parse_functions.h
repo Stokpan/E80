@@ -54,7 +54,10 @@ int regnum(const char *s);
 if the parameter is an label, it gets its value from the labels table */
 int value(const char *s);
 
-/* Converts num to bits, in Little Endian order to match VHDL's DOWNTO */
+/* Converts num to bits, in VHDL's DOWNTO order */
 void bitcopy(char *dest, int num, int high, int low);
+
+/* strcpy extended to copy null */
+char* scopy(char *dest, const char *src);
 
 #endif

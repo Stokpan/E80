@@ -13,16 +13,16 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY RegisterFile IS PORT (
 	CLK    : IN STD_LOGIC;
-	Reset  : IN STD_LOGIC;   -- resets the SP and clears the Halt flag
-	A_reg  : IN REG_ADDR;    -- read/write register
-	A_next : IN WORD;        -- next cycle value of A_reg
-	B_reg  : IN REG_ADDR;    -- read only register
-	W_reg  : IN REG_ADDR;    -- write only register
-	W_next : IN WORD;        -- next cycle value of W_reg
-	A_val  : OUT WORD;       -- current value of A_reg
-	B_val  : OUT WORD;       -- current value of B_reg
-	Flags  : OUT WORD;       -- current value of Flags Register
-	R      : BUFFER WORDx8   -- register file (+ LED display)
+	Reset  : IN STD_LOGIC; -- resets the SP and clears the Halt flag
+	A_reg  : IN REG_ADDR;  -- read/write register
+	A_next : IN WORD;      -- next cycle value of A_reg
+	B_reg  : IN REG_ADDR;  -- read only register
+	W_reg  : IN REG_ADDR;  -- write only register
+	W_next : IN WORD;      -- next cycle value of W_reg
+	A_val  : OUT WORD;     -- current value of A_reg
+	B_val  : OUT WORD;     -- current value of B_reg
+	Flags  : OUT WORD;     -- current value of Flags Register
+	R      : OUT WORDx8    -- register file storage (output for LED display)
 ); END;
 ARCHITECTURE a1 OF RegisterFile IS
 	SIGNAL Rnext : WORDx8; -- stored values

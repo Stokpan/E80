@@ -1,4 +1,4 @@
-<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. A toolchain for one-click assembly and simulation serves as a low floor, a textbook-complete instruction set provides the high ceiling, and a pre-configured hardware interface for three low-cost FPGA boards sets the wide walls. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.
+<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. It provides a textbook-complete instruction set, a toolchain for one-click assembly and simulation, and a pre-configured hardware interface for three low-cost FPGA boards. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.
 
 The implementation's engineering and methodology was [presented](https://doi.org/10.13140/RG.2.2.27849.71521) at [PACET 2026](https://sites.google.com/g.upatras.gr/pacet2026) and the paper is [available on IEEE Xplore](https://doi.org/10.1109/PACET68758.2026.11498245).<br clear="left">
 
@@ -59,41 +59,40 @@ Flags    : Register R6 = [CZSV---H] (see ALU.vhd)
 | 9  | 00001001 nnnnnnnn | 09 nn | JNS n         | if S=0, PC ← n        |       |
 | 10 | 00001010 nnnnnnnn | 0A nn | JV n          | if V=1, PC ← n        |       |
 | 11 | 00001011 nnnnnnnn | 0B nn | JNV n         | if V=0, PC ← n        |       |
-| 12 | 00001110 nnnnnnnn | 0E nn | CALL n        | PC+2 → [--SP]; PC ← n |       |
-| 13 | 00001111          | 0F    | RETURN        | PC ← [SP++]           |       |
-| 14 | 00010rrr nnnnnnnn | 1r nn | MOV r,n       | r ← n                 |  ZS   |
-| 15 | 00011000 0rrr0rrr | 18 rr | MOV r1,r2     | r1 ← r2               |  ZS   |
-| 16 | 00100rrr nnnnnnnn | 2r nn | ADD r,n       | r ← r+n               | CZSV  |
-| 17 | 00101000 0rrr0rrr | 28 rr | ADD r1,r2     | r1 ← r1+r2            | CZSV  |
-| 18 | 00110rrr nnnnnnnn | 3r nn | SUB r,n       | r ← r+(~n)+1          | CZSV  |
-| 19 | 00111000 0rrr0rrr | 38 rr | SUB r1,r2     | r1 ← r1+(~r2)+1       | CZSV  |
-| 20 | 01000rrr nnnnnnnn | 4r nn | AND r,n       | r ← r&n               |  ZS   |
-| 21 | 01001000 0rrr0rrr | 48 rr | AND r1,r2     | r1 ← r1&r2            |  ZS   |
-| 22 | 01010rrr nnnnnnnn | 5r nn | OR r,n        | r ← r|n               |  ZS   |
-| 23 | 01011000 0rrr0rrr | 58 rr | OR r1,r2      | r1 ← r1|r2            |  ZS   |
-| 24 | 01100rrr nnnnnnnn | 6r nn | XOR r,n       | r ← r^n               |  ZS   |
-| 25 | 01101000 0rrr0rrr | 68 rr | XOR r1,r2     | r1 ← r1^r2            |  ZS   |
-| 26 | 01110rrr nnnnnnnn | 7r nn | ROR r,n       | r>>n (r<<8-n)         |  ZS   |
-| 27 | 01111000 0rrr0rrr | 78 rr | ROR r1,r2     | r1>>r2 (r1<<8-r2)     |  ZS   |
-| 28 | 10000rrr nnnnnnnn | 8r nn | STORE r,[n]   | r → [n]               |       |
-| 29 | 10001000 0rrr0rrr | 88 rr | STORE r1,[r2] | r1 → [r2]             |       |
-| 30 | 10010rrr nnnnnnnn | 9r nn | LOAD r,[n]    | r ← [n]               |  ZS   |
-| 31 | 10011000 0rrr0rrr | 98 rr | LOAD r1,[r2]  | r1 ← [r2]             |  ZS   |
-| 32 | 10100rrr          | Ar    | LSHIFT r      | (C,r)<<1; V ← S flip  | CZSV  |
-| 33 | 10110rrr nnnnnnnn | Br nn | CMP r,n       | SUB, discard result   | CZSV  |
-| 34 | 10111000 0rrr0rrr | B8 rr | CMP r1,r2     | SUB, discard result   | CZSV  |
-| 35 | 11000rrr nnnnnnnn | Cr nn | BIT r,n       | AND, discard result   |  ZS   |
-| 36 | 11001000 0rrr0rrr | C8 rr | BIT r1,r2     | AND, discard result   |  ZS   |
-| 37 | 11010rrr          | Dr    | RSHIFT r      | (r,C)>>1; V ← S flip  | CZSV  |
-| 38 | 11100rrr          | Er    | PUSH r        | r → [--SP]            |       |
-| 39 | 11110rrr          | Fr    | POP r         | r ← [SP++]            |       |
+| 12 | 00010rrr nnnnnnnn | 1r nn | MOV r,n       | r ← n                 |       |
+| 13 | 00011000 0rrr0rrr | 18 rr | MOV r1,r2     | r1 ← r2               |       |
+| 14 | 00100rrr nnnnnnnn | 2r nn | ADD r,n       | r ← r+n               | CZSV  |
+| 15 | 00101000 0rrr0rrr | 28 rr | ADD r1,r2     | r1 ← r1+r2            | CZSV  |
+| 16 | 00110rrr nnnnnnnn | 3r nn | SUB r,n       | r ← r+(~n)+1          | CZSV  |
+| 17 | 00111000 0rrr0rrr | 38 rr | SUB r1,r2     | r1 ← r1+(~r2)+1       | CZSV  |
+| 18 | 01000rrr nnnnnnnn | 4r nn | AND r,n       | r ← r&n               |  ZS   |
+| 19 | 01001000 0rrr0rrr | 48 rr | AND r1,r2     | r1 ← r1&r2            |  ZS   |
+| 20 | 01010rrr nnnnnnnn | 5r nn | OR r,n        | r ← r|n               |  ZS   |
+| 21 | 01011000 0rrr0rrr | 58 rr | OR r1,r2      | r1 ← r1|r2            |  ZS   |
+| 22 | 01100rrr nnnnnnnn | 6r nn | XOR r,n       | r ← r^n               |  ZS   |
+| 23 | 01101000 0rrr0rrr | 68 rr | XOR r1,r2     | r1 ← r1^r2            |  ZS   |
+| 24 | 01110rrr nnnnnnnn | 7r nn | ROR r,n       | r>>n (r<<8-n)         |  ZS   |
+| 25 | 01111000 0rrr0rrr | 78 rr | ROR r1,r2     | r1>>r2 (r1<<8-r2)     |  ZS   |
+| 26 | 10000rrr nnnnnnnn | 8r nn | STORE r,[n]   | r → [n]               |       |
+| 27 | 10001000 0rrr0rrr | 88 rr | STORE r1,[r2] | r1 → [r2]             |       |
+| 28 | 10010rrr nnnnnnnn | 9r nn | LOAD r,[n]    | r ← [n]               |       |
+| 29 | 10011000 0rrr0rrr | 98 rr | LOAD r1,[r2]  | r1 ← [r2]             |       |
+| 30 | 10100rrr          | Ar    | LSHIFT r      | (C,r)<<1; V ← S flip  | CZSV  |
+| 31 | 10110rrr nnnnnnnn | Br nn | CMP r,n       | SUB, discard result   | CZSV  |
+| 32 | 10111000 0rrr0rrr | B8 rr | CMP r1,r2     | SUB, discard result   | CZSV  |
+| 33 | 11000rrr nnnnnnnn | Cr nn | BIT r,n       | AND, discard result   |  ZS   |
+| 34 | 11001000 0rrr0rrr | C8 rr | BIT r1,r2     | AND, discard result   |  ZS   |
+| 35 | 11010rrr          | Dr    | RSHIFT r      | (r,C)>>1; V ← S flip  | CZSV  |
+| 36 | 11100rrr          | Er    | PUSH r        | r → [--SP]            |       |
+| 37 | 11101000 nnnnnnnn | E8 nn | CALL n        | PC+2 → [--SP]; PC ← n |       |
+| 38 | 11110rrr          | Fr    | POP r         | r ← [SP++]            |       |
+| 39 | 11111000          | F8    | RETURN        | PC ← [SP++]           |       |
 +----+-------------------+-------+---------------+-----------------------+-------+
 ```
 **Notes**
 * `ROR R1,R2` rotates R1 to the right by R2 bits. This is equivalent to left rotation by 8-R2 bits.
-* Carry and Overflow flags are updated by arithmetic and shift instructions, except `ROR`.
+* Flags are updated when registers are modified by the ALU.
 * Shift instructions are logical; Carry flag = shifted bit and the Overflow flag is set if the sign bit is changed.
-* Sign and Zero flags are updated by `CMP`, `BIT`, and any instruction that modifies a register, except for stack-related instructions.
 * The `HLT` instruction sets the Halt flag and freezes the PC, thereby stopping execution in the current cycle.
 * Explicit modification of the FLAGS register takes precedence over normal flag changes, eg. `OR FLAGS, 0b01000000` sets Z=1 although the result is non-zero.
 * Addition & subtraction is performed with a textbook adder; flags are set according to this cheatsheet:
@@ -135,7 +134,7 @@ op2    : Reg or val (flexible 2nd operand)
 | .TITLE "string"      | Set the title for the Program.vhd output           |
 | .LABEL label number  | Assign a number to a label                         |
 | .DATA label csv      | Append csv at label address after program space    |
-| .SIMDIP value        | Set the DIP switch input (simulation only)         |
+| .SIMDIP number       | Set the DIP switch input (simulation only)         |
 | .SPEED level         | Initialize clock speed to level 0-6 on the FPGA    |
 | .MONITOR value       | Address of 8-word RAM block to be displayed        |
 +----------------------+----------------------------------------------------+
@@ -277,7 +276,7 @@ Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it
 
 <p align="center"><img alt="hello.asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png"></p>
 
-Follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware. Your assembled program will run with the default speed util the Halt flag turns on (leftmost row #7, LED #5).
+Follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware. Your assembled program will run with the default speed util the Halt flag turns on (leftmost row #7, LED #8).
 
 To restart with step execution, set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
 
