@@ -29,10 +29,11 @@
 ; Memory and addressing - all four LOAD/STORE forms round-tripped:
 ; direct, register-indirect, and the 'scratch' label used both as an
 ; address and as an immediate. Every write is read back and compared,
-; and register-vs-memory is cross-checked with CMP R1,R2.
+; and register-vs-memory is cross-checked with CMP R1,R2. The direct
+; STORE is read back by LOAD R3 in the branch gauntlet below.
 ; LOAD [0] deliberately reads the program's own first byte (NOP = 1).
 	LOAD R0, [0]			; 600ps R0=1
-	ADD R0, scratch			; 700ps R0=scratch, CZSV=0010
+	ADD R0, scratch			; 700ps R0=scratch+1, CZSV=0010
 	LOAD R1, [scratch]		; 800ps R1=3
 	ADD R1, 1				; 900ps R1=4, CZSV=0000
 	STORE R1, [scratch]		; 1000ps RAM[scratch]=4
@@ -56,173 +57,185 @@
 ; leading JMP first proves the unconditional jump works; then 64+64=128
 ; sets S and V. Each conditional is paired with a "JMP fail" guard that
 ; the real branch must skip - so with the block above, every conditional
-; is exercised in both directions.
+; except JNS is exercised in both directions (JNS not-taken: CMP block).
+; MOV and LOAD sit between the ADD and the branches, so a flag update by
+; either (as in the 6502) makes a branch fail; CMP R3,4 then checks the
+; word that the direct STORE wrote.
 	JMP start				; 2200ps PC=45
 	JMP fail				; (skipped)
 start:
 	ADD R2, 0x40			; 2300ps R2=64, C=0, V=0
 	ADD R2, R2				; 2400ps R2=128, CZSV=0011
-	JNC add_c0				; 2500ps PC=53
+	MOV R0, 0				; 2500ps R0=0, CZSV=0011 (unchanged)
+	LOAD R3, [scratch]		; 2600ps R3=4, CZSV=0011 (unchanged)
+	JNC add_c0				; 2700ps PC=57
 	JMP fail				; (skipped)
 add_c0:
-	JNZ add_z0				; 2600ps PC=57
+	JNZ add_z0				; 2800ps PC=61
 	JMP fail				; (skipped)
 add_z0:
-	JS add_s1				; 2700ps PC=61
+	JS add_s1				; 2900ps PC=65
 	JMP fail				; (skipped)
 add_s1:
-	JV add_v1				; 2800ps PC=65
+	JV add_v1				; 3000ps PC=69
 	JMP fail				; (skipped)
 add_v1:
+	CMP R3, 4				; 3100ps CZSV=1100
+	JNZ fail				; 3200ps PC=73
 
 ; SUB giving C=1 Z=1 S=0 V=0, then the taken-direction gauntlet.
-; -127-2 overflows to 127. Then SUB R0,127 checks out for both
-; signed and unsigned.
-	MOV R0, -127			; 2900ps R0=129
-	MOV R1, 2				; 3000ps R1=2
-	SUB R0, R1				; 3100ps R0=127, CZSV=1001
-	SUB R0, 127				; 3200ps R0=0, CZSV=1100
-	JC sub_c1				; 3300ps PC=77
+; -127-2 overflows to 127, and JNV checks V=1. Then SUB R0,127 checks
+; out for both signed and unsigned.
+	MOV R0, -127			; 3300ps R0=129
+	MOV R1, 2				; 3400ps R1=2
+	SUB R0, R1				; 3500ps R0=127, CZSV=1001
+	JNV fail				; 3600ps PC=81
+	SUB R0, 127				; 3700ps R0=0, CZSV=1100
+	JC sub_c1				; 3800ps PC=87
 	JMP fail				; (skipped)
 sub_c1:
-	JZ sub_z1				; 3400ps PC=81
+	JZ sub_z1				; 3900ps PC=91
 	JMP fail				; (skipped)
 sub_z1:
-	JNS sub_s0				; 3500ps PC=85
+	JNS sub_s0				; 4000ps PC=95
 	JMP fail				; (skipped)
 sub_s0:
-	JNV sub_v0				; 3600ps PC=89
+	JNV sub_v0				; 4100ps PC=99
 	JMP fail				; (skipped)
 sub_v0:
 
 ; Flag preservation 1/2 - capture C and V before the logic ops.
-; AND FLAGS,0x90 isolates the live C,V (=0x80) and pushes them, to be
+; OR FLAGS,0x10 forces V=1, and AND FLAGS,0x90 isolates the live C,V
+; (=0x90) and pushes them, to be
 ; re-checked after AND/OR/XOR/ROR, which must leave C and V untouched.
-	AND FLAGS, 0b10010000  ; 3700ps CZSV=1000 (clear all except C and V)
-	PUSH FLAGS				; 3800ps SP=254, RAM[254]=0x80
+	OR FLAGS, 0b00010000	; 4200ps CZSV=1101 (force V=1)
+	AND FLAGS, 0b10010000  ; 4300ps CZSV=1001 (clear all except C and V)
+	PUSH FLAGS				; 4400ps SP=254, RAM[254]=0x90
 
 ; AND/OR/XOR, immediate and register forms - a dependent chain of all six
 ; forms engineered to reach 0, validated in one shot by the final JNZ.
-	MOV R0, 0b10000011		; 3900ps R0=131
-	MOV R1, 0b10101111		; 4000ps R1=175
-	OR R0, R1				; 4100ps R0=175, S=1, V=0
-	AND R0, 0b00100011		; 4200ps R0=35, S=0, V=0
-	XOR R0, R1				; 4300ps R0=140, S=1, V=0
-	OR R0, 0b10001001		; 4400ps R0=141, S=1, V=0
-	XOR R0, 0b10111011		; 4500ps R0=54, S=0, V=0
-	AND R0, R1				; 4600ps R0=38, S=0, V=0
-	XOR R0, 0b00100110		; 4700ps R0=0, Z=1
-	JNZ fail				; 4800ps PC=112
+	MOV R0, 0b10000011		; 4500ps R0=131
+	MOV R1, 0b10101111		; 4600ps R1=175
+	OR R0, R1				; 4700ps R0=175, S=1, V=1
+	AND R0, 0b00100011		; 4800ps R0=35, S=0, V=1
+	XOR R0, R1				; 4900ps R0=140, S=1, V=1
+	OR R0, 0b10001001		; 5000ps R0=141, S=1, V=1
+	XOR R0, 0b10111011		; 5100ps R0=54, S=0, V=1
+	AND R0, R1				; 5200ps R0=38, S=0, V=1
+	XOR R0, 0b00100110		; 5300ps R0=0, Z=1
+	JNZ fail				; 5400ps PC=124
 
 ; ROR, immediate (1), and by register (6), XORed back to 0 to validate
 ; both forms at once.
-	MOV R0, 0b00000110		; 4900ps R0=6
-	ROR R0, 1				; 5000ps R0=3, C=1, Z=0, S=0, V=0
-	ROR R0, R0				; 5100ps R0=96, C=1, Z=0, S=0, V=0
-	XOR R0, 0b01100000		; 5200ps R0=0, Z=1
-	JNZ fail				; 5300ps PC=122
+	MOV R0, 0b00000110		; 5500ps R0=6
+	ROR R0, 1				; 5600ps R0=3, C=1, Z=0, S=0, V=1
+	ROR R0, R0				; 5700ps R0=96, C=1, Z=0, S=0, V=1
+	XOR R0, 0b01100000		; 5800ps R0=0, Z=1
+	JNZ fail				; 5900ps PC=134
 
-; Flag preservation 2/2 - re-isolate C,V and CMP against the pushed 0x80.
+; Flag preservation 2/2 - re-isolate C,V and CMP against the pushed 0x90.
 ; A mismatch means AND/OR/XOR/ROR wrongly disturbed C or V.
-	AND FLAGS, 0b10010000	; 5400ps CZSV=1000 (clear all except C and V)
-	POP R5					; 5500ps R5=0b1000000, SP=255
-	CMP R5, FLAGS			; 5600ps CZSV=1100
-	JNZ fail				; 5700ps PC=129
+	AND FLAGS, 0b10010000	; 6000ps CZSV=1001 (clear all except C and V)
+	POP R5					; 6100ps R5=0x90, SP=255
+	CMP R5, FLAGS			; 6200ps CZSV=1100
+	JNZ fail				; 6300ps PC=141
 
 ; LSHIFT/RSHIFT - the E80-specific flag rules: C takes the shifted-out
-; bit, V flags a sign change. All four corners (carry set/clear,
-; sign-flip present/absent) are covered.
-	MOV R0, 0x40			; 5800ps R0=64
-	LSHIFT R0				; 5900ps R0=128, CZSV=0011
-	JC fail					; 6000ps PC=134
-	JNV fail				; 6100ps PC=136
-	MOV R0, 0xC0			; 6200ps R0=192
-	LSHIFT R0				; 6300ps R0=128, CZSV=1010
-	JNC fail				; 6400ps PC=141
-	JV fail					; 6500ps PC=143
-	MOV R0, 1				; 6600ps R0=1
-	RSHIFT R0				; 6700ps R0=0, CZSV=1100
-	JNC fail				; 6800ps PC=148
-	JNZ fail				; 6900ps PC=150
-	MOV R0, 0x80			; 7000ps R0=128
-	RSHIFT R0				; 7100ps R0=64, CZSV=0001
-	JC fail					; 7200ps PC=155
-	JNV fail				; 7300ps PC=157
+; bit, V flags a sign change. Each shift sets C=1, C=0, V=1 and V=0 once;
+; C=1 together with V=1 is left to ISAbounds.e80asm.
+	MOV R0, 0x40			; 6400ps R0=64
+	LSHIFT R0				; 6500ps R0=128, CZSV=0011
+	JC fail					; 6600ps PC=146
+	JNV fail				; 6700ps PC=148
+	MOV R0, 0xC0			; 6800ps R0=192
+	LSHIFT R0				; 6900ps R0=128, CZSV=1010
+	JNC fail				; 7000ps PC=153
+	JV fail					; 7100ps PC=155
+	MOV R0, 1				; 7200ps R0=1
+	RSHIFT R0				; 7300ps R0=0, CZSV=1100
+	JNC fail				; 7400ps PC=160
+	JNZ fail				; 7500ps PC=162
+	MOV R0, 0x80			; 7600ps R0=128
+	RSHIFT R0				; 7700ps R0=64, CZSV=0001
+	JC fail					; 7800ps PC=167
+	JNV fail				; 7900ps PC=169
 
 ; CMP and BIT set flags but must NOT write the register (DiscardResult).
 ; After each, R0 is re-compared to its original value to prove it survived.
-	MOV R0, 50				; 7400ps R0=50
-	CMP R0, 100				; 7500ps CZSV=0010
-	JC fail					; 7600ps PC=163
-	BIT R0, 0x80			; 7700ps CZSV=0100	(C=1 from CMP)
-	JNZ fail				; 7800ps PC=167
-	CMP R0, 50				; 7900ps CZSV=1100
-	JNZ fail				; 8000ps PC=171
-	MOV R1, 0xFF			; 8100ps R1=255
-	BIT R0, R1				; 8200ps CZSV=1000	(C still 1)
-	JZ fail					; 8300ps PC=177
+; CMP R0,100 also gives S=1, and JNS checks it (the not-taken JNS).
+	MOV R0, 50				; 8000ps R0=50
+	CMP R0, 100				; 8100ps CZSV=0010
+	JC fail					; 8200ps PC=175
+	JNS fail				; 8300ps PC=177
+	BIT R0, 0x80			; 8400ps CZSV=0100	(C=0 from CMP)
+	JNZ fail				; 8500ps PC=181
+	CMP R0, 50				; 8600ps CZSV=1100
+	JNZ fail				; 8700ps PC=185
+	MOV R1, 0xFF			; 8800ps R1=255
+	BIT R0, R1				; 8900ps CZSV=1000	(C still 1)
+	JZ fail					; 9000ps PC=191
 
 ; Explicit FLAGS write takes precedence over computed flags -
 ; OR FLAGS,0x40 forces Z=1 on a non-zero result; the JNZ must honour the
 ; written flag, not the ALU's.
-	OR FLAGS, 0b01000000	; 8400ps Z=1
-	JNZ fail				; 8500ps PC=181
+	OR FLAGS, 0b01000000	; 9100ps Z=1
+	JNZ fail				; 9200ps PC=195
 
 ; Stack LIFO order + register-form CMP - two values pushed and popped in
 ; reverse, confirmed with CMP. Also the one place R4 is exercised.
-	MOV R4, 0x11			; 8600ps R4=17
-	MOV R1, 0x22			; 8700ps R1=34
-	PUSH R4					; 8800ps SP=254, RAM[254]=17
-	PUSH R1					; 8900ps SP=253, RAM[253]=34
-	POP R2					; 9000ps R2=34, SP=254
-	MOV R5, 0x22			; 9100ps R5=34
-	CMP R2, R5				; 9200ps CZSV=1100
-	JNZ fail				; 9300ps PC=194
-	POP R3					; 9400ps R3=17, SP=255
-	CMP R3, 0x11			; 9500ps CZSV=1100
-	JNZ fail				; 9600ps PC=199
+	MOV R4, 0x11			; 9300ps R4=17
+	MOV R1, 0x22			; 9400ps R1=34
+	PUSH R4					; 9500ps SP=254, RAM[254]=17
+	PUSH R1					; 9600ps SP=253, RAM[253]=34
+	POP R2					; 9700ps R2=34, SP=254
+	MOV R5, 0x22			; 9800ps R5=34
+	CMP R2, R5				; 9900ps CZSV=1100
+	JNZ fail				; 10000ps PC=208
+	POP R3					; 10100ps R3=17, SP=255
+	CMP R3, 0x11			; 10200ps CZSV=1100
+	JNZ fail				; 10300ps PC=213
 
 ; recursion: sum 4+3+2+1 = 10, stacks 4 return addresses.
-; Main CALL (203) pushes 205 to stack[254]. Three nested calls from
-; address 223 push 225 each (stack[253]=225, [252]=225, [251]=225).
-; Unwind: four RETURNs at 225 pop three 225s (PC stays 225) then pop 205,
+; Main CALL (217) pushes 219 to stack[254]. Three nested calls from
+; address 237 push 239 each (stack[253]=239, [252]=239, [251]=239).
+; Unwind: four RETURNs at 239 pop three 239s (PC stays 239) then pop 219,
 ; returning to CMP R0,10.
-	MOV R1, 4				; 9700ps R1=4
-	MOV R0, 0				; 9800ps R0=0
-	CALL recursive_sum		; 9900ps SP=254, RAM[254]=205, PC=217
-	CMP R0, 10				; 11900ps CZSV=1100
-	JNZ fail				; 12000ps PC=209
+	MOV R1, 4				; 10400ps R1=4
+	MOV R0, 0				; 10500ps R0=0
+	CALL recursive_sum		; 10600ps SP=254, RAM[254]=219, PC=231
+	CMP R0, 10				; 12600ps CZSV=1100
+	JNZ fail				; 12700ps PC=223
 
 ; Stack underflow reads the DIP-mapped top of memory - with the stack
 ; empty, POP wraps SP 255->0 and reads address 255, the DIP input (0xA5).
-	POP R5					; 12100ps SP=0, R5=165 (DIP)
-	CMP R5, 0b10100101		; 12200ps CZSV=1100
-	JNZ fail				; 12300ps PC=214
+	POP R5					; 12800ps SP=0, R5=165 (DIP)
+	CMP R5, 0b10100101		; 12900ps CZSV=1100
+	JNZ fail				; 13000ps PC=228
 
 ; PASS -- halt via an explicit FLAGS write
 ; (OR FLAGS,1); PC then freezes. HLT at 'fail' is only reached on failure.
-	OR FLAGS, 1				; 12400ps Halt=1
-	NOP						; 12500ps PC freezes at 216, Instr1=00000001
+	OR FLAGS, 1				; 13100ps Halt=1
+	NOP						; 13200ps PC freezes at 230, Instr1=00000001
 
 recursive_sum:
-	ADD R0, R1				; 10000ps R0=4, CZSV=0000
-							; 10400ps R0=7, CZSV=0000
-							; 10800ps R0=9, CZSV=0000
-							; 11200ps R0=10, CZSV=0000
-	SUB R1, 1				; 10100ps R1=3, CZSV=1000
-							; 10500ps R1=2, CZSV=1000
-							; 10900ps R1=1, CZSV=1000
-							; 11300ps R1=0, CZSV=1100
-	JZ recursive_end		; 10200ps PC=221 (not taken)
-							; 10600ps PC=221 (not taken)
-							; 11000ps PC=221 (not taken)
-							; 11400ps PC=225 (taken)
-	CALL recursive_sum		; 10300ps SP=253, RAM[253]=225, PC=217
-							; 10700ps SP=252, RAM[252]=225, PC=217
-							; 11100ps SP=251, RAM[251]=225, PC=217
+	ADD R0, R1				; 10700ps R0=4, CZSV=0000
+							; 11100ps R0=7, CZSV=0000
+							; 11500ps R0=9, CZSV=0000
+							; 11900ps R0=10, CZSV=0000
+	SUB R1, 1				; 10800ps R1=3, CZSV=1000
+							; 11200ps R1=2, CZSV=1000
+							; 11600ps R1=1, CZSV=1000
+							; 12000ps R1=0, CZSV=1100
+	JZ recursive_end		; 10900ps PC=237 (not taken)
+							; 11300ps PC=237 (not taken)
+							; 11700ps PC=237 (not taken)
+							; 12100ps PC=239 (taken)
+	CALL recursive_sum		; 11000ps SP=253, RAM[253]=239, PC=231
+							; 11400ps SP=252, RAM[252]=239, PC=231
+							; 11800ps SP=251, RAM[251]=239, PC=231
 recursive_end:
-	RETURN					; 11500-11800ps PC=225 (×3), 11900ps PC=205
+	RETURN					; 12200-12400ps PC=239 (×4), 12500ps PC=219
 
 ; FAIL -- halt via HLT after the last jump to fail
 fail:
-	HLT						; (never executed) Halt=1, PC freezes at 226
+	HLT						; (never executed) Halt=1, PC freezes at 240, Instr1=00000000

@@ -1,0 +1,167 @@
+.TITLE "E80 ISA boundary test suite"
+; Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+; Companion to ISAtest.e80asm. It checks the boundary cases that ISAtest
+; leaves out: carry and overflow at the edges of the adder, shift and
+; rotate edges, each STORE form read back through the other LOAD form,
+; reads of the DIP-mapped address, and the stack pointer as an operand.
+; Halt at PASS (Instr1 = 1) ⇔ all checks passed.
+; Halt at FAIL (Instr1 = 0) ⇔ jumped to HLT after a failed test.
+
+; **********************************************************************
+.SIMDIP 0b10100101 ; THIS IS A REQUIRED SETTING ON THE BOARD DIP SWITCH!
+; **********************************************************************
+.DATA cell 0 ; cell = 173, the word after the last instruction, [cell] = 0
+.SPEED 5 ; ~15 Hz, roughly 65 ms period.
+
+; Program starts at 0ps with all signals undefined except 0xFF=.SIMDIP
+; and Reset=1 which is released at 120ps, so the program starts running
+; with PC=0, SP=255, Halt=0 at positive edge 100ps. Time units refer to
+; simulation only.
+; The inline comments follow the format of ISAtest.e80asm:
+; Instruction ; Xps Y means that the instruction was executed at X and set
+; signals to Y in the NEXT cycle. Every check branches to 'fail' on a
+; mismatch, so each conditional jump below is checked in its not-taken
+; direction.
+
+; ADD at the edges of the adder - carry out with a non-zero result, and
+; signed overflow of two negative operands: -128 + -1 wraps to 127.
+; ISAtest sees an ADD carry only together with a zero result (4+252), so
+; a carry that followed the zero flag would pass there; here C=1 and Z=0.
+; All four flags are branched on, and the result is compared.
+	MOV R0, 0x80			; 100ps R0=128
+	ADD R0, 0xFF			; 200ps R0=127, CZSV=1001
+	JNC fail				; 300ps PC=6
+	JZ fail					; 400ps PC=8
+	JS fail					; 500ps PC=10
+	JNV fail				; 600ps PC=12
+	CMP R0, 0x7F			; 700ps CZSV=1100
+	JNZ fail				; 800ps PC=16
+
+; SUB at the edges - a positive minus a negative overflows: 127-(-1)
+; wraps to -128, with C=0 because 127 < 255 unsigned. Then CMP R0,1
+; subtracts a smaller unsigned value from 128: C=1 with a non-zero
+; difference (ISAtest checks C=1 only on equal operands), and V=1 again
+; because -128-1 overflows the other way.
+	MOV R0, 127				; 900ps R0=127
+	SUB R0, -1				; 1000ps R0=128, CZSV=0011
+	JC fail					; 1100ps PC=22
+	JZ fail					; 1200ps PC=24
+	JNS fail				; 1300ps PC=26
+	JNV fail				; 1400ps PC=28
+	CMP R0, 0x80			; 1500ps CZSV=1100
+	JNZ fail				; 1600ps PC=32
+	CMP R0, 1				; 1700ps CZSV=1001
+	JNC fail				; 1800ps PC=36
+	JZ fail					; 1900ps PC=38
+	JS fail					; 2000ps PC=40
+	JNV fail				; 2100ps PC=42
+
+; LSHIFT/RSHIFT result values - ISAtest branches on the shift flags but
+; compares no shifted value except RSHIFT 1 = 0. 0xC1<<1 = 0x82 shows that
+; a zero, not the old bit 7, enters bit 0. A second LSHIFT of 0x82 covers
+; the corner of the flag rules left out of ISAtest: C=1 (bit 7 shifted
+; out) together with V=1 (sign 1->0). RSHIFT of 0x81 gives 0x40, again
+; with C=1 and V=1.
+	MOV R0, 0xC1			; 2200ps R0=193
+	LSHIFT R0				; 2300ps R0=130, CZSV=1010
+	CMP R0, 0x82			; 2400ps CZSV=1100
+	JNZ fail				; 2500ps PC=49
+	LSHIFT R0				; 2600ps R0=4, CZSV=1001
+	JNC fail				; 2700ps PC=52
+	JNV fail				; 2800ps PC=54
+	CMP R0, 0x04			; 2900ps CZSV=1100
+	JNZ fail				; 3000ps PC=58
+	MOV R0, 0x81			; 3100ps R0=129
+	RSHIFT R0				; 3200ps R0=64, CZSV=1001
+	JNC fail				; 3300ps PC=63
+	JNV fail				; 3400ps PC=65
+	CMP R0, 0x40			; 3500ps CZSV=1100
+	JNZ fail				; 3600ps PC=69
+
+; ROR boundaries - the rotation amount is the three low bits of op2, so
+; it is taken mod 8. ROR by 7 equals a left rotation by 1: 0x81 -> 0x03.
+; ROR by 8 and ROR by 0 both select the unrotated input, so 0x03 stays.
+; ROR by a register holding 9 rotates by 1: 0x03 -> 0x81. ROR leaves C
+; and V as they were (C=1 and V=0 from the last CMP); JV checks that
+; V stays clear.
+	MOV R0, 0x81			; 3700ps R0=129
+	ROR R0, 7				; 3800ps R0=3, CZSV=1000
+	ROR R0, 8				; 3900ps R0=3, CZSV=1000
+	ROR R0, 0				; 4000ps R0=3, CZSV=1000
+	JV fail					; 4100ps PC=79
+	CMP R0, 0x03			; 4200ps CZSV=1100
+	JNZ fail				; 4300ps PC=83
+	MOV R1, 9				; 4400ps R1=9
+	ROR R0, R1				; 4500ps R0=129, CZSV=1010
+	CMP R0, 0x81			; 4600ps CZSV=1100
+	JNZ fail				; 4700ps PC=91
+
+; Memory - each STORE form is read back through the other LOAD form, so
+; a fault in one addressing path cannot cancel itself out as it can in a
+; same-form round trip. STORE R1,[R1] writes the address of 'cell' into
+; 'cell' itself. Then the DIP-mapped address 0xFF is read directly and
+; through a register; both reads must return the .SIMDIP value (165).
+	MOV R0, 0x3C			; 4800ps R0=60
+	STORE R0, [cell]		; 4900ps RAM[cell]=60
+	MOV R1, cell			; 5000ps R1=173
+	LOAD R2, [R1]			; 5100ps R2=60
+	CMP R2, 0x3C			; 5200ps CZSV=1100
+	JNZ fail				; 5300ps PC=103
+	STORE R1, [R1]			; 5400ps RAM[cell]=173
+	LOAD R3, [cell]			; 5500ps R3=173
+	CMP R3, R1				; 5600ps CZSV=1100
+	JNZ fail				; 5700ps PC=111
+	LOAD R0, [0xFF]			; 5800ps R0=165
+	CMP R0, 0b10100101		; 5900ps CZSV=1100
+	JNZ fail				; 6000ps PC=117
+	MOV R1, 0xFF			; 6100ps R1=255
+	LOAD R2, [R1]			; 6200ps R2=165
+	CMP R2, R0				; 6300ps CZSV=1100
+	JNZ fail				; 6400ps PC=125
+
+; Stack pointer as an operand - after PUSH, CMP SP checks its value and
+; LOAD [SP] reads the pushed word through the register-indirect form;
+; POP must restore SP=255.
+	MOV R0, 0x5A			; 6500ps R0=90
+	PUSH R0					; 6600ps SP=254, RAM[254]=90
+	CMP SP, 254				; 6700ps CZSV=1100
+	JNZ fail				; 6800ps PC=132
+	LOAD R1, [SP]			; 6900ps R1=90
+	CMP R1, 0x5A			; 7000ps CZSV=1100
+	JNZ fail				; 7100ps PC=138
+	POP R2					; 7200ps R2=90, SP=255
+	CMP SP, 255				; 7300ps CZSV=1100
+	JNZ fail				; 7400ps PC=143
+
+; Flags across CALL, RETURN, PUSH and POP - -128 + -128 gives 0 with
+; CZSV=1101. A call to an empty subroutine and a PUSH/POP pair follow.
+; None of them may change the flags, so all four branches fall through.
+	MOV R1, 0x80			; 7500ps R1=128
+	ADD R1, R1				; 7600ps R1=0, CZSV=1101
+	CALL leaf				; 7700ps SP=254, RAM[254]=149, PC=171
+	PUSH R1					; 7900ps SP=254, RAM[254]=0
+	POP R1					; 8000ps R1=0, SP=255
+	JNC fail				; 8100ps PC=153
+	JNZ fail				; 8200ps PC=155
+	JS fail					; 8300ps PC=157
+	JNV fail				; 8400ps PC=159
+
+; Stack underflow - with the stack empty, POP reads address 255, the DIP
+; input, and wraps SP from 255 to 0. ISAtest checks the word read; here
+; SP is compared as well.
+	POP R3					; 8500ps R3=165, SP=0
+	CMP SP, 0				; 8600ps CZSV=1100
+	JNZ fail				; 8700ps PC=164
+	CMP R3, 0b10100101		; 8800ps CZSV=1100
+	JNZ fail				; 8900ps PC=168
+
+; PASS -- halt via an explicit FLAGS write
+; (OR FLAGS,1); PC then freezes. HLT at 'fail' is only reached on failure.
+	OR FLAGS, 1				; 9000ps Halt=1
+	NOP						; 9100ps PC freezes at 170, Instr1=00000001
+; Empty subroutine for the flag check above; it only returns.
+leaf:
+	RETURN					; 7800ps PC=149, SP=255
+; FAIL -- halt via HLT after the last jump to fail
+fail:
+	HLT						; (never executed) Halt=1, PC freezes at 172, Instr1=00000000
