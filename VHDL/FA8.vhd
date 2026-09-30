@@ -1,14 +1,15 @@
 -----------------------------------------------------------------------
--- E80 8-bit Full Adder
+-- E80 8-bit Adder
 -- Copyright (C) 2025 Panos Stokas <panos.stokas@hotmail.com>
--- Performs textbook ripple-carry addition or subtraction
+-- Performs textbook ripple-carry addition or subtraction using eight
+-- full adders in series.
 -----------------------------------------------------------------------
 
 -----------------------------------------------------------------------
--- 1-bit full adder
+-- Full adder component
 -----------------------------------------------------------------------
 LIBRARY ieee; 
-USE ieee.std_logic_1164.ALL, work.support.ALL;
+USE ieee.std_logic_1164.ALL;
 ENTITY FA IS PORT (
 	A    : IN STD_LOGIC;
 	B    : IN STD_LOGIC;
@@ -24,14 +25,14 @@ BEGIN
 	Cout <= (A AND B) OR (X AND Cin);
 END;
 -----------------------------------------------------------------------
--- 8-bit full adder
+-- Ripple-carry adder / subtractor
 -----------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY FA8 IS PORT (
 	A    : IN WORD;
 	B    : IN WORD;
-	Sub  : IN STD_LOGIC;   -- 0=addition, 1=subtraction
+	Sub  : IN STD_LOGIC;   -- 0 = addition, 1 = subtraction
 	Sum  : OUT WORD;
 	Cout : OUT STD_LOGIC;
 	V    : OUT STD_LOGIC); -- overflow

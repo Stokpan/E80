@@ -8,4 +8,4 @@
 4. Open the `Boards\Quartus_DSDi1\E80.qpf` project file in Quartus.
 5. Hit Ctrl-L to start compilation.
 6. When the compilation is finished start X2Loader and check out its COM ports. Connect the board, then close and reopen X2Loader. Notice there's a new COM port. Select this one, click Connect, and then Upload Bitstream. Select the RBF file from the `Boards\Quartus_DSDi1\output_files` folder.
-7. The precompiled `hello` program will be loaded; use the Right button to increase speed, or Set for step execution, until the Halt flag is set (matrix 1, row 7, rightmost LED).
+7. The precompiled `hello.e80asm` program will be loaded with speed level set to 0; use the Right button to increase speed, or Set for step execution, until the Halt flag is set (matrix 1, row 7, rightmost LED).

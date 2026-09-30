@@ -142,4 +142,5 @@ void nextaddr(void)
 {
 	Out.addr++;
 	if (Out.addr > RAM_SIZE) error(RAM_LIMIT);
+	if (Out.addr > Out.size) Out.size = Out.addr;
 }

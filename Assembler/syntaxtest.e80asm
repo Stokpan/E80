@@ -1,0 +1,41 @@
+.TITLE "E80 \"syntax\" stress test"
+; F7 must reproduce the reference syntaxtest.vhd; F5 must run to the HLT.
+
+; unicode comments ⟨⊨∉⊆⌈∅⌉⌊⌋∀∪∃→⇒↔⇔≡∪∩∧∨𝜖𝒪𝒞𝒳𝒟⟩
+
+.simdip 0x1
+.SPEED  0
+.LABEL  buf  240
+.LABEL  Buf  0b1111         ; labels are case sensitive: Buf is not buf
+; the following must be marked as "data" on the output VHDL comments
+.DATA   msg  "a,b", "a\"b", " ", 9, -128, -1, 0x0
+.DATA   tail 0b1            ; appended after msg
+.MONITOR done               ; label as directive value
+
+Foo:foo:MOV R0,Buf; compressed whitespace; R0=15
+x_1:                        ; label alone, with digit and underscore
+	mov	r1,r0               ; tabs, lowercase, no space after comma
+	
+	
+    MOV  FLAGS, -128        ; alias, lowest decimal
+
+    CMP  sp, 255            ; lowercase alias, highest decimal
+    OR   R0, 0b1010         ; binary
+    XOR  R1, 0xFF           ; hexadecimal; R1=240
+    lshift R0               ; one-byte instruction; R0=30
+PUSH R0
+			Pop  r2	;tabs instead of spaces
+    STORE R0, [buf]         ; .LABEL value as address
+    store r0, [R1]          ; register-indirect, mixed case
+    LOAD  R3, [0xFF]        ; DIP address in hex
+    load  r3, [r1]
+    CALL SUBroutine         ; forward label
+;JMP  done
+	JMP  done
+    jNc  x_1                ; backward label, mixed case
+    Jz   0; number target
+    JNV  done;              ; comment with no space
+SUBroutine:                 ; label that begins with a mnemonic
+RETurn
+done:     NOP
+HLT ;EOF with no new line

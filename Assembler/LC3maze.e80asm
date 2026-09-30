@@ -24,7 +24,7 @@
 ; Cell 11 is 17 = 0b10001 - its an exit cell
 .DATA maze 2,6,5,5,3,0,10,10,4,3,12,17,10,12,1,10,2,2,14,5,7,13,11,10,10,0,10,2,8,10,8,0,26,12,1,8
 ; The monitored byte "probe" holds the index of the cell each check is aimed
-; at: every neighbour examined, whether it was entered or refused because it
+; at: every neighbor examined, whether it was entered or refused because it
 ; was already visited. The entire .MONITORed block is cleaned to ease inspection
 ; on hardware, where RAM comes up undefined at reset and the unwritten rows of
 ; the monitor would otherwise show random bits.
@@ -93,7 +93,7 @@ find_exit:					; recursive: determines if there is a path from
 							; of the search revisits this cell and loops
 
 ; each direction asks the same two questions before recursing: is there a door,
-; and is the neighbour unvisited; R4 = neighbour address, R5 = neighbour data
+; and is the neighbor unvisited; R4 = neighbor address, R5 = neighbor data
 
 check_north:
 	BIT  R2, north_mask

@@ -65,7 +65,9 @@ Section "Portable requirements" SecCore
 
 	SetOutPath "$INSTDIR\Assembler"
 	File "..\Assembler\E80ASM.exe"
-	File "..\Assembler\template.vhd"
+	File "..\Assembler\*.vhd"
+	File "..\Assembler\*.e80asm"
+	File "..\Assembler\*.tim"
 
 	SetOutPath "$INSTDIR\Boards"
 	File /r "..\Boards\*.*"
@@ -74,8 +76,6 @@ Section "Portable requirements" SecCore
 	File /r "..\Images\*.*"
 
 	SetOutPath "$INSTDIR"
-	File "..\Assembler\*.e80asm"
-	File "..\Assembler\ISAtest.*"
 	File "..\LICENSE"
 	File "..\README.md"
 	File "*.txt"
@@ -94,12 +94,15 @@ Section "Portable requirements" SecCore
 	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayName" "E80 Toolchain"
 	WriteRegStr HKCU "${REG_UNINSTALL}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
 	WriteRegStr HKCU "${REG_UNINSTALL}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
-	WriteRegStr HKCU "${REG_UNINSTALL}" "InstallLocation" "$\"$INSTDIR$\""
-	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayIcon" "$\"$INSTDIR\e80icon.ico$\""
+	WriteRegStr HKCU "${REG_UNINSTALL}" "InstallLocation" "$INSTDIR"
+	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\e80icon.ico"
 	WriteRegStr HKCU "${REG_UNINSTALL}" "Publisher" "Panos Stokas"
-	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayVersion" "2.9"
+	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayVersion" "4.1"
 	WriteRegDWORD HKCU "${REG_UNINSTALL}" "NoModify" 1
 	WriteRegDWORD HKCU "${REG_UNINSTALL}" "NoRepair" 1
+	; Show the total size of the installed files in Programs and Features (or whatever name Microsoft chooses for the installed programs list)
+	SectionGetSize ${SecCore} $0
+	WriteRegDWORD HKCU "${REG_UNINSTALL}" "EstimatedSize" "$0"
 	; Start Menu Shortcuts
 	CreateDirectory "$SMPROGRAMS\E80 Toolchain"
 	CreateShortcut "$SMPROGRAMS\E80 Toolchain\E80 Editor.lnk" "$INSTDIR\Sc1.exe" "" "$INSTDIR\e80icon.ico"
@@ -145,7 +148,21 @@ Section "Uninstall"
 	; Refresh Icons without adding the annoying Internet Explorer link on Accessories
 	${RefreshShellIcons}
 	; Remove Files and Directories
-	RMDir /r "$INSTDIR"
+	RMDir /r "$INSTDIR\GHDL"
+	RMDir /r "$INSTDIR\VHDL"
+	RMDir /r "$INSTDIR\ModelSim"
+	RMDir /r "$INSTDIR\Assembler"
+	RMDir /r "$INSTDIR\Boards"
+	RMDir /r "$INSTDIR\Images"
+	Delete "$INSTDIR\Sc1.exe"
+	Delete "$INSTDIR\*.properties"
+	Delete "$INSTDIR\*.lua"
+	Delete "$INSTDIR\*.ico"
+	Delete "$INSTDIR\*.txt"
+	Delete "$INSTDIR\README.md"
+	Delete "$INSTDIR\LICENSE"
+	Delete "$INSTDIR\Uninstall.exe"
+	RMDir "$INSTDIR"
 	RMDir /r "$SMPROGRAMS\E80 Toolchain"
 	; Remove the uninstaller entry from Windows Registry
 	DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\E80Toolchain"

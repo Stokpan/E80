@@ -130,13 +130,12 @@ BEGIN
 			-------------------------------------------------------------------
 			ELSE
 				IF CLK = '1' THEN
-					CLK <= '0';
-					-- shift the new bit before the next rising edge
+					-- shift new bit to DIN before the next rising edge
 					DIN <= ShiftRegister(ShiftRegister'HIGH);
 					ShiftRegister(ShiftRegister'HIGH DOWNTO 1) :=
 						ShiftRegister(ShiftRegister'HIGH - 1 DOWNTO 0);
 				ELSE
-					CLK <= '1'; -- rising edge, send DIN to register
+					-- DIN will be sent to register in the upcoming rising edge
 					ShiftedBits := ShiftedBits + 1;
 					IF ShiftedBits = SRpacket'LENGTH THEN
 						-- All bits have been shifted, latch them and return
@@ -145,6 +144,7 @@ BEGIN
 						CS <= '1';
 					END IF;
 				END IF;
+				CLK <= NOT CLK;
 			END IF;
 		END IF;
 	END PROCESS;
@@ -163,8 +163,8 @@ ENTITY Interface IS PORT (
 	BoardCLK    : IN STD_LOGIC;  -- board clock (frequency in Board.vhd)
 	ResetButton : IN STD_LOGIC;  -- resets the PC, SP, Halt, and Program data
 	PauseButton : IN STD_LOGIC;  -- sets the clock to low while held down
-	LeftButton  : IN STD_LOGIC;  -- decreases CLK frequency down to 0 (pause)
-	RightButton : IN STD_LOGIC;  -- increases CLK frequency up to 2 KHz
+	LeftButton  : IN STD_LOGIC;  -- decreases speed level down to 0 (pause)
+	RightButton : IN STD_LOGIC;  -- increases speed level up to 6 (4 KHz)
 	DIPinput    : IN WORD;       -- 8-bit DIP switch user input
 	MAX7219DIN	: OUT STD_LOGIC; -- MAX7219 4x8x8 LED matrix DIN
 	MAX7219CS	: OUT STD_LOGIC; -- MAX7219 4x8x8 LED matrix CS (or LOAD)
@@ -176,7 +176,7 @@ ARCHITECTURE a1 OF Interface IS
 	SIGNAL GenCLK : STD_LOGIC_VECTOR(7 DOWNTO 0); -- see ClockGen
 	SIGNAL Speed  : NATURAL RANGE 0 TO 6 := SPEED_directive; -- GenCLK index
 	ALIAS CLK1MHz : STD_LOGIC IS GenCLK(7); -- for board interface only
-	SIGNAL CLK    : STD_LOGIC; -- CPU clock speeds range from 0 to 2 KHz
+	SIGNAL CLK    : STD_LOGIC; -- CPU clock speeds range from 0 to 4 KHz
 	-- Display signals
 	SIGNAL PC      : WORD;
 	SIGNAL R       : WORDx8;

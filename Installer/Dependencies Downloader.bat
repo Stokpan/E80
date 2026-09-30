@@ -61,6 +61,8 @@ del GHDL\GTKwave\bin\evcd2vcd.exe
 del GHDL\GTKwave\bin\fst2vcd.exe
 del GHDL\GTKwave\bin\fstminer.exe
 del GHDL\GTKwave\bin\ghwdump.exe
+del GHDL\GTKwave\bin\libstdc++-6.dll
+del GHDL\GTKwave\bin\libgcc_s_dw2-1.dll 
 del GHDL\GTKwave\bin\lxt2miner.exe
 del GHDL\GTKwave\bin\lxt2vcd.exe
 del GHDL\GTKwave\bin\rtlbrowse.exe
