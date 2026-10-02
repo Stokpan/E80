@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
 					spaces = 4 - len;
 					// write the hexadecimal conversion of the binary instruction
 					// or "data" if the word is from .DATA
-					if (COMMENT[0] && COMMENT[0] < 57) {
+					if (COMMENT[0] && COMMENT[0] <= 57) {
 						// comment is data (starts from quote or number)
 						scopy(hex,"data");
 					} else {
