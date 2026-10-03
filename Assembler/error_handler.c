@@ -39,7 +39,7 @@ void error(enum ErrorCode errorlevel)
 	fprintf(stderr,	"\n******************************************************\n");
 	if (errorlevel == MAX_LENGTH_EXCEEDED) {
 		fprintf(stderr, "Line %d exceeds maximum %d characters.", In.line_number, MAX_LINE_LENGTH);
-		if (In.line_number == 1) fprintf(stderr, "\n(is this an E80 Assembly program?)");
+		if (In.line_number == 1) fprintf(stderr, "\n(Is this an E80 Assembly program?)");
 	} else if (In.line_number) {
 		fprintf(stderr,
 			"Error in line %d : %s\n", In.line_number, In.current->line);
@@ -55,7 +55,7 @@ void error(enum ErrorCode errorlevel)
 		} else {
 			fprintf(stderr, "'%s' is not a valid statement.", PREVIOUS);
 			if (Out.addr == 0) {
-				fprintf(stderr, "(\nis this an E80 Assembly program?)");
+				fprintf(stderr, "\n(Is this an E80 Assembly program?)");
 			}
 		}
 		break;
