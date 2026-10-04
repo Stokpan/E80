@@ -40,7 +40,10 @@ int main(int argc, char *argv[])
 			"Type your assembly code and press Ctrl-D & [Enter].\n");
 	}
 
-	/* Read lines from stdin until EOF or end-of-transmit (Ctrl-D). */
+	/* Read lines from stdin until EOF or end-of-transmit (Ctrl-D) and
+	collect labels. Label/value pairs are added to the "Out" structure.
+	Error checking is minimal in this stage. */
+	Out.addr = 0; // current memory address in the global "Out" structure
 	In.line_number = 0;
 	while (!CtrlD && fgets(str, MAX_LINE_LENGTH, asm_input)) {
 		In.line_number++;
@@ -53,43 +56,39 @@ int main(int argc, char *argv[])
 		}
 		trim(str); // trim whitespace and comments
 		enqueue(str); // store the line in the global "In" structure
-	}
-	In.line_number = 0;
-
-	/* Collect labels (symbols).
-	Label/value pairs are added to the "Out" structure. Error checking is
-	minimal in this stage. */
-	Out.addr = 0; // current memory address in the global "Out" structure
-	firstline(); // go to the first token of the queued code
-	while (In.current) { // read until the last line
-		if (eq(TOKEN, ".LABEL")) {
-			// <directive> ::= ".LABEL" <s+> <label> <s+> <number>
-			scopy(str, nexttoken()); // <label>
-			if (!label(str)) error(LABEL);
-			n = number(nexttoken()); // <number>
-			if (n < 0) error(NUMBER); // error codes = negative values
-			addlabel(str, n);
-		} else if (eq(TOKEN, ".DATA")) {
-			// <directive> ::= ".DATA" <s+> <label> <s+> <array>
-			scopy(str, nexttoken()); // <label>
-			if (!label(str)) error(LABEL);
-			addlabel(str, 0); // data labels are calculated in the next stage
-		} else if (instr_size1(TOKEN)) {
-			nextaddr(); // combines Out.addr++ and ram limit check
-		} else if (instr_size2(TOKEN)) {
-			nextaddr();
-			nextaddr(); // two-word instructions
-		} else if (label(TOKEN)) {
-			scopy(str, TOKEN);
-			if (eq(nexttoken(), ":")) {
-				addlabel(str, Out.addr);
-				// check the next token instead of the next line to process
-				// <label:> <instruction> cases
-				nexttoken();
-				continue;
+		// tokenize the enqueued copy instead of "str", to keep "str"
+		// available as scratchpad for the label name below
+		In.current = In.rear;
+		In.chr = In.current->line;
+		while (nexttoken()) {
+			if (eq(TOKEN, ".LABEL")) {
+				// <directive> ::= ".LABEL" <s+> <label> <s+> <number>
+				scopy(str, nexttoken()); // <label>
+				if (!label(str)) error(LABEL);
+				n = number(nexttoken()); // <number>
+				if (n < 0) error(NUMBER); // error codes = negative values
+				addlabel(str, n);
+			} else if (eq(TOKEN, ".DATA")) {
+				// <directive> ::= ".DATA" <s+> <label> <s+> <array>
+				scopy(str, nexttoken()); // <label>
+				if (!label(str)) error(LABEL);
+				addlabel(str, 0); // data labels are calculated in the next stage
+			} else if (instr_size1(TOKEN)) {
+				nextaddr(); // combines Out.addr++ and ram limit check
+			} else if (instr_size2(TOKEN)) {
+				nextaddr();
+				nextaddr(); // two-word instructions
+			} else if (label(TOKEN)) {
+				scopy(str, TOKEN);
+				if (eq(nexttoken(), ":")) {
+					addlabel(str, Out.addr);
+					// don't skip the line yet, instructions may be written
+					// next to labels (or even other labels)
+					continue;
+				}
 			}
+			break; // skip the rest of the line
 		}
-		nextline();
 	}
 	
 	sortlabels(); // to allow bsearch in findlabel
@@ -103,6 +102,7 @@ int main(int argc, char *argv[])
 			if (title[0]) error(DUPLICATE_TITLE); // previously set
 			nexttoken();
 			if (TOKEN[0] != '"') error(UNQUOTED_TITLE);
+			if (strlen(TOKEN) < 3) error(EMPTY_STRING);
 			strncpy(title, TOKEN + 1, strlen(TOKEN) - 2); // unquote
 		} else if (eq(TOKEN, ".MONITOR")) {
 			// <directive> ::= ".MONITOR" <s+> <value>
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 			nextaddr();
 		} else if (findlabel(TOKEN) != -1) { // includes dupe checking
 			// label syntax was checked during symbol collection
-			nexttoken();
+			if (!eq(nexttoken(), ":")) error(LABEL_COLON);
 			nexttoken();
 			continue;
 		} else if (!eq(TOKEN, "")) {

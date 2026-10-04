@@ -42,6 +42,7 @@ struct OutputHeader {
 	unsigned char addr; // current instruction address
 	char ram[255][9];
 	char comment[255][MAX_LINE_LENGTH];
+	int size;
 };
 
 extern struct InputHeader In; // global input data structure
