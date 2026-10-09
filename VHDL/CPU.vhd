@@ -182,27 +182,25 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Program flow control
 	-------------------------------------------------------------------
-	-- Instructions have a variable Size of 1 or 2 words. "Adjacent", the
-	-- address of the following instruction, is set to PC+Size by using an
-	-- 8-bit full adder (PC_Incrementor). If a jump is occurring, the PC is set
-	-- to either the Instr2 argument of the jump/call instruction, or the
-	-- popped memory data from the stack (in case of RETURN).
-	-- The program counter is stored in an 8-bit D flip-flop.
-	Size <=
-		x"01" WHEN isHLT OR isNOP OR isRETURN OR isSHIFT OR isPUSH OR isPOP ELSE
-		x"02";
-	PC_Incrementor : ENTITY work.FA8 PORT MAP(PC, Size, '0', Adjacent);
+	-- The PC is stored in an 8-bit D flip-flop; in case of RETURN, it's set
+	-- to the popped data from the stack; for any other type of jump, it's set
+	-- to the direct Instr2 argument. Otherwise, it's increased by the current
+	-- instruction size.
+	ProgramCounter : ENTITY work.DFF8 PORT MAP(CLK, PCnext, PC);
+	PCnext <=
+		x"00"  WHEN Reset         ELSE
+		PC     WHEN isHLT OR Halt ELSE -- HLT applies on the current cycle
+		Data   WHEN isRETURN      ELSE
+		Instr2 WHEN Jumping       ELSE
+		Adjacent;
 	Jumping <=
-		isJMP OR isCALL OR isRETURN OR
+		isJMP OR isCALL OR
 		(isJC AND Carry) OR (isJNC AND NOT Carry) OR
 		(isJZ AND Zero) OR (isJNZ AND NOT Zero) OR
 		(isJS AND Sign) OR (isJNS AND NOT Sign) OR
 		(isJV AND Overflow) OR (isJNV AND NOT Overflow);
-	PCnext <=
-		x"00"    WHEN Reset         ELSE
-		PC       WHEN isHLT OR Halt ELSE -- HLT works on the current cycle
-		Adjacent WHEN NOT Jumping   ELSE
-		Data     WHEN isRETURN      ELSE
-		Instr2;
-	ProgramCounter : ENTITY work.DFF8 PORT MAP(CLK, PCnext, PC);
+	Size <=
+		x"01" WHEN isHLT OR isNOP OR isRETURN OR isSHIFT OR isPUSH OR isPOP ELSE
+		x"02";
+	PC_Incrementor : ENTITY work.FA8 PORT MAP(PC, Size, '0', Adjacent);
 END;
