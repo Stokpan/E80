@@ -1,7 +1,7 @@
 .TITLE "E80 ISA compliance test suite"
 ; Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
-; Halt at PASS (Instr1 = 1) ⇔ all checks passed.
-; Halt at FAIL (Instr1 = 0) ⇔ jumped to HLT after a failed test.
+; Halt at PC = 230 with Instr1 = 1 ⇔ all checks passed.
+; Halt at PC = 240 with Instr1 = 0 ⇔ jumped to HLT after a failed test.
 
 ; **********************************************************************
 .SIMDIP 0b10100101 ; THIS IS A REQUIRED SETTING ON THE BOARD DIP SWITCH!

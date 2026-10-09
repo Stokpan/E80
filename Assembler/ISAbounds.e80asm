@@ -4,8 +4,8 @@
 ; leaves out: carry and overflow at the edges of the adder, shift and
 ; rotate edges, each STORE form read back through the other LOAD form,
 ; reads of the DIP-mapped address, and the stack pointer as an operand.
-; Halt at PASS (Instr1 = 1) ⇔ all checks passed.
-; Halt at FAIL (Instr1 = 0) ⇔ jumped to HLT after a failed test.
+; Halt at PC = 170 with Instr1 = 1 ⇔ all checks passed.
+; Halt at PC = 172 with Instr1 = 0 ⇔ jumped to HLT after a failed test.
 
 ; **********************************************************************
 .SIMDIP 0b10100101 ; THIS IS A REQUIRED SETTING ON THE BOARD DIP SWITCH!
