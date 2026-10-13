@@ -11,7 +11,7 @@ setlocal
 set TopUnit=Interface
 
 REM Get a clean path to the Toolchain installation folder (first cd to it)
-cd %~dp0..\..
+cd /d "%~dp0..\.."
 set ToolchainFolder=%cd%\
 
 if not defined YOSYSHQ_ROOT (
@@ -34,8 +34,8 @@ set OPENFPGALOADER_SOJ_DIR=%YOSYSHQ_ROOT%share\openFPGALoader
 
 REM move to work folder (TempOutput) to prevent cluttering the main folder
 set TempOutput=%~dp0TempOutput
-md %TempOutput% > nul 2>&1
-cd %TempOutput%
+md "%TempOutput%" > nul 2>&1
+cd "%TempOutput%"
 
 REM Use nextpnr-himbaechel to check for the OSS CAD Suite presence. If nextpnr
 REM works, then everything else should because it has the most dependencies.
