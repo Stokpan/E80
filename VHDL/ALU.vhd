@@ -49,7 +49,7 @@ BEGIN
 	DiscardFlags  <= isINR OR isDCR;
 	DiscardResult <= isCMP OR isBIT;
 	-------------------------------------------------------------------
-	-- Full Adder / Subtractor
+	-- Adder / Subtractor
 	-------------------------------------------------------------------
 	B <= x"01" WHEN isDCR OR isINR ELSE ALUinB;
 	Adder : ENTITY work.FA8 PORT MAP(
