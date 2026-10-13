@@ -1,6 +1,4 @@
-<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple von Neumann computer originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454) as a Papertian Microworld. It provides a textbook-complete instruction set, a toolchain for one-click assembly and simulation, and a pre-configured hardware interface for three low-cost FPGA boards. Where classic microworlds treat their _Object‑to‑think‑with_ as a black box, the E80 CPU is built with structural VHDL and flip‑flops, using `ieee.std_logic_1164` only. This allows a student versed in elementary digital logic to understand and modify the _Object_ itself.
-
-The implementation's engineering and methodology was [presented](https://doi.org/10.13140/RG.2.2.27849.71521) at [PACET 2026](https://sites.google.com/g.upatras.gr/pacet2026) and the paper is [available on IEEE Xplore](https://doi.org/10.1109/PACET68758.2026.11498245).<br clear="left">
+<a href="#"><img align="left" alt="E80 " src="Images/e80icon.svg" width="77"></a> is a simple computer developed as a Papertian Microworld. It provides a textbook-complete instruction set, a toolchain for one-click assembly and simulation, and a hardware interface with presets for three low-cost FPGA boards. The CPU is built in _gate-transparent_ VHDL corresponding to textbook logic diagrams without behavioral abstractions or arithmetic packages. This allows a student versed in elementary digital logic to understand and modify the microworld's _Object‑to‑think‑with_ instead of treating it as a black box. The project was originally developed for [my undergraduate thesis](https://apothesis.eap.gr/archive/item/222454), presented at [PACET 2026](https://sites.google.com/g.upatras.gr/pacet2026) with a [paper on IEEE Xplore](https://doi.org/10.1109/PACET68758.2026.11498245), and extended as a [full article on Electronics](https://doi.org/10.3390/electronics15204625). The article explains the methodology and engineering, and formally defines _gate-transparency_.<br clear="left">
 
 ## Table of Contents
 
@@ -9,23 +7,26 @@ The implementation's engineering and methodology was [presented](https://doi.org
 3. [Assembly Language](#assembly-language)
 4. [Simulation Example](#simulation-example)
 5. [Hardware Implementation](#hardware-implementation)
-6. [Workflow Example](#workflow-example)
+6. [Complete Workflow Example](#complete-workflow-example)
 
 ## Features
 
-* **Architecture**: 8-bit, single-cycle, Load/Store
-* **Instruction format**: Variable size (1 or 2 words), up to 2 operands
+* **Architecture**: 8-bit word/address, von Neumann, Load/Store, single cycle so the waveform reads as a program trace
+* **VHDL**: Gate-transparent for the CPU and its components, behavioral for the rest
+* **Instruction set**: Derived from a survey of introductory assembly sources, variable size (1 or 2 words), up to 2 operands
 * **Addressing**: Immediate, direct, register, register-indirect
-* **Registers**: 6 general-purpose (R0-R5), flags (R6), stack pointer (R7)
-* **Flags**: Carry, Zero, Sign, Overflow, Halt
-* **Memory**: Multiport to support single cycle access, addressable at 0x00-0xFE
+* **Registers**: Six general-purpose (R0-R5), flags (R6), stack pointer (R7)
+* **Flags**: Carry, Zero, Sign, and Overflow, each tested by conditional jumps; Halt stops execution and simulation
+* **Memory**: One read/write and two read ports, addressable at 0x00-0xFE, reloaded from `Program.vhd` on reset
 * **Stack**: Full-descending, stack pointer initialized at 0xFF
-* **Input**: 8‑bit DIP switches, memory‑mapped at 0xFF
-* **Output**: Serial 4x8x8 LED Matrix (4 daisy-chained MAX7219)
+* **I/O**: 8-bit DIP switch at 0xFF; four daisy-chained MAX7219 8×8 LED matrices on three pins
+* **Execution controls**: Seven speed levels (0 Hz-4 kHz) on two buttons, pause with step execution, reset
+* **Display**: CPU state, stack area, and `.MONITOR` block as pre-arranged in GTKWave/ModelSim, and one-hot speed display
 * **Assembly syntax**: Hybrid of ARM, x86, and textbook pseudocode
-* **Assembler**: Written in ISO C99, using stdin/stdout/stderr only
-* **Simulated on**: GHDL+GTKWave and ModelSim
-* **Tested on**: GateMateA1-EVB (OSS CAD Suite), Tang Primer 25K (Gowin), DSD-i1 Cyclone IV (Quartus)
+* **Assembler**: Written in ISO C99, using stdin/stdout/stderr only; emits a formatted and annotated `Program.vhd` package
+* **Toolchain**: F5 assembles and simulates in GHDL/GTKWave; F7 dumps `Program.vhd`; F8 assembles and simulates in ModelSim
+* **Board presets**: Sipeed Tang Primer 25K (Gowin), HOU DSD-i1 Cyclone IV (Quartus), Olimex GateMateA1 (OSS CAD Suite, run by a custom script)
+* **Verification**: ISA compliance suite (76 checks), nth Fibonacci with Dijkstra's recursive method, and the LC-3 textbook maze escape
 
 ## Instruction Set Architecture
 
@@ -90,31 +91,31 @@ Flags    : Register R6 = [CZSV---H] (see ALU.vhd)
 +----+-------------------+-------+---------------+-----------------------+-------+
 ```
 **Notes**
+* As seen on the hex column, instructions are formatted in nibbles. The first nibble corresponds to its ALU operation (see `ALU.vhd`).
+* Flags are set by the ALU result on the first argument; explicit modification of the FLAGS register takes precedence over normal flag changes, eg. `OR FLAGS, 0b01000000` sets Z=1 although the result is non-zero.
+* `HLT` freezes the PC in the current cycle, unlike normal instructions that apply on the next cycle.
 * `ROR R1,R2` rotates R1 to the right by R2 bits. This is equivalent to left rotation by 8-R2 bits.
-* Flags are updated when registers are modified by the ALU.
 * Shift instructions are logical; Carry flag = shifted bit and the Overflow flag is set if the sign bit is changed.
-* The `HLT` instruction sets the Halt flag and freezes the PC, thereby stopping execution in the current cycle.
-* Explicit modification of the FLAGS register takes precedence over normal flag changes, eg. `OR FLAGS, 0b01000000` sets Z=1 although the result is non-zero.
 * Addition & subtraction is performed with a textbook adder; flags are set according to this cheatsheet:
-```
-	               +------+-----------------------------+----------------------+
-	               | Flag | Signed                      | Unsigned             |
-	+--------------+------+-----------------------------+----------------------+
-	| ADD a,b      | C=1  |                             | a+b > 255 (overflow) |
-	|              | C=0  |                             | a+b ≤ 255            |
-	|              | V=1  | a+b ∉ [-128,127] (overflow) |                      |
-	|              | V=0  | a+b ∈ [-128,127]            |                      |
-	|              | S=1  | a+b < 0                     | a+b ≥ 128 (if C=0)   |
-	|              | S=0  | a+b ≥ 0                     | a+b < 128 (if C=0)   |
-	+--------------+------+-----------------------------+----------------------+
-	| SUB/CMP a,b  | C=1  |                             | a ≥ b                |
-	|              | C=0  |                             | a < b (overflow)     |
-	|              | V=1  | a-b ∉ [-128,127] (overflow) |                      |
-	|              | V=0  | a-b ∈ [-128,127]            |                      |
-	|              | S=1  | a < b (if V=0)              | a-b ≥ 128 (if C=1)   |
-	|              | S=0  | a ≥ b (if V=0)              | a-b < 128 (if C=1)   |
-	+--------------+------+-----------------------------+----------------------+
-```
+	```
+	               +------+-----------------------------+-----------------------+
+	               | Flag | Signed                      | Unsigned              |
+	+--------------+------+-----------------------------+-----------------------+
+	| ADD a,b      | C=1  |                             | a+b > 255 (overflow)  |
+	|              | C=0  |                             | a+b ≤ 255             |
+	|              | V=1  | a+b ∉ [-128,127] (overflow) |                       |
+	|              | V=0  | a+b ∈ [-128,127]            |                       |
+	|              | S=1  | a+b < 0                     | a+b ≥ 128 (if C=0)    |
+	|              | S=0  | a+b ≥ 0                     | a+b < 128 (if C=0)    |
+	+--------------+------+-----------------------------+-----------------------+
+	| SUB/CMP a,b  | C=1  |                             | a ≥ b                 |
+	|              | C=0  |                             | a < b (overflow)      |
+	|              | V=1  | a-b ∉ [-128,127] (overflow) |                       |
+	|              | V=0  | a-b ∈ [-128,127]            |                       |
+	|              | S=1  | a < b (if V=0)              | a-b ≥ 128 (if C=1)    |
+	|              | S=0  | a ≥ b (if V=0)              | a-b < 128 (if C=1)    |
+	+--------------+------+-----------------------------+-----------------------+
+	```
 
 ## Assembly Language
 
@@ -123,7 +124,7 @@ string : ASCII with escaped quotes, eg. "a\"bc" is quoted a"bc
 label  : Starts from a letter, may contain letters, numbers, underscores
 number : -128 to 255 no leading zeros, or bin (eg. 0b0011), or hex (eg. 0x0A)
 val    : Number or label
-csv    : Comma-separated numbers and strings
+csv    : Comma-separated numbers and strings, appended after the program
 reg    : Register R0-R7 or FLAGS (alias of R6) or SP (alias of R7)
 op2    : Reg or val (flexible 2nd operand)
 [op2]  : Memory at address op2 (or DIP input if op2=0xFF)
@@ -132,8 +133,8 @@ op2    : Reg or val (flexible 2nd operand)
 | Directive            | Description                                        |
 +----------------------+----------------------------------------------------+
 | .TITLE "string"      | Set the title for the Program.vhd output           |
-| .LABEL label number  | Assign a number to a label                         |
-| .DATA label csv      | Append csv at label address after program space    |
+| .LABEL label number  | Assign number to label                             |
+| .DATA label csv      | Assign the csv's address to label                  |
 | .SIMDIP number       | Set the DIP switch input (simulation only)         |
 | .SPEED level         | Initialize clock speed to level 0-6 on the FPGA    |
 | .MONITOR value       | Address of 8-word RAM block to be displayed        |
@@ -142,7 +143,7 @@ op2    : Reg or val (flexible 2nd operand)
 +----------------------+----------------------------------------------------+
 | Instruction          | Description                                        |
 +----------------------+----------------------------------------------------+
-| label:               | Label the address of the next instruction          |
+| label:               | Assign the next instruction's address to label     |
 | HLT                  | Set the H flag and halt execution                  |
 | NOP                  | No operation                                       |
 | JMP n                | Jump to address n                                  |
@@ -170,25 +171,30 @@ op2    : Reg or val (flexible 2nd operand)
 **Notes**
 * Directives must precede instructions.
 * Labels are case sensitive; directives and instructions are not.
-* `.DATA` sets a label after the last instruction and writes the csv data to it; consecutive `.DATA` directives append after each other.
 * Comments start with a semicolon.
+* Numbers follow GNU Assembler rules: `0x` and `0b` prefixes for hexadecimal and binary, no leading zeros for decimal; negative numbers are represented in two's complement.
+* `.DATA` sets a label after the last instruction and writes the csv data to it; consecutive `.DATA` directives append after each other.
 * The `.SPEED` directive sets the initial CPU clock frequency in the FPGA according to the [Hardware Implementation section](#hardware-implementation). Default value is 2 (~1 Hz).
 * The `.MONITOR` directive points to an 8-word block to display on the LED matrix, or as separate signals in ASCII and binary format in simulation; it defaults to 0.
 * The `.SIMDIP` directive sets a constant value (default 0x00) for address 0xFF in simulation. It's ignored on hardware execution, where 0xFF maps to the 8-bit DIP switches.
+* A blueprint of the grammar is available in [Backus-Naur form](Assembler/bnf.md).
 
 ## Simulation Example
 
-The following program sets a simulated input to address 0xFF through the SIMDIP directive, writes the null-terminated string _jello_ after the last instruction through the DATA directive, and marks the address of the string for display through the MONITOR directive. It then runs a few textbook assembly instructions.
+The following program is `hello.e80asm`, which ships with the toolchain to show as much of the machine and the assembly language as possible in a few instructions and cycles. When it halts, the `.MONITOR` block should read _hello_.
 
 ```
 .TITLE "A simple program to showcase the features of E80 assembly"
+.SPEED 0                ; requires step execution on hardware
+.LABEL h 104            ; ASCII code of h
 .SIMDIP 0b10000010      ; simulated DIP switch
 .DATA string "jello",0  ; null-terminated
 .MONITOR string         ; display 8-word block at string address
-    MOV R0, 104         ; ASCII code of h
+
+    MOV R0, h
     STORE R0, [string]  ; replace j with h
     PUSH R0
-    LOAD R0, [0xFF]     ; read DIP input address
+    LOAD R0, [0xFF]     ; DIP input address
     CALL subroutine
     POP R1
     HLT
@@ -197,7 +203,7 @@ subroutine:
     RETURN
 ```
 
-To simulate it, first install the latest E80 Toolchain release, and then open the E80 Editor and paste the code into it:
+To simulate it, first install the latest E80 Toolchain release, and then start the E80 Editor and either open `hello.e80asm` from the installation folder or paste the code into it:
 
 <p align="center"><img alt="Sc1 Editor window with assembly code" src="Images/Simulation/Sc1Assembly.png"></p>
 
@@ -240,35 +246,35 @@ Output is provided by a 4x8x8 LED module driven by four daisy-chained MAX7219 ch
 
 * **8-bit DIP switch:** Provides a static input word at address 0xFF.
 * **Left/Right buttons:** Adjust speed level (clock frequency) as follows:
-	* Speed level 0: 0 Hz, clock is gated high
-	* Speed level 1: 0.24 Hz
-	* Speed level 2: ~1 Hz
-	* Speed level 3: ~2 Hz
-	* Speed level 4: ~4 Hz
-	* Speed level 5: ~15 Hz
-	* Speed level 6: 4 KHz
+    * Speed level 0: 0 Hz, clock is gated high
+    * Speed level 1: 0.24 Hz
+    * Speed level 2: ~1 Hz
+    * Speed level 3: ~2 Hz
+    * Speed level 4: ~4 Hz
+    * Speed level 5: ~15 Hz
+    * Speed level 6: 4 kHz
 * **Pause button:** Gates clock to low while pressed. When speed level is set to 0, releasing pause will trigger a rising edge thereby allowing for step execution.
 * **Reset button:** Re-uploads Program.vhd to the RAM, resets the Program Counter to 0 and the Stack Pointer to 255, and clears the Halt flag.
 * **Matrix 1:**
-	* Row 1: **Speed level** (one-hot encoded on first seven LEDs), **Clock** (rightmost LED)
-	* Row 2: 00000000
-	* Row 3: **Program Counter**
-	* Row 4: **Instr1** (Instruction Word part 1)
-	* Row 5: **Instr2** (Instruction Word part 2)
-	* Row 6: 00000000
-	* Row 7: **Carry**, **Zero**, **Sign**, **Overflow**, 000, **Halt**
-	* Row 8: 00000000
+    * Row 1: **Speed level** (one-hot encoded on first seven LEDs), **Clock** (rightmost LED)
+    * Row 2: 00000000
+    * Row 3: **Program Counter**
+    * Row 4: **Instr1** (Instruction Word part 1)
+    * Row 5: **Instr2** (Instruction Word part 2)
+    * Row 6: 00000000
+    * Row 7: **Carry**, **Zero**, **Sign**, **Overflow**, 000, **Halt**
+    * Row 8: 00000000
 * **Matrix 2:**
-	* Rows 1-6: **General Purpose Registers R0-R5**
-	* Row 7: 00000000
-	* Row 8: **Stack Pointer (R7)**
+    * Rows 1-6: **General Purpose Registers R0-R5**
+    * Row 7: 00000000
+    * Row 8: **Stack Pointer (R7)**
 * **Matrix 3:**
-	* Rows 1-7: **Stack Space** (RAM block 248-254)
-	* Row 8: **DIP switch input**
+    * Rows 1-7: **Stack Space** (RAM block 248-254)
+    * Row 8: **DIP switch input**
 * **Matrix 4:**
-	* Rows 1-8: **.MONITOR Block** (8-word RAM block starting from the .MONITOR's address)
+    * Rows 1-8: **.MONITOR Block** (8-word RAM block starting from the .MONITOR's address)
 
-## Workflow Example
+## Complete Workflow Example
 
 The following assumes that you have set an FPGA board according to the instructions in the previous section.
 
@@ -276,8 +282,10 @@ Start the E80 Editor, open `hello.e80asm` and hit F5 to assemble and simulate it
 
 <p align="center"><img alt="hello.asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png"></p>
 
-Follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware. Your assembled program will run with the default speed util the Halt flag turns on (leftmost row #7, LED #8).
+Follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware.
 
-To restart with step execution, set speed to 0 and then press Reset. Use the Pause button to execute step-by-step while comparing the LED display with the simulated results on GTKWave:
+Your assembled program will not start (because of the `.SPEED 0` directive) unless you increase speed or use the Pause button to execute step-by-step. Try the latter while comparing the LED display with the simulated results on GTKWave:
 
 <p align="center"><img alt="hello.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/LEDmatrix.png"></p>
+
+The program will stop when the Halt flag turns on (leftmost row #7, LED #8). You can now set speed to a higher level and press Reset to restart execution.
