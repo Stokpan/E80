@@ -9,6 +9,6 @@
 #define DEFAULT_SPEED 2
 #define DEFAULT_MONITOR 0
 #define DEFAULT_SIMDIP "00000000"
-#define TEMPLATE "Template.vhd"
+#define TEMPLATE "template.vhd"
 
 #endif
