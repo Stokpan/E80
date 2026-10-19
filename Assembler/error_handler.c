@@ -71,7 +71,7 @@ void error(enum ErrorCode errorlevel)
 	case DEFINED_LABEL:
 		fprintf(stderr, "'%s' is not a defined label or a valid address.", TOKEN);
 		break;
-c ase LABEL_COLON:
+	case LABEL_COLON:
 		fprintf(stderr, "Expected colon after label '%s'.", PREVIOUS);
 		break;
 	case EMPTY_STRING:
