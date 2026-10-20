@@ -78,7 +78,7 @@ ARCHITECTURE a1 OF CPU IS
 	SIGNAL noALU    : STD_LOGIC;
 	-- Execution control flow signals
 	-- if Jumping=0, PCnext ← Adjacent
-	-- if Jumping=1, PCnext ← jump, call, or return address
+	-- if Jumping=1, PCnext ← jump/call to direct address
 	SIGNAL Size     : WORD;      -- current instruction size
 	SIGNAL Adjacent : WORD;      -- address of adjacent instruction (PC + Size)
 	SIGNAL Jumping  : STD_LOGIC; -- are we jumping ?

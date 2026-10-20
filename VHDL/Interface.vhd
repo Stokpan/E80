@@ -164,7 +164,7 @@ ENTITY Interface IS PORT (
 	ResetButton : IN STD_LOGIC;  -- resets the PC, SP, Halt, and Program data
 	PauseButton : IN STD_LOGIC;  -- sets the clock to low while held down
 	LeftButton  : IN STD_LOGIC;  -- decreases speed level down to 0 (pause)
-	RightButton : IN STD_LOGIC;  -- increases speed level up to 4 KHz
+	RightButton : IN STD_LOGIC;  -- increases speed level up to 6 (4 KHz)
 	DIPinput    : IN WORD;       -- 8-bit DIP switch user input
 	MAX7219DIN	: OUT STD_LOGIC; -- MAX7219 4x8x8 LED matrix DIN
 	MAX7219CS	: OUT STD_LOGIC; -- MAX7219 4x8x8 LED matrix CS (or LOAD)
