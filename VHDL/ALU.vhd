@@ -16,16 +16,16 @@ ENTITY ALU IS PORT (
 ); END;
 ARCHITECTURE a1 OF ALU IS
 	ALIAS A : WORD IS ALUinA;
-	SIGNAL B : WORD; -- ALUinB or 1 for INR/DCR
+	ALIAS B : WORD IS ALUinB;
 	-- ALU Decoder output
-	SIGNAL isADD, isSUB, isROR, isAND, isOR, isXOR,
-		isRSHIFT, isCMP, isLSHIFT, isBIT, isDCR, isINR,
-		FullFlags, DiscardFlags, DiscardResult : STD_LOGIC;
-	-- Barrel shifter result
-	SIGNAL Rotated : WORD;
-	-- Adder / subtractor output
-	SIGNAL Sum_C, Sum_V : STD_LOGIC;
+	SIGNAL isADD, isSUB, isROR, isAND, isOR, isXOR, isRSHIFT, isCMP, isLSHIFT,
+	       isBIT, isDCR, isINR, CZSV, ZS : STD_LOGIC;
+	-- Adder input / output
+	SIGNAL AdderB : WORD; -- B input or 1 for INR/DCR
 	SIGNAL Sum : WORD;
+	SIGNAL Sum_C, Sum_V : STD_LOGIC;
+	-- Barrel shifter output
+	SIGNAL Rotated : WORD;
     -- Result signals (assigned to ALUout/FlagsOut or ignored)
 	SIGNAL Result : WORD;
 	SIGNAL C, Z, S, V : STD_LOGIC;
@@ -45,16 +45,15 @@ BEGIN
 	isRSHIFT <= match(ALUop,"1101"); --| A >> 1, C ← A(0), V ← S flip | **** | 
 	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      | 
 	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      | 
-	FullFlags     <= isADD OR isSUB OR isRSHIFT OR isLSHIFT;
-	DiscardFlags  <= isINR OR isDCR;
-	DiscardResult <= isCMP OR isBIT;
+	CZSV     <= isADD OR isSUB OR isRSHIFT OR isLSHIFT;
+	ZS       <= isINR NOR isDCR;
 	-------------------------------------------------------------------
 	-- Adder / Subtractor
 	-------------------------------------------------------------------
-	B <= x"01" WHEN isDCR OR isINR ELSE ALUinB;
+	AdderB <= B WHEN isDCR NOR isINR ELSE x"01";
 	Adder : ENTITY work.FA8 PORT MAP(
 		A,
-		B,
+		AdderB,
 		isSUB OR isDCR, -- 1 = subtraction (includes CMP)
 		Sum,
 		Sum_C,
@@ -95,9 +94,10 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Final output
 	-------------------------------------------------------------------
-	FlagsOut <=
-		FlagsIn                                   WHEN DiscardFlags ELSE
-		C & Z & S & V & FlagsIn(3 DOWNTO 0)       WHEN FullFlags    ELSE
-		FlagsIn(7) & Z & S & FlagsIn(4 DOWNTO 0);
-	ALUout <= A WHEN DiscardResult ELSE Result;
+	FlagsOut(7) <= C WHEN CZSV ELSE FlagsIn(7);
+	FlagsOut(6) <= Z WHEN ZS ELSE FlagsIn(6);
+	FlagsOut(5) <= S WHEN ZS ELSE FlagsIn(5);
+	FlagsOut(4) <= V WHEN CZSV ELSE FlagsIn(4);
+	FlagsOut(3 DOWNTO 0) <= FlagsIn(3 DOWNTO 0);
+	ALUout <= Result WHEN isCMP NOR isBIT ELSE A;
 END;
