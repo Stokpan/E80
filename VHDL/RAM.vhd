@@ -29,12 +29,12 @@ BEGIN
 	intMemAddr <= int(MemAddr);
 	Instr1 <= RAM(intPC);
 	Instr2 <= RAM(intPC+1);
-	Mem <= RAM(intMemAddr);
+	Mem <= RAM(intMemAddr) WHEN NOT MemWriteEn ELSE x"UU";
 	PROCESS(CLK) BEGIN
 		IF RISING_EDGE(CLK) THEN
-			IF Reset = '1' THEN
+			IF Reset THEN
 				RAM <= Program;
-			ELSIF MemWriteEn = '1' THEN
+			ELSIF MemWriteEn THEN
 				RAM(intMemAddr) <= MemNext;
 			END IF;
 		END IF;
