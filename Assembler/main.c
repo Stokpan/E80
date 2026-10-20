@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 	/* Starting message (hide if /Q switch is enabled) */
 	if (argc < 2 || (strcmp(argv[1],"/Q") && strcmp(argv[1],"/q"))) {
 		fprintf(stderr,
-			"E80 CPU Assembler v4.0 - July 2026, Panos Stokas\n\n"
+			"E80 CPU Assembler v4.1 - October 2026, Panos Stokas\n\n"
 			"Translates an E80-assembly program to VHDL code via stdin.\n\n"
 			"E80ASM [/Q]\n\n"
 			"    /Q      Silent mode, hides this message.\n\n"
