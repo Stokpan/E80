@@ -21,7 +21,7 @@
 * **Stack**: Full-descending, stack pointer initialized at 0xFF
 * **I/O**: 8-bit DIP switch at 0xFF; four daisy-chained MAX7219 8×8 LED matrices on three pins
 * **Execution controls**: Seven speed levels (0 Hz-4 kHz) on two buttons, pause with step execution, reset
-* **Display**: CPU state, stack area, and `.MONITOR` block as pre-arranged in GTKWave/ModelSim, and one-hot speed display
+* **Display**: Speed level (one-hot), clock, program counter, instruction, flags, registers, stack area, DIP input, and a configurable memory block
 * **Assembly syntax**: Hybrid of ARM, x86, and textbook pseudocode
 * **Assembler**: Written in ISO C99, using stdin/stdout/stderr only; emits a formatted and annotated `Program.vhd` package
 * **Toolchain**: F5 assembles and simulates in GHDL/GTKWave; F7 dumps `Program.vhd`; F8 assembles and simulates in ModelSim
