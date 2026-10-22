@@ -1,11 +1,18 @@
 @echo off
+REM -----------------------------------------------------------------------
+REM E80 GateMate Synthesis Batch
+REM Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
+REM Runs all necessary tools from the OSS CAD Suite with the necessary
+REM configuration options to drive the build of the E80 VHDL design (including
+REM the user's assembled Program.vhd) to the board.
+REM -----------------------------------------------------------------------
+
 title E80 GateMate Synthesis Batch
 echo -----------------------------------------------------------------------
 echo                       E80 GateMate Synthesis Batch
 echo This will synthesize E80's VHDL code (including your assembled program)
 echo and then flash the output bitstream to the Olimex GateMateA1-EVB board.
 echo -----------------------------------------------------------------------
-REM Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
 setlocal
 set TopUnit=Interface
@@ -23,13 +30,6 @@ set PATH=%YOSYSHQ_ROOT%bin;%YOSYSHQ_ROOT%lib;%ToolchainFolder%GHDL\bin;%path%
 
 REM OSS-CAD-Suite component paths from its environment.bat
 set PYTHON_EXECUTABLE=%YOSYSHQ_ROOT%lib\python3.exe
-set QT_PLUGIN_PATH=%YOSYSHQ_ROOT%lib\qt5\plugins
-set QT_LOGGING_RULES=*=false
-set GTK_EXE_PREFIX=%YOSYSHQ_ROOT%
-set GTK_DATA_PREFIX=%YOSYSHQ_ROOT%
-set GDK_PIXBUF_MODULEDIR=%YOSYSHQ_ROOT%lib\gdk-pixbuf-2.0\2.10.0\loaders
-set GDK_PIXBUF_MODULE_FILE=%YOSYSHQ_ROOT%lib\gdk-pixbuf-2.0\2.10.0\loaders.cache
-gdk-pixbuf-query-loaders.exe --update-cache > nul 2>&1
 set OPENFPGALOADER_SOJ_DIR=%YOSYSHQ_ROOT%share\openFPGALoader
 
 REM move to work folder (TempOutput) to prevent cluttering the main folder
@@ -75,6 +75,10 @@ REM on the opened tab (in case the log was opened earlier) and move the cursor
 REM to the end of the document.
 
 :start
+
+REM get the time (t1) before the 1st step
+call :now t1
+
 echo 1. Elaboration (ghdl)
 set log=ghdl.log
 set command=ghdl -i --std=08 ..\..\..\VHDL\*.vhd ..\Board.vhd
@@ -97,7 +101,7 @@ echo -------------------------------------------------------------------------- 
 %command% > %TopUnit%.v 2>>%log%
 if %errorlevel% NEQ 0 goto :error
 
-echo 2. Synthesis (yosys) -- slow
+echo 2. Synthesis (yosys)
 set log=yosys.log
 set command=yosys -p "read_verilog %TopUnit%.v; synth_gatemate -top %TopUnit% -luttree -nomx8; write_json %TopUnit%.json"
 copy NUL %log% > NUL
@@ -107,7 +111,14 @@ echo -------------------------------------------------------------------------- 
 %command% >> %log% 2>&1
 if %errorlevel% NEQ 0 goto :error
 
-echo 3. Place and Route (nextpnr) -- SLOW!
+REM get the time (t2) after the 2nd step
+call :now t2
+REM if the build crossed midnight, add a day to fix t2 restarting from zero
+if %t2% LSS %t1% set /a t2+=8640000
+REM nextpnr takes about 10x steps 1 & 2; round estimate to nearest 10 s
+set /a est=((t2-t1)*10/100+5)/10*10
+
+echo 3. Place and Route (nextpnr) -- estimated %est% seconds
 set log=nextpnr.log
 set command=nextpnr-himbaechel --device CCGM1A1 --json %TopUnit%.json -o ccf=..\E80.ccf -o out=%TopUnit%.impl --freq 2 --placer-heap-beta 0.3
 copy NUL %log% > NUL
@@ -154,3 +165,9 @@ start /min  ..\..\..\Sc1 "%TempOutput%\%log%"
 echo ** Hit [1] to recompile **
 choice /C 1 /N > nul
 if %errorlevel%==1 goto :start
+exit /b
+
+REM Set the variable named %1 to the time of day in centiseconds
+:now
+for /f "tokens=1-4 delims=:., " %%a in ("%time%") do set /a "%1=((100%%a%%100*60+100%%b%%100)*60+100%%c%%100)*100+100%%d%%100"
+exit /b
