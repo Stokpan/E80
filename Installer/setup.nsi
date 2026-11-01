@@ -21,7 +21,7 @@ RequestExecutionLevel user
 !define MUI_ICON "e80icon.ico" 
 !define MUI_UNICON "e80icon.ico"
 !define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the E80 Toolchain.$\r$\n$\r$\nThis is a portable installation that includes all requirements for simulation, and settings for FPGA boards.$\r$\n$\r$\nNote: ModelSim and FPGA suites such as Gowin or the OSS CAD Suite are not included and must be installed separately.$\r$\n$\r$\nClick Next to continue."
-!define MUI_DIRECTORYPAGE_TEXT_TOP "You can install in any path or USB drive but if you intend to synthesize with Quartus or Vivado, avoid spaces or non-ASCII characters in the installation path."
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Avoid spaces or non-ASCII characters in the installation path, especially if you intend to synthesize with Quartus."
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
