@@ -8,7 +8,7 @@
 -----------------------------------------------------------------------
 -- Full adder component
 -----------------------------------------------------------------------
-LIBRARY ieee; 
+LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 ENTITY FA IS PORT (
 	A    : IN STD_LOGIC;
@@ -35,16 +35,16 @@ ENTITY FA8 IS PORT (
 	Sub  : IN STD_LOGIC;   -- 0 = addition, 1 = subtraction
 	Sum  : OUT WORD;
 	Cout : OUT STD_LOGIC;
-	V    : OUT STD_LOGIC); -- overflow
-END;
+	V    : OUT STD_LOGIC   -- overflow
+); END;
 ARCHITECTURE a1 OF FA8 IS
 	SIGNAL C : STD_LOGIC_VECTOR(8 DOWNTO 0); -- C(i) = CarryIn for bit i
 BEGIN
-    -- Sum = A+(B XOR Sub)+C(0) = A + B + 0     = A+B (if Sub=0)
-    --                            A + NOT B + 1 = A-B (if Sub=1)
+	-- Sum = A+(B XOR Sub)+C(0) = A + B + 0     = A+B (if Sub=0)
+	--                            A + NOT B + 1 = A-B (if Sub=1)
 	C(0) <= Sub;
 	FA_Series : FOR i IN 0 TO 7 GENERATE
-		FA_inst: ENTITY work.FA PORT MAP(
+		FA_inst: ENTITY work.FA PORT MAP (
 			A(i),
 			B(i) XOR Sub,
 			C(i),    -- Cin

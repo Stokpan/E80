@@ -44,7 +44,7 @@ PACKAGE BODY support IS
 		ALIAS v2 : STD_LOGIC_VECTOR(1 TO arg2'LENGTH) IS arg2;
 	BEGIN
 		FOR I IN v2'RANGE LOOP -- match("abc","a") = true
-			IF v1(I) = '-' OR v2(I) = '-' THEN  -- skip don't cares
+			IF v2(I) = '-' THEN  -- skip don't cares on arg2
 				NEXT;
 			-- compare as bit to treat undefined as zeros in simulation
 			ELSIF To_bit(v1(I)) XOR To_bit(v2(I)) THEN

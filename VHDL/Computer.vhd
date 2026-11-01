@@ -25,22 +25,22 @@ ARCHITECTURE a1 OF Computer IS
 	SIGNAL MemWriteEn : STD_LOGIC; -- write enable for MemAddr
 	SIGNAL Data : WORD;            -- Mem if MemAddr<0xFF, else DIP input
 BEGIN
-	RAM_inst : ENTITY work.RAM PORT MAP(
+	RAM_inst : ENTITY work.RAM PORT MAP (
 		CLK,
 		Reset,
 		PC,
-		MemAddr,    
+		MemAddr,
 		MemWriteEn,
 		MemNext,
 		Instr1,
 		Instr2,
-		Mem,        
+		Mem,
 		RAM
 	);
 
 	Data <= DIPinput WHEN match(MemAddr,x"FF") ELSE Mem;
 
-	CPU_inst : ENTITY work.CPU PORT MAP(
+	CPU_inst : ENTITY work.CPU PORT MAP (
 		CLK,
 		Reset,
 		Instr1,

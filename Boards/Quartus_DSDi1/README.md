@@ -1,6 +1,6 @@
-### Instructions for setting up the HOU DSD-i1 FPGA with the E80 Toolchain
+### Setting up the HOU DSD-i1 FPGA with Quartus Prime Lite for the E80 Toolchain
 
-1. Install [Quartus Prime Lite](https://www.altera.com/downloads/fpga-development-tools/quartus-prime-lite-edition-design-software-version-20-1-1-windows) and the DSD-i1 driver and X2Loader according to the Hellenic Open University's DSMC Lab instructions.
+1. Install [Quartus Prime Lite](https://download.altera.com/akdlm/software/acdsinst/20.1std.1/720/ib_tar/Quartus-lite-20.1.1.720-windows.tar)[^1] and the DSD-i1 driver and X2Loader according to the Hellenic Open University's DSMC Lab instructions.
 2. Install the [latest version of the toolchain](https://github.com/Stokpan/E80/releases) and navigate to its folder.
 3. Open `Boards\Quartus_DSDi1\E80.qsf` in a text editor and connect the components according to the Pin Assignments section.
    <br><img alt="Execution of hello.e80asm program" src="DSD-i1.jpg" />
@@ -9,3 +9,5 @@
 5. Hit Ctrl-L to start compilation.
 6. When the compilation is finished start X2Loader and check out its COM ports. Connect the board, then close and reopen X2Loader. Notice there's a new COM port. Select this one, click Connect, and then Upload Bitstream. Select the RBF file from the `Boards\Quartus_DSDi1\output_files` folder.
 7. The precompiled `hello.e80asm` program will be loaded with speed level set to 0; use the Right button to increase speed, or Set for step execution, until the Halt flag is set (matrix 1, row 7, rightmost LED).
+
+[^1]: SHA256:e0b1673431b5278f51e0ca4dd61d7cc04e6086a2ef8d5945a31e087644ff2765

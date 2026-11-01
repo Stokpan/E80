@@ -2,7 +2,7 @@
 -- E80 Arithmetic Logic Unit
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 -- Performs addition, subtraction, rotation, and logical operations.
--- The calculated result and/or flags is discarded in some operations.
+-- The calculated result and/or flags are discarded in some operations.
 -----------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
@@ -15,43 +15,43 @@ ENTITY ALU IS PORT (
 	FlagsOut : OUT WORD
 ); END;
 ARCHITECTURE a1 OF ALU IS
-	ALIAS A : WORD IS ALUinA;
-	ALIAS B : WORD IS ALUinB;
+	ALIAS A IS ALUinA;
+	ALIAS B IS ALUinB;
 	-- ALU Decoder output
 	SIGNAL isADD, isSUB, isROR, isAND, isOR, isXOR, isRSHIFT, isCMP, isLSHIFT,
-	       isBIT, isDCR, isINR, CZSV, ZS : STD_LOGIC;
+	       isBIT, isDCR, isINR, updCV, updZS : STD_LOGIC;
 	-- Adder input / output
 	SIGNAL AdderB : WORD; -- B input or 1 for INR/DCR
 	SIGNAL Sum : WORD;
 	SIGNAL Sum_C, Sum_V : STD_LOGIC;
 	-- Barrel shifter output
 	SIGNAL Rotated : WORD;
-    -- Result signals (assigned to ALUout/FlagsOut or ignored)
+	-- Result signals (assigned to ALUout/FlagsOut or ignored)
 	SIGNAL Result : WORD;
 	SIGNAL C, Z, S, V : STD_LOGIC;
 BEGIN
 	-----------------------------------+------------------------------+------+
 	-- ALUop Decoder                   | ALUout                       | CZSV |
 	-----------------------------------+------------------------------+------+
-	isADD    <= match(ALUop,"0010"); --| A + B                        | **** | 
-	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** | 
+	isADD    <= match(ALUop,"0010"); --| A + B                        | **** |
+	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** |
 	isAND    <= match(ALUop,"-100"); --| A AND B (includes BIT)       |  **  |
 	isOR     <= match(ALUop,"0101"); --| A OR B                       |  **  |
 	isXOR    <= match(ALUop,"0110"); --| A XOR B                      |  **  |
-	isROR    <= match(ALUop,"0111"); --| A rotated by B mod 8 bits    |  **  |         
-	isLSHIFT <= match(ALUop,"1010"); --| A << 1, C ← A(7), V ← S flip | **** | 
+	isROR    <= match(ALUop,"0111"); --| A rotated by B mod 8 bits    |  **  |
+	isLSHIFT <= match(ALUop,"1010"); --| A << 1, C ← A(7), V ← S flip | **** |
 	isCMP    <= match(ALUop,"1011"); --| SUB, discard result          | **** |
 	isBIT    <= match(ALUop,"1100"); --| AND, discard result          |  **  |
-	isRSHIFT <= match(ALUop,"1101"); --| A >> 1, C ← A(0), V ← S flip | **** | 
-	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      | 
-	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      | 
-	CZSV     <= isADD OR isSUB OR isRSHIFT OR isLSHIFT;
-	ZS       <= isINR NOR isDCR;
+	isRSHIFT <= match(ALUop,"1101"); --| A >> 1, C ← A(0), V ← S flip | **** |
+	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      |
+	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      |
+	updCV    <= isADD OR isSUB OR isRSHIFT OR isLSHIFT; -- update C & V flags
+	updZS    <= isINR NOR isDCR;                        -- update Z & S flags
 	-------------------------------------------------------------------
 	-- Adder / Subtractor
 	-------------------------------------------------------------------
 	AdderB <= B WHEN isDCR NOR isINR ELSE x"01";
-	Adder : ENTITY work.FA8 PORT MAP(
+	Adder : ENTITY work.FA8 PORT MAP (
 		A,
 		AdderB,
 		isSUB OR isDCR, -- 1 = subtraction (includes CMP)
@@ -94,10 +94,10 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Final output
 	-------------------------------------------------------------------
-	FlagsOut(7) <= C WHEN CZSV ELSE FlagsIn(7);
-	FlagsOut(6) <= Z WHEN ZS ELSE FlagsIn(6);
-	FlagsOut(5) <= S WHEN ZS ELSE FlagsIn(5);
-	FlagsOut(4) <= V WHEN CZSV ELSE FlagsIn(4);
+	FlagsOut(7) <= C WHEN updCV ELSE FlagsIn(7);
+	FlagsOut(6) <= Z WHEN updZS ELSE FlagsIn(6);
+	FlagsOut(5) <= S WHEN updZS ELSE FlagsIn(5);
+	FlagsOut(4) <= V WHEN updCV ELSE FlagsIn(4);
 	FlagsOut(3 DOWNTO 0) <= FlagsIn(3 DOWNTO 0);
 	ALUout <= Result WHEN isCMP NOR isBIT ELSE A;
 END;

@@ -24,7 +24,7 @@
 * **Display**: Speed level (one-hot), clock, program counter, instruction, flags, registers, stack area, DIP input, and a configurable memory block
 * **Assembly syntax**: Hybrid of ARM, x86, and textbook pseudocode
 * **Assembler**: Written in ISO C99, using stdin/stdout/stderr only; emits a formatted and annotated Program.vhd package
-* **Toolchain**: F5 assembles and simulates in GHDL/GTKWave; F7 dumps Program.vhd; F8 assembles and simulates in ModelSim
+* **Toolchain**: Based on the Sc1 editor with syntax coloring and Lua / batch scripts; F5 assembles and simulates in GHDL/GTKWave; F7 dumps Program.vhd; F8 assembles and simulates in ModelSim
 * **Board presets**: Sipeed Tang Primer 25K (Gowin), HOU DSD-i1 Cyclone IV (Quartus), Olimex GateMateA1 (OSS CAD Suite, run by a custom script)
 * **Verification**: ISA compliance suite (76 checks), nth Fibonacci with Dijkstra's recursive method, and the LC-3 textbook maze escape
 
@@ -203,27 +203,31 @@ subroutine:
     RETURN
 ```
 
-To simulate it, first install the latest E80 Toolchain release, and then start the E80 Editor and either open `Assembler\hello.e80asm` from the installation folder or paste the code into it:
-
-<br><img alt="Sc1 Editor window with assembly code" src="Images/Simulation/Sc1Assembly.png">
-<br>_Notice that syntax highlighting for the E80 assembly language has been enabled by default._
+To simulate it, first install the latest E80 Toolchain release, start the E80 Editor and either open `Assembler\hello.e80asm` from the installation folder or paste the code into it:
+<br>
+<br><img src="Images/Simulation/Sc1Assembly.png">
+<br>_Editor window with assembly code. Notice that syntax highlighting for the E80 assembly language has been enabled by default._
 
 Hit F5. The editor will automatically assemble the code into a VHDL-based format, run the entire design with GHDL, and launch GTKWave to view the waveforms. The single-cycle architecture allows the waveforms to read as a program trace.
-
+<br>
 <br><img alt="GHDL waveform output in GTKWave; RAM addresses 14-19 have been initialized by the .DATA directive" src="Images/Simulation/GTKWave.png">
 <br>_The Monitor signal on the bottom shows the .MONITOR directive's 8-word block as an ASCII string. Notice that the HLT instruction has stopped the simulation in GHDL; this useful feature is supported in ModelSim as well._
 
 You can make changes in the assembly source, and press F5 again; the previous GTKWave window will be automatically closed and replaced by the new one.
 
 You can also hit F7 to view the generated Program.vhd file, without simulation:
+<br>
+<br><img src="Images/Simulation/Sc1VHDL.png">
+<br>_VHDL output of the assembler. Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
 
-<br><img alt="VHDL output of the assembler" src="Images/Simulation/Sc1VHDL.png">
-<br>_Notice how the assembler formats the output into columns according to instruction size, and annotates each line to its respective disassembled instruction, ASCII character or number._
-
-Finally, you can press F8 to simulate in ModelSim. Unlike GHDL, ModelSim cannot be included in the toolchain, but it's currently free to [download](https://download.altera.com/akdlm/software/acdsinst/20.1std.1/720/ib_installers/ModelSimSetup-20.1.1.720-windows.exe). If you have enabled the E80 Layout for ModelSim on the toolchain installation, enable it from the corresponding Layout menu to get the following view:
-
+Finally, you can press F8 to simulate in ModelSim:
+<br>
 <br><img alt="ModelSim simulation and waveform" src="Images/Simulation/ModelSim.png">
-<br>_Pressing F8 again will update the simulation on the current ModelSim window._
+<br>_The E80 Layout view (enabled at the corresponding Layout menu) is offered during installation._
+
+Unlike GHDL, ModelSim cannot be included in the toolchain, but it's currently free to [download](https://download.altera.com/akdlm/software/acdsinst/20.1std.1/720/ib_installers/ModelSimSetup-20.1.1.720-windows.exe)[^1]. Also ModelSim is slower to start, so pressing F8 again will update the simulation on the current ModelSim window instead of starting a new one.
+
+[^1]: SHA256:dd6149bc80f56ad878bd4e650e528a6d359be814001c3cff8ea54427c7db7a7c
 
 ## Hardware Implementation
 
@@ -278,11 +282,13 @@ Output is provided by a 4x8x8 LED module driven by four daisy-chained MAX7219 ch
 The following assumes that you have set an FPGA board according to the instructions in the previous section.
 
 Start the E80 Editor, open `Assembler\hello.e80asm` and hit F5 to assemble and simulate it. Resize the GTKWave window to reveal the Monitor Rows at the bottom. Select all signals except the Monitor string, and set them to Binary as seen here:
-
-<img alt="hello.e80asm on GHDL+GTKWave with vectors set to binary" src="Images/Hardware/GTKwave.png">
+<br>
+<br><img src="Images/Hardware/GTKwave.png">
+<br>_`hello.e80asm` on GHDL+GTKWave with vectors set to binary to provide a direct comparison with the execution state display._
 
 You can now follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware. Because of the `.SPEED 0` directive, execution holds unless you increase speed or use the Pause button to execute step-by-step. Try the latter while comparing the LED display with the simulated results on GTKWave:
-
-<img alt="hello.e80asm verification on the 4x8x8 LED display" src="Images/Hardware/LEDmatrix.png">
+<br>
+<br><img src="Images/Hardware/LEDmatrix.png">
+<br>_`hello.e80asm` execution state shown on the 4x8x8 LED display with Speed manually set to ~1 Hz._
 
 The program will stop when the Halt flag turns on (leftmost row #7, LED #8). You can now set speed to a higher level and press Reset to restart execution.
