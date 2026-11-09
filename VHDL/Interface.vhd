@@ -174,9 +174,9 @@ ARCHITECTURE a1 OF Interface IS
 	SIGNAL Reset  : STD_LOGIC := '0'; -- debounced ResetButton
 	SIGNAL Pause  : STD_LOGIC := '0'; -- debounced PauseButton
 	SIGNAL GenCLK : STD_LOGIC_VECTOR(7 DOWNTO 0); -- see ClockGen
+	ALIAS  CLK1MHz IS GenCLK(7); -- 1 MHz clock for the board interface
 	SIGNAL Speed  : NATURAL RANGE 0 TO 6 := SPEED_directive; -- GenCLK index
-	ALIAS CLK1MHz : STD_LOGIC IS GenCLK(7); -- for board interface only
-	SIGNAL CLK    : STD_LOGIC; -- CPU clock speeds range from 0 to 4 KHz
+	SIGNAL CLK    : STD_LOGIC; -- 0 to 4 KHz CPU clock
 	-- Display signals
 	SIGNAL PC      : WORD;
 	SIGNAL R       : WORDx8;

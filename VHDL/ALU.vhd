@@ -15,8 +15,8 @@ ENTITY ALU IS PORT (
 	FlagsOut : OUT WORD
 ); END;
 ARCHITECTURE a1 OF ALU IS
-	ALIAS A : WORD IS ALUinA;
-	ALIAS B : WORD IS ALUinB;
+	ALIAS A IS ALUinA;
+	ALIAS B IS ALUinB;
 	-- ALU Decoder output
 	SIGNAL isADD, isSUB, isROR, isAND, isOR, isXOR, isRSHIFT, isCMP, isLSHIFT,
 	       isBIT, isDCR, isINR, CZSV, ZS : STD_LOGIC;

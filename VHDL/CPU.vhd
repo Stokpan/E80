@@ -46,10 +46,10 @@ ARCHITECTURE a1 OF CPU IS
 	-- op2isReg=1 ⇒ op2=register in Instr2[2:0], op1=register in Instr1[6:4]
 	-- op2isReg=0 ⇒ op2=immediate/direct/nil,    op1=register in Instr1[2:0]
 	-- eg. in ADD R0,R1 op2isReg=1 whereas in ADD R0,10 or PUSH R0 op2isReg=0.
-	ALIAS op2isReg   : STD_LOGIC IS Instr1(3);
-	ALIAS Instr1Reg  : REG_ADDR IS Instr1(2 DOWNTO 0);
-	ALIAS Instr2Reg1 : REG_ADDR IS Instr2(6 DOWNTO 4);
-	ALIAS Instr2Reg2 : REG_ADDR IS Instr2(2 DOWNTO 0);
+	ALIAS op2isReg IS Instr1(3);
+	ALIAS Instr1Reg IS Instr1(2 DOWNTO 0);
+	ALIAS Instr2Reg1 IS Instr2(6 DOWNTO 4);
+	ALIAS Instr2Reg2 IS Instr2(2 DOWNTO 0);
 	-- Instruction Decoder output
 	SIGNAL isHLT, isNOP, isJMP, isJC, isJNC, isJZ, isJNZ, isJV, isJNV,
 		isJS, isJNS, isCALL, isRETURN, isSTORE, isLOAD, isMOV,
@@ -66,11 +66,11 @@ ARCHITECTURE a1 OF CPU IS
 	CONSTANT FlagsRegister : REG_ADDR := "110"; -- R6
 	CONSTANT StackPointer  : REG_ADDR := "111"; -- R7
 	-- Flags
-	ALIAS Carry    : STD_LOGIC IS Flags(7);
-	ALIAS Zero     : STD_LOGIC IS Flags(6);
-	ALIAS Sign     : STD_LOGIC IS Flags(5);
-	ALIAS Overflow : STD_LOGIC IS Flags(4);
-	ALIAS Halt     : STD_LOGIC IS Flags(0);
+	ALIAS Carry IS Flags(7);
+	ALIAS Zero IS Flags(6);
+	ALIAS Sign IS Flags(5);
+	ALIAS Overflow IS Flags(4);
+	ALIAS Halt IS Flags(0);
 	-- ALU signals
 	SIGNAL op2      : WORD;
 	SIGNAL FlagsOut : WORD;
