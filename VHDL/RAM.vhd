@@ -30,7 +30,7 @@ BEGIN
 	Instr1 <= RAM(intPC);
 	Instr2 <= RAM(intPC+1);
 	Mem <= RAM(intMemAddr) WHEN NOT MemWriteEn ELSE x"UU";
-	PROCESS(CLK) BEGIN
+	PROCESS (CLK) BEGIN
 		IF RISING_EDGE(CLK) THEN
 			IF Reset THEN
 				RAM <= Program;

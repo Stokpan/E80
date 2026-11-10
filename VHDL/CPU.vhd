@@ -13,7 +13,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
 ENTITY CPU IS PORT (
 	CLK        : IN STD_LOGIC;
-	Reset      : IN STD_LOGIC;  -- resets the PC
+	Reset      : IN STD_LOGIC;  -- resets the PC (see RegisterFile as well)
 	Instr1     : IN WORD;       -- instruction part 1 / [PC]
 	Instr2     : IN WORD;       -- instruction part 2 / [PC+1]
 	Data       : IN WORD;       -- [MemAddr] if MemAddr<0xFF, else DIP input
@@ -53,14 +53,14 @@ ARCHITECTURE a1 OF CPU IS
 	-- Instruction Decoder output
 	SIGNAL isHLT, isNOP, isJMP, isJC, isJNC, isJZ, isJNZ, isJV, isJNV,
 		isJS, isJNS, isCALL, isRETURN, isSTORE, isLOAD, isMOV,
-		isSHIFT, isPUSH, isPOP, isStack : STD_LOGIC;
+		isSHIFT, isPUSH, isPOP, isStack, noALU : STD_LOGIC;
 	-- Register signals
-	SIGNAL A_reg     : REG_ADDR; -- accumulator address (usually 1st operand)
+	SIGNAL A_reg     : REG_ADDR; -- read/write register (usually 1st operand)
 	SIGNAL A_val     : WORD;     -- current value of A_reg
 	SIGNAL A_next    : WORD;     -- next cycle value of A_reg
-	SIGNAL B_reg     : REG_ADDR; -- read register address (usually 2nd operand)
+	SIGNAL B_reg     : REG_ADDR; -- read register (usually 2nd operand)
 	SIGNAL B_val     : WORD;     -- current value of B_reg
-	SIGNAL W_reg     : REG_ADDR; -- write register address (usually R6)
+	SIGNAL W_reg     : REG_ADDR; -- write register (usually R6)
 	SIGNAL W_next    : WORD;     -- next cycle value of W_reg
 	SIGNAL Flags     : WORD;     -- current value of Flags Register
 	CONSTANT FlagsRegister : REG_ADDR := "110"; -- R6
@@ -75,7 +75,6 @@ ARCHITECTURE a1 OF CPU IS
 	SIGNAL op2      : WORD;
 	SIGNAL FlagsOut : WORD;
 	SIGNAL ALUout   : WORD;
-	SIGNAL noALU    : STD_LOGIC;
 	-- Execution control flow signals
 	-- if Jumping=0, PCnext ← Adjacent
 	-- if Jumping=1, PCnext ← jump/call to direct address
@@ -114,7 +113,7 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Arithmetic Logical Unit
 	-------------------------------------------------------------------
-	ALU_inst : ENTITY work.ALU PORT MAP(
+	ALU_inst : ENTITY work.ALU PORT MAP (
 		Instr1(7 DOWNTO 4), -- all instructions start with their ALU opcode
 		A_val,              -- ALUinA = A_reg's current value
 		op2,                -- ALUinB = op2
@@ -126,11 +125,11 @@ BEGIN
 	-------------------------------------------------------------------
 	-- Registers
 	-------------------------------------------------------------------
-	RegisterFile_inst : ENTITY work.RegisterFile PORT MAP(
+	RegisterFile_inst : ENTITY work.RegisterFile PORT MAP (
 		CLK,
 		Reset,
-		A_reg,  -- accumulator (usually 1st operand) address
-		A_next, -- next cycle value of accumulator = ALUout
+		A_reg,  -- read/write register (usually 1st operand) address
+		A_next, -- next cycle value of A_reg (ALUout in most cases)
 		B_reg,  -- read register (usually 2nd operand) address
 		W_reg,  -- write register (flags or POP reg) address
 		W_next, -- next cycle value of W_reg
@@ -138,9 +137,9 @@ BEGIN
 		B_val,  -- current value of B_reg
 		Flags,  -- current value of Flags Register
 		R);     -- FPGA LED output (not accessible on the CPU)
-	-- A_reg, the ALU accumulator, is set to the first operand in all
-	-- instruction types, except for stack operations where it's set to the
-	-- stack pointer to be increased or decreased by the ALU.
+	-- A_reg is set to the first operand in all instruction types, except for
+	-- stack operations where it's set to the stack pointer to be increased or
+	-- decreased by the ALU.
 	A_reg <=
 		StackPointer WHEN isStack  ELSE
 		Instr2Reg1   WHEN op2isReg ELSE -- type 4
@@ -178,7 +177,7 @@ BEGIN
 	MemNext <=
 		B_val    WHEN isPUSH ELSE -- push the value of B_reg
 		Adjacent WHEN isCALL ELSE -- push the RETURN address
-		A_val;                    -- store the value of Instr1Reg
+		A_val;                    -- store the value of A_reg
 	-------------------------------------------------------------------
 	-- Program flow control
 	-------------------------------------------------------------------
@@ -186,7 +185,7 @@ BEGIN
 	-- to the popped data from the stack; for any other type of jump, it's set
 	-- to the direct Instr2 argument. Otherwise, it's increased by the current
 	-- instruction size.
-	ProgramCounter : ENTITY work.DFF8 PORT MAP(CLK, PCnext, PC);
+	PC_DFF : ENTITY work.DFF8 PORT MAP (CLK, PCnext, PC);
 	PCnext <=
 		x"00"  WHEN Reset         ELSE
 		PC     WHEN isHLT OR Halt ELSE -- HLT applies on the current cycle
@@ -202,5 +201,5 @@ BEGIN
 	Size <=
 		x"01" WHEN isHLT OR isNOP OR isRETURN OR isSHIFT OR isPUSH OR isPOP ELSE
 		x"02";
-	PC_Incrementor : ENTITY work.FA8 PORT MAP(PC, Size, '0', Adjacent);
+	PC_Incrementor : ENTITY work.FA8 PORT MAP (PC, Size, '0', Adjacent);
 END;

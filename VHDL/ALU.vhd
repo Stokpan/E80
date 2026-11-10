@@ -2,7 +2,7 @@
 -- E80 Arithmetic Logic Unit
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 -- Performs addition, subtraction, rotation, and logical operations.
--- The calculated result and/or flags is discarded in some operations.
+-- The calculated result and/or flags are discarded in some operations.
 -----------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL;
@@ -26,32 +26,32 @@ ARCHITECTURE a1 OF ALU IS
 	SIGNAL Sum_C, Sum_V : STD_LOGIC;
 	-- Barrel shifter output
 	SIGNAL Rotated : WORD;
-    -- Result signals (assigned to ALUout/FlagsOut or ignored)
+	-- Result signals (assigned to ALUout/FlagsOut or ignored)
 	SIGNAL Result : WORD;
 	SIGNAL C, Z, S, V : STD_LOGIC;
 BEGIN
 	-----------------------------------+------------------------------+------+
 	-- ALUop Decoder                   | ALUout                       | CZSV |
 	-----------------------------------+------------------------------+------+
-	isADD    <= match(ALUop,"0010"); --| A + B                        | **** | 
-	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** | 
+	isADD    <= match(ALUop,"0010"); --| A + B                        | **** |
+	isSUB    <= match(ALUop,"-011"); --| A - B (includes CMP)         | **** |
 	isAND    <= match(ALUop,"-100"); --| A AND B (includes BIT)       |  **  |
 	isOR     <= match(ALUop,"0101"); --| A OR B                       |  **  |
 	isXOR    <= match(ALUop,"0110"); --| A XOR B                      |  **  |
-	isROR    <= match(ALUop,"0111"); --| A rotated by B mod 8 bits    |  **  |         
-	isLSHIFT <= match(ALUop,"1010"); --| A << 1, C ← A(7), V ← S flip | **** | 
+	isROR    <= match(ALUop,"0111"); --| A rotated by B mod 8 bits    |  **  |
+	isLSHIFT <= match(ALUop,"1010"); --| A << 1, C ← A(7), V ← S flip | **** |
 	isCMP    <= match(ALUop,"1011"); --| SUB, discard result          | **** |
 	isBIT    <= match(ALUop,"1100"); --| AND, discard result          |  **  |
-	isRSHIFT <= match(ALUop,"1101"); --| A >> 1, C ← A(0), V ← S flip | **** | 
-	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      | 
-	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      | 
+	isRSHIFT <= match(ALUop,"1101"); --| A >> 1, C ← A(0), V ← S flip | **** |
+	isDCR    <= match(ALUop,"1110"); --| A - 1 (PUSH, CALL)           |      |
+	isINR    <= match(ALUop,"1111"); --| A + 1 (POP, RETURN)          |      |
 	CZSV     <= isADD OR isSUB OR isRSHIFT OR isLSHIFT;
 	ZS       <= isINR NOR isDCR;
 	-------------------------------------------------------------------
 	-- Adder / Subtractor
 	-------------------------------------------------------------------
 	AdderB <= B WHEN isDCR NOR isINR ELSE x"01";
-	Adder : ENTITY work.FA8 PORT MAP(
+	Adder : ENTITY work.FA8 PORT MAP (
 		A,
 		AdderB,
 		isSUB OR isDCR, -- 1 = subtraction (includes CMP)

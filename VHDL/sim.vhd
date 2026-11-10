@@ -27,7 +27,7 @@ BEGIN
 	Reset <= '0' AFTER 120 ps;
 	Instr1 <= RAM(int(PC));
 	Instr2 <= RAM(int(PC)+1);
-	Computer: ENTITY work.Computer PORT MAP(
+	Computer: ENTITY work.Computer PORT MAP (
 		CLK,
 		Reset,
 		DIPinput,
