@@ -3,8 +3,10 @@
 -- Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 -- Runs the E80 Computer on a simulated clock after a short reset.
 -- Gates the clock to low on Halt to end simulation on GHDL.
--- Generates a .MONITOR vector to display as an ASCII row.
--- Generates a .MONITOR array to display as 8 binary rows.
+-- Shows the instruction being executed from the RAM, in addition to the
+-- PC and Registers provided by the Computer.
+-- Generates .MONITOR as 64 bit vector to show in an ASCII row and as
+-- an 8x8 bit array to show in 8 binary rows.
 -----------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL, work.support.ALL, work.program.ALL;
@@ -25,8 +27,8 @@ BEGIN
 	Halt <= R(6)(0);
 	CLK <= '0' AFTER 50 ps WHEN CLK OR Halt ELSE '1' AFTER 50 ps;
 	Reset <= '0' AFTER 120 ps;
-	Instr1 <= RAM(int(PC));
-	Instr2 <= RAM(int(PC)+1);
+	Instr1 <= RAM(int(PC));                                 -- from RAM.vhd
+	Instr2 <= RAM(int(PC)+1) WHEN int(PC) < 255 ELSE x"UU"; -- from RAM.vhd
 	Computer: ENTITY work.Computer PORT MAP (
 		CLK,
 		Reset,

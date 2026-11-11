@@ -23,12 +23,12 @@ ENTITY RAM IS PORT (
 	RAM        : OUT WORDx256  -- RAM storage (+ LED display)
 ); END;
 ARCHITECTURE a1 OF RAM IS
-	SIGNAL intPC, intMemAddr : NATURAL RANGE 0 TO 255;
+	SIGNAL intPC, intMemAddr : NATURAL;
 BEGIN
 	intPC <= int(PC);
 	intMemAddr <= int(MemAddr);
 	Instr1 <= RAM(intPC);
-	Instr2 <= RAM(intPC+1);
+	Instr2 <= RAM(intPC+1) WHEN intPC < 255 ELSE x"UU"; -- RAM limit
 	Mem <= RAM(intMemAddr) WHEN NOT MemWriteEn ELSE x"UU";
 	PROCESS (CLK) BEGIN
 		IF RISING_EDGE(CLK) THEN
