@@ -2,7 +2,7 @@
 LIBRARY ieee; USE ieee.std_logic_1164.ALL, work.support.ALL;
 PACKAGE program IS
 CONSTANT SIMDIP_directive  : WORD    := "10000010";
-CONSTANT SPEED_directive   : NATURAL := 0;
+CONSTANT SPEED_directive   : NATURAL := 2;
 CONSTANT MONITOR_directive : NATURAL := 14;
 CONSTANT Program : WORDx256  := (
 0   => "00010000", 1   => "01101000",  -- 1068  MOV R0, 104

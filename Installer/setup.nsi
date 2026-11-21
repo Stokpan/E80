@@ -20,7 +20,7 @@ RequestExecutionLevel user
 ; Interface Settings
 !define MUI_ICON "e80icon.ico" 
 !define MUI_UNICON "e80icon.ico"
-!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the E80 Toolchain.$\r$\n$\r$\nThis is a portable installation that includes all requirements for simulation, and settings for FPGA boards.$\r$\n$\r$\nNote: ModelSim and FPGA suites such as Gowin or the OSS CAD Suite are not included and must be installed separately.$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the E80 Toolchain.$\r$\n$\r$\nThis is a portable installation that includes all requirements for simulation, and settings for FPGA boards.$\r$\n$\r$\nNote: EDA software such as Quartus must be installed separately.$\r$\n$\r$\nClick Next to continue."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Avoid spaces or non-ASCII characters in the installation path, especially if you intend to synthesize with Quartus."
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
@@ -97,7 +97,7 @@ Section "Portable requirements" SecCore
 	WriteRegStr HKCU "${REG_UNINSTALL}" "InstallLocation" "$INSTDIR"
 	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayIcon" "$INSTDIR\e80icon.ico"
 	WriteRegStr HKCU "${REG_UNINSTALL}" "Publisher" "Panos Stokas"
-	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayVersion" "4.2"
+	WriteRegStr HKCU "${REG_UNINSTALL}" "DisplayVersion" "4.5"
 	WriteRegDWORD HKCU "${REG_UNINSTALL}" "NoModify" 1
 	WriteRegDWORD HKCU "${REG_UNINSTALL}" "NoRepair" 1
 	; Show the total size of the installed files in Programs and Features (or whatever name Microsoft chooses for the installed programs list)

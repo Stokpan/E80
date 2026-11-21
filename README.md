@@ -25,7 +25,7 @@
 * **Assembly syntax**: Hybrid of ARM, x86, and textbook pseudocode
 * **Assembler**: Written in ISO C99, using stdin/stdout/stderr only; emits a formatted and annotated Program.vhd package
 * **Toolchain**: Based on the Sc1 editor with syntax coloring and Lua / batch scripts; F5 assembles and simulates in GHDL/GTKWave; F7 dumps Program.vhd; F8 assembles and simulates in ModelSim
-* **Board presets**: Sipeed Tang Primer 25K (Gowin), HOU DSD-i1 Cyclone IV (Quartus), Olimex GateMateA1 (OSS CAD Suite, run by a custom script)
+* **Board presets**: Sipeed Tang Primer 25K (Gowin), generic Cyclone IV (Quartus), Olimex GateMateA1 (OSS CAD Suite, run by a custom script)
 * **Verification**: ISA compliance suite (76 checks), nth Fibonacci with Dijkstra's recursive method, and the LC-3 textbook maze escape
 
 ## Instruction Set Architecture
@@ -185,7 +185,6 @@ The following program is `hello.e80asm`, which ships with the toolchain to show 
 
 ```
 .TITLE "A simple program to showcase the features of E80 assembly"
-.SPEED 0                ; requires step execution on hardware
 .LABEL h 104            ; ASCII code of h
 .SIMDIP 0b10000010      ; simulated DIP switch
 .DATA string "jello",0  ; null-terminated
@@ -236,7 +235,7 @@ Step-by-step instructions and settings are provided for the following boards (an
 <table><tr align="center">
 <th><a href="Boards/Gowin_TangPrimer25K/README.md">Tang Primer 25K (Gowin)<br><img src="Boards/Gowin_TangPrimer25K/TangPrimer25K.jpg" width="250"></a></th>
 <th><a href="Boards/Yosys_GateMateA1/README.md">GateMateA1 (OSS CAD Suite)<br><img src="Boards/Yosys_GateMateA1/GateMateA1-EVB.jpg" width="250"></a></th>
-<th><a href="Boards/Quartus_DSDi1/README.md">HOU DSD-i1 (Quartus)<br><img src="Boards/Quartus_DSDi1/DSD-i1.jpg" width="250"></a></th>
+<th><a href="Boards/Quartus_CycloneIV/README.md">Generic Cyclone IV (Quartus)<br><img src="Boards/Quartus_CycloneIV/GenericCycloneIV.jpg" width="250"></a></th>
 </tr></table>
 
 _The photos showcase the completed execution of `hello.e80asm`; Quartus and Gowin initialize undefined spaces to zero but Yosys does not. This is a desirable trait for the educational purposes of this project._
@@ -286,9 +285,7 @@ Start the E80 Editor, open `Assembler\hello.e80asm` and hit F5 to assemble and s
 <br><img src="Images/Hardware/GTKwave.png">
 <br>_`hello.e80asm` on GHDL+GTKWave with vectors set to binary to provide a direct comparison with the execution state display._
 
-You can now follow the board-specific instructions from the previous section to compile the project on your EDA and run it on your hardware. Because of the `.SPEED 0` directive, execution holds unless you increase speed or use the Pause button to execute step-by-step. Try the latter while comparing the LED display with the simulated results on GTKWave:
+You can now follow the board-specific instructions from the previous section to compile the project on your EDA and run the program. To execute it step-by-step, press Left until the speed level is 0, press Reset to restart it, and then press Pause for each step, comparing the LED display with the simulated results on GTKWave.
 <br>
 <br><img src="Images/Hardware/LEDmatrix.png">
-<br>_`hello.e80asm` execution state shown on the 4x8x8 LED display with Speed manually set to ~1 Hz._
-
-The program will stop when the Halt flag turns on (leftmost row #7, LED #8). You can now set speed to a higher level and press Reset to restart execution.
+<br>_`hello.e80asm` final execution state shown on the 4x8x8 LED display._

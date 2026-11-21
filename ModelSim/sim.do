@@ -1,6 +1,9 @@
 # E80 ModelSim simulation and layout TCL script
 # Copyright (C) 2026 Panos Stokas <panos.stokas@hotmail.com>
 
+# Equivalent to @echo off, to reduce verbosity on the log pane
+transcript quietly
+
 # Stop previous simulation
 quit -sim
 
@@ -8,12 +11,12 @@ quit -sim
 project open e80.mpf
 .main clear
 
-# Compile all files, simulate (quietly = no log output)
-quietly project compileall
+# Compile all files & simulate the top unit (sim.vhd)
+project compileall
 vsim -quiet work.sim
 
-# Switch to the project window and clear transcript window
-quietly view project
+# Switch to the project tab
+view project
 
 # Add signal waves (no need to WaveActivateNextPane {} 0)
 add wave -noupdate /sim/CLK
@@ -53,22 +56,19 @@ configure wave -signalnamewidth 1
 configure wave -rowmargin 4
 configure wave -gridperiod 100
 configure wave -timelineunits ps
-quietly set PrefSource(OpenOnBreak) 0
+set PrefSource(OpenOnBreak) 0
 
-# Stop simulation when the Halt flag is raised
+# Fine-tune zoom to fit 3 digits in a cycle and show waves
+wave zoom range 0 4400
+view wave
+
+# Stop simulation when the Halt flag is raised; onbreak is needed
+# for older ModelSim to prevent breaking listener.do
+onbreak {resume}
 when {/sim/Halt=='1'} {
 	stop
 	echo "Halt detected"
 }
 
-# Run the simulation (100ns max or until Halt)
-quietly run 100ns
-
-# Fine-tune zoom to fit 3 digits in a cycle and show waves
-quietly wave zoom range 0 4400
-quietly view wave
-
-# Output the RAM content (32 columns) to the transcript window
-echo "# RAM   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31"
-echo "#      -----------------------------------------------------------------------------------------------"
-mem display -dataradix hexadecimal -wo 32 /sim/RAM
+# Run the simulation (100ns max)
+run 100ns

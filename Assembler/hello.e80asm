@@ -1,5 +1,4 @@
 .TITLE "A simple program to showcase the features of E80 assembly"
-.SPEED 0                ; requires step execution on hardware
 .LABEL h 104            ; ASCII code of h
 .SIMDIP 0b10000010		; simulated DIP switch
 .DATA string "jello",0	; null-terminated
