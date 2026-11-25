@@ -3,7 +3,7 @@
 
 [dumpfile] "sim.ghw"
 [savefile] "sim.gtkw"
-[size] 900 553
+[size] 900 555
 [pos] -1 -1
 *-19.5
 [signals_width] 163
